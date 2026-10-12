@@ -23,7 +23,7 @@ namespace VentasOnline.Forms
         private void FrmCategorias_Load(object sender, EventArgs e)
         {
             CargarGrilla();
-            LimpiarFormulario();
+            //LimpiarFormulario();
         }
 
         // Cargar datos en la grilla desde el servicio
@@ -144,6 +144,11 @@ namespace VentasOnline.Forms
             {
                 dgvCategorias.ClearSelection();
             }
+        }
+
+        private void txtDescripcion_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

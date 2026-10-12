@@ -12,7 +12,7 @@ namespace VentasOnline.Models
         [MaxLength(50)]
         public string Nombre { get; set; }
         [MaxLength(300)]
-        public string Descripcion { get; set; }
+        public string? Descripcion { get; set; }
 
         // Propiedad de navegación de colección
         public List<Producto> Productos { get; set; } = new();

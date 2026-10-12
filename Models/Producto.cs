@@ -9,6 +9,7 @@ namespace VentasOnline.Models
     public class Producto
     {
         public int Id { get; set; }
+        [ForeignKey("Categoria")]
         public int IdCategoria { get; set; }
         public Categoria Categoria { get; set; }
         [Required]

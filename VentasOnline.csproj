@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+    <Folder Include="Images\" />
     <Folder Include="Scripts\" />
   </ItemGroup>
 

@@ -122,9 +122,9 @@
             txtDescripcion.Location = new Point(16, 180);
             txtDescripcion.Multiline = true;
             txtDescripcion.Name = "txtDescripcion";
-            txtDescripcion.ReadOnly = true;
             txtDescripcion.Size = new Size(260, 90);
             txtDescripcion.TabIndex = 5;
+            txtDescripcion.TextChanged += txtDescripcion_TextChanged;
             // 
             // label3
             // 
@@ -140,7 +140,6 @@
             txtNombre.Location = new Point(16, 114);
             txtNombre.MaxLength = 100;
             txtNombre.Name = "txtNombre";
-            txtNombre.ReadOnly = true;
             txtNombre.Size = new Size(265, 27);
             txtNombre.TabIndex = 3;
             // 
@@ -181,7 +180,7 @@
             MaximizeBox = false;
             Name = "FrmCategorias";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Gestión de Categorías";
+            Text = "FrmCategorías";
             Load += FrmCategorias_Load;
             ((System.ComponentModel.ISupportInitialize)dgvCategorias).EndInit();
             panel1.ResumeLayout(false);

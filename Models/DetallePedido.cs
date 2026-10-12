@@ -9,8 +9,10 @@ namespace VentasOnline.Models
     public class DetallePedido
     {
         public int Id { get; set; }
+        [ForeignKey("Pedido")]
         public int IdPedido { get; set; }
         public Pedido Pedido { get; set; }
+        [ForeignKey("Producto")]
         public int IdProducto { get; set; }
         public Producto Producto { get; set; }
         [Required]
