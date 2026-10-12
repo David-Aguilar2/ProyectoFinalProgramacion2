@@ -9,10 +9,12 @@ namespace VentasOnline.Models
     public class Pedido
     {
         public int Id { get; set; }
+        [ForeignKey("Cliente")]
         public int IdCliente { get; set; }
         public Cliente Cliente { get; set; }
-        public int IdVendedor { get; set; }
-        public Vendedor Vendedor { get; set; }
+        [ForeignKey("Usuario")]
+        public int IdUsuario { get; set; }
+        public Usuario Usuario { get; set; }
         public DateTime Fecha { get; set; }
         [Required]
         [MaxLength(20)]

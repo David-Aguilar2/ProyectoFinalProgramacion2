@@ -10,9 +10,7 @@ namespace VentasOnline.Data
     public class AppDbContext : DbContext
     {
         public DbSet<Usuario> Usuarios { get; set; }
-        public DbSet<Administrador> Administradores { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
-        public DbSet<Vendedor> Vendedores { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Direccion> Direcciones { get; set; }
@@ -39,36 +37,31 @@ namespace VentasOnline.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Usuario>()
-                .HasOne(u => u.Administrador)
-                .WithOne(a => a.Usuario)
-                .HasForeignKey<Administrador>(a => a.IdUsuario)
+            // Relación 1 a Muchos: Cliente -> Direcciones
+            // Un cliente puede tener múltiples direcciones de envío registradas
+            modelBuilder.Entity<Direccion>()
+                .HasOne(d => d.Cliente)
+                .WithMany(c => c.Direcciones)
+                .HasForeignKey(d => d.IdCliente)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Usuario>()
-                .HasOne(u => u.Cliente)
-                .WithOne(c => c.Usuario)
-                .HasForeignKey<Cliente>(c => c.IdUsuario)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Usuario>()
-                .HasOne(u => u.Vendedor)
-                .WithOne(v => v.Usuario)
-                .HasForeignKey<Vendedor>(v => v.IdUsuario)
-                .OnDelete(DeleteBehavior.Cascade);
-
+            // Relación 1 a Muchos: Cliente -> Pedidos
+            // Restricción de borrado para proteger el historial de compras
             modelBuilder.Entity<Pedido>()
                 .HasOne(p => p.Cliente)
                 .WithMany(c => c.Pedidos)
                 .HasForeignKey(p => p.IdCliente)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Relación 1 a Muchos: Usuario (Vendedor/Admin) -> Pedidos
+            // Reemplaza la antigua relación con la tabla Vendedor
             modelBuilder.Entity<Pedido>()
-                .HasOne(p => p.Vendedor)
-                .WithMany(v => v.Pedidos)
-                .HasForeignKey(p => p.IdVendedor)
+                .HasOne(p => p.Usuario)
+                .WithMany(u => u.Pedidos)
+                .HasForeignKey(p => p.IdUsuario)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Relaciones de DetallePedido (Tabla Intermedia)
             modelBuilder.Entity<DetallePedido>()
                 .HasOne(dp => dp.Pedido)
                 .WithMany(p => p.DetallesPedidos)
@@ -81,6 +74,7 @@ namespace VentasOnline.Data
                 .HasForeignKey(dp => dp.IdProducto)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Relaciones de Envío con Courier Externo
             modelBuilder.Entity<Envio>()
                 .HasOne(e => e.Pedido)
                 .WithMany(p => p.Envios)
@@ -99,16 +93,12 @@ namespace VentasOnline.Data
                 {
                     Id = 1,
                     Nombre = "Administrador Principal",
-                    Correo = "admin@mitiandapos.sv",
+                    Correo = "admin@tiendaOnline.sv",
                     Password = "Admin123!",
                     Telefono = "70000000",
+                    Rol = "Administrador",
                     FechaRegistro = new DateTime(2026, 1, 1)
                 }
-            );
-
-            //Vinculación del Usuario como Administrador
-            modelBuilder.Entity<Administrador>().HasData(
-                new Administrador { Id = 1, IdUsuario = 1 }
             );
         }
     }

@@ -21,11 +21,11 @@ namespace VentasOnline.Models
         [Required]
         [MaxLength(15)]
         public string Telefono { get; set; }
+        public string Rol { get; set; } = "Vendedor";
         public DateTime FechaRegistro { get; set; }
 
-        // Propiedades de navegación (Relaciones 1 a 1 opcionales según el rol)
-        public Administrador? Administrador { get; set; }
-        public Cliente? Cliente { get; set; }
-        public Vendedor? Vendedor { get; set; }
+        // Propiedades de navegación
+        public List<Pedido> Pedidos { get; set; } = new();
+
     }
 }

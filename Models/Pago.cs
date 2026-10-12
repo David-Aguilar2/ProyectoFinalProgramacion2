@@ -9,6 +9,7 @@ namespace VentasOnline.Models
     public class Pago
     {
         public int Id { get; set; }
+        [ForeignKey("Pedido")]
         public int IdPedido { get; set; }
         public Pedido Pedido { get; set; }
         [Required]

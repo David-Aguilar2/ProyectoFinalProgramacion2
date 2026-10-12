@@ -22,32 +22,6 @@ namespace VentasOnline.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("VentasOnline.Models.Administrador", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IdUsuario")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdUsuario")
-                        .IsUnique();
-
-                    b.ToTable("Administradores");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            IdUsuario = 1
-                        });
-                });
-
             modelBuilder.Entity("VentasOnline.Models.Categoria", b =>
                 {
                     b.Property<int>("Id")
@@ -57,7 +31,6 @@ namespace VentasOnline.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Descripcion")
-                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
@@ -79,13 +52,21 @@ namespace VentasOnline.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("IdUsuario")
-                        .HasColumnType("int");
+                    b.Property<string>("Correo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("IdUsuario")
-                        .IsUnique();
 
                     b.ToTable("Clientes");
                 });
@@ -130,15 +111,12 @@ namespace VentasOnline.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ClienteId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Departamento")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("IdUsuario")
+                    b.Property<int>("IdCliente")
                         .HasColumnType("int");
 
                     b.Property<string>("Ubicacion")
@@ -146,14 +124,9 @@ namespace VentasOnline.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ClienteId");
-
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("IdCliente");
 
                     b.ToTable("Direcciones");
                 });
@@ -165,6 +138,11 @@ namespace VentasOnline.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("EmpresaTransporte")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Estado")
                         .IsRequired()
@@ -179,6 +157,11 @@ namespace VentasOnline.Migrations
 
                     b.Property<int>("IdPedido")
                         .HasColumnType("int");
+
+                    b.Property<string>("NumeroSeguimiento")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -216,12 +199,9 @@ namespace VentasOnline.Migrations
                     b.Property<decimal>("Monto")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("PedidoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("PedidoId");
+                    b.HasIndex("IdPedido");
 
                     b.ToTable("Pagos");
                 });
@@ -248,7 +228,7 @@ namespace VentasOnline.Migrations
                     b.Property<int>("IdCliente")
                         .HasColumnType("int");
 
-                    b.Property<int>("IdVendedor")
+                    b.Property<int>("IdUsuario")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Total")
@@ -258,7 +238,7 @@ namespace VentasOnline.Migrations
 
                     b.HasIndex("IdCliente");
 
-                    b.HasIndex("IdVendedor");
+                    b.HasIndex("IdUsuario");
 
                     b.ToTable("Pedidos");
                 });
@@ -270,9 +250,6 @@ namespace VentasOnline.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CategoriaId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -301,14 +278,9 @@ namespace VentasOnline.Migrations
                     b.Property<int>("Stock")
                         .HasColumnType("int");
 
-                    b.Property<int?>("VendedorId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoriaId");
-
-                    b.HasIndex("VendedorId");
+                    b.HasIndex("IdCategoria");
 
                     b.ToTable("Productos");
                 });
@@ -339,6 +311,10 @@ namespace VentasOnline.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Telefono")
                         .IsRequired()
                         .HasMaxLength(15)
@@ -352,53 +328,13 @@ namespace VentasOnline.Migrations
                         new
                         {
                             Id = 1,
-                            Correo = "admin@mitiandapos.sv",
+                            Correo = "admin@tiendaOnline.sv",
                             FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "Administrador Principal",
                             Password = "Admin123!",
+                            Rol = "Administrador",
                             Telefono = "70000000"
                         });
-                });
-
-            modelBuilder.Entity("VentasOnline.Models.Vendedor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IdUsuario")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdUsuario")
-                        .IsUnique();
-
-                    b.ToTable("Vendedores");
-                });
-
-            modelBuilder.Entity("VentasOnline.Models.Administrador", b =>
-                {
-                    b.HasOne("VentasOnline.Models.Usuario", "Usuario")
-                        .WithOne("Administrador")
-                        .HasForeignKey("VentasOnline.Models.Administrador", "IdUsuario")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("VentasOnline.Models.Cliente", b =>
-                {
-                    b.HasOne("VentasOnline.Models.Usuario", "Usuario")
-                        .WithOne("Cliente")
-                        .HasForeignKey("VentasOnline.Models.Cliente", "IdUsuario")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("VentasOnline.Models.DetallePedido", b =>
@@ -422,17 +358,13 @@ namespace VentasOnline.Migrations
 
             modelBuilder.Entity("VentasOnline.Models.Direccion", b =>
                 {
-                    b.HasOne("VentasOnline.Models.Cliente", null)
+                    b.HasOne("VentasOnline.Models.Cliente", "Cliente")
                         .WithMany("Direcciones")
-                        .HasForeignKey("ClienteId");
-
-                    b.HasOne("VentasOnline.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
+                        .HasForeignKey("IdCliente")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Usuario");
+                    b.Navigation("Cliente");
                 });
 
             modelBuilder.Entity("VentasOnline.Models.Envio", b =>
@@ -458,7 +390,7 @@ namespace VentasOnline.Migrations
                 {
                     b.HasOne("VentasOnline.Models.Pedido", "Pedido")
                         .WithMany("Pagos")
-                        .HasForeignKey("PedidoId")
+                        .HasForeignKey("IdPedido")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -473,41 +405,26 @@ namespace VentasOnline.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("VentasOnline.Models.Vendedor", "Vendedor")
+                    b.HasOne("VentasOnline.Models.Usuario", "Usuario")
                         .WithMany("Pedidos")
-                        .HasForeignKey("IdVendedor")
+                        .HasForeignKey("IdUsuario")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Cliente");
 
-                    b.Navigation("Vendedor");
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("VentasOnline.Models.Producto", b =>
                 {
                     b.HasOne("VentasOnline.Models.Categoria", "Categoria")
                         .WithMany("Productos")
-                        .HasForeignKey("CategoriaId")
+                        .HasForeignKey("IdCategoria")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("VentasOnline.Models.Vendedor", null)
-                        .WithMany("Productos")
-                        .HasForeignKey("VendedorId");
 
                     b.Navigation("Categoria");
-                });
-
-            modelBuilder.Entity("VentasOnline.Models.Vendedor", b =>
-                {
-                    b.HasOne("VentasOnline.Models.Usuario", "Usuario")
-                        .WithOne("Vendedor")
-                        .HasForeignKey("VentasOnline.Models.Vendedor", "IdUsuario")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("VentasOnline.Models.Categoria", b =>
@@ -543,18 +460,7 @@ namespace VentasOnline.Migrations
 
             modelBuilder.Entity("VentasOnline.Models.Usuario", b =>
                 {
-                    b.Navigation("Administrador");
-
-                    b.Navigation("Cliente");
-
-                    b.Navigation("Vendedor");
-                });
-
-            modelBuilder.Entity("VentasOnline.Models.Vendedor", b =>
-                {
                     b.Navigation("Pedidos");
-
-                    b.Navigation("Productos");
                 });
 #pragma warning restore 612, 618
         }

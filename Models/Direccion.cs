@@ -9,8 +9,9 @@ namespace VentasOnline.Models
     public class Direccion
     {
         public int Id { get; set; }
-        public int IdUsuario { get; set; }
-        public Usuario Usuario { get; set; }
+        [ForeignKey("Cliente")]
+        public int IdCliente { get; set; }
+        public Cliente Cliente { get; set; }
         [Required]
         [MaxLength(100)]
         public string Departamento { get; set; }
