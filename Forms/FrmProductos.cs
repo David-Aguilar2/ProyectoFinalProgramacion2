@@ -60,8 +60,12 @@ namespace VentasOnline.Forms
         {
             try
             {
+<<<<<<< HEAD
                 var lista = _productoService.ObtenerTodos().Select(p => new
                 {
+=======
+                var lista = _productoService.ObtenerTodos().Select(p => new {
+>>>>>>> d280a4174226d1160609e7b281e0967cdf21e601
                     p.Id,
                     Categoria = p.Categoria?.Nombre ?? "Sin Categoría", // Muestra el nombre directamente
                     p.Nombre,
@@ -330,9 +334,12 @@ namespace VentasOnline.Forms
             return nombreArchivoUnico;
         }
 
+<<<<<<< HEAD
         private void dgvProductos_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
         }
+=======
+>>>>>>> d280a4174226d1160609e7b281e0967cdf21e601
     }
 }

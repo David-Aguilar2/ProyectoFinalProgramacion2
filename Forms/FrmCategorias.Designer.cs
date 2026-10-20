@@ -169,7 +169,11 @@
             txtDescripcion.Location = new Point(22, 180);
             txtDescripcion.Multiline = true;
             txtDescripcion.Name = "txtDescripcion";
+<<<<<<< HEAD
             txtDescripcion.Size = new Size(347, 96);
+=======
+            txtDescripcion.Size = new Size(260, 90);
+>>>>>>> d280a4174226d1160609e7b281e0967cdf21e601
             txtDescripcion.TabIndex = 5;
             txtDescripcion.TextChanged += txtDescripcion_TextChanged;
             // 
@@ -189,7 +193,11 @@
             txtNombre.Location = new Point(22, 105);
             txtNombre.MaxLength = 100;
             txtNombre.Name = "txtNombre";
+<<<<<<< HEAD
             txtNombre.Size = new Size(347, 32);
+=======
+            txtNombre.Size = new Size(265, 27);
+>>>>>>> d280a4174226d1160609e7b281e0967cdf21e601
             txtNombre.TabIndex = 3;
             // 
             // label2
@@ -279,7 +287,11 @@
             MaximizeBox = false;
             Name = "FrmCategorias";
             StartPosition = FormStartPosition.CenterScreen;
+<<<<<<< HEAD
             Text = "FrmCategorías - SivarPOS";
+=======
+            Text = "FrmCategorías";
+>>>>>>> d280a4174226d1160609e7b281e0967cdf21e601
             Load += FrmCategorias_Load;
             ((System.ComponentModel.ISupportInitialize)dgvCategorias).EndInit();
             panel1.ResumeLayout(false);
