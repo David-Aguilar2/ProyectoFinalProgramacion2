@@ -13,6 +13,7 @@ namespace VentasOnline.Forms
     public partial class FrmCategorias : Form
     {
         private readonly CategoriaService _categoriaService;
+        private int _idSeleccionado = 0;
 
         public FrmCategorias()
         {
@@ -50,7 +51,7 @@ namespace VentasOnline.Forms
         {
             if (dgvCategorias.CurrentRow?.DataBoundItem is Categoria seleccionada)
             {
-                txtId.Text = seleccionada.Id.ToString();
+                _idSeleccionado = seleccionada.Id;
                 txtNombre.Text = seleccionada.Nombre;
                 txtDescripcion.Text = seleccionada.Descripcion;
             }
@@ -74,18 +75,20 @@ namespace VentasOnline.Forms
                     Descripcion = txtDescripcion.Text.Trim()
                 };
 
-                if (string.IsNullOrEmpty(txtId.Text))
+                if (_idSeleccionado == 0)
                 {
                     // Crear
                     _categoriaService.Crear(categoria);
                     MessageBox.Show("Categoría creada exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LimpiarFormulario();
                 }
                 else
                 {
                     // Actualizar
-                    categoria.Id = int.Parse(txtId.Text);
+                    categoria.Id = _idSeleccionado;
                     _categoriaService.Actualizar(categoria);
                     MessageBox.Show("Categoría actualizada exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LimpiarFormulario();
                 }
 
                 CargarGrilla();
@@ -100,13 +103,11 @@ namespace VentasOnline.Forms
         // Botón Eliminar
         private void btnEliminar_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtId.Text))
+            if (_idSeleccionado == 0)
             {
                 MessageBox.Show("Seleccione una categoría de la lista para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-
-            int id = int.Parse(txtId.Text);
 
             var confirmacion = MessageBox.Show($"¿Está seguro de eliminar la categoría '{txtNombre.Text}'?",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -115,7 +116,7 @@ namespace VentasOnline.Forms
             {
                 try
                 {
-                    _categoriaService.Eliminar(id);
+                    _categoriaService.Eliminar(_idSeleccionado);
                     MessageBox.Show("Categoría eliminada correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     CargarGrilla();
@@ -132,12 +133,13 @@ namespace VentasOnline.Forms
         private void btnCancelar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
+            Close();
         }
 
         // Limpiar cajas de texto y selección
         private void LimpiarFormulario()
         {
-            txtId.Clear();
+            _idSeleccionado = 0;
             txtNombre.Clear();
             txtDescripcion.Clear();
             if (dgvCategorias.Rows.Count > 0)

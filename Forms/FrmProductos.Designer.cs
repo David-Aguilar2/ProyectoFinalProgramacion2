@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle9 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle10 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             panel1 = new Panel();
             button1 = new Button();
             txtImagen = new TextBox();
@@ -39,6 +39,7 @@
             numericPrecio = new NumericUpDown();
             label5 = new Label();
             label4 = new Label();
+            cmbCategoria = new ComboBox();
             btnCancelar = new Button();
             btnEliminar = new Button();
             btnGuardar = new Button();
@@ -47,14 +48,11 @@
             label3 = new Label();
             txtNombre = new TextBox();
             label2 = new Label();
-            txtId = new TextBox();
-            label1 = new Label();
             logoLabel = new Label();
             desktopLabel = new Label();
-            previewLabel = new Label();
-            previewLine = new Panel();
             dgvProductos = new DataGridView();
-            cmbCategoria = new ComboBox();
+            label1 = new Label();
+            cmbProveedor = new ComboBox();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericStock).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericPrecio).BeginInit();
@@ -65,6 +63,8 @@
             // 
             panel1.BackColor = Color.White;
             panel1.BorderStyle = BorderStyle.FixedSingle;
+            panel1.Controls.Add(label1);
+            panel1.Controls.Add(cmbProveedor);
             panel1.Controls.Add(button1);
             panel1.Controls.Add(txtImagen);
             panel1.Controls.Add(label7);
@@ -82,8 +82,6 @@
             panel1.Controls.Add(label3);
             panel1.Controls.Add(txtNombre);
             panel1.Controls.Add(label2);
-            panel1.Controls.Add(txtId);
-            panel1.Controls.Add(label1);
             panel1.Location = new Point(779, 21);
             panel1.Name = "panel1";
             panel1.Size = new Size(330, 651);
@@ -162,11 +160,21 @@
             // 
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI", 13F);
-            label4.Location = new Point(15, 70);
+            label4.Location = new Point(15, -1);
             label4.Name = "label4";
             label4.Size = new Size(112, 30);
             label4.TabIndex = 11;
             label4.Text = "Categoría:";
+            // 
+            // cmbCategoria
+            // 
+            cmbCategoria.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCategoria.Font = new Font("Segoe UI", 11F);
+            cmbCategoria.FormattingEnabled = true;
+            cmbCategoria.Location = new Point(15, 32);
+            cmbCategoria.Name = "cmbCategoria";
+            cmbCategoria.Size = new Size(294, 33);
+            cmbCategoria.TabIndex = 10;
             // 
             // btnCancelar
             // 
@@ -234,7 +242,7 @@
             txtDescripcion.Location = new Point(15, 242);
             txtDescripcion.Multiline = true;
             txtDescripcion.Name = "txtDescripcion";
-            txtDescripcion.Size = new Size(294, 80);
+            txtDescripcion.Size = new Size(294, 75);
             txtDescripcion.TabIndex = 5;
             // 
             // label3
@@ -266,25 +274,6 @@
             label2.TabIndex = 2;
             label2.Text = "Nombre:";
             // 
-            // txtId
-            // 
-            txtId.Font = new Font("Segoe UI", 11F);
-            txtId.Location = new Point(15, 37);
-            txtId.Name = "txtId";
-            txtId.ReadOnly = true;
-            txtId.Size = new Size(265, 32);
-            txtId.TabIndex = 1;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 13F);
-            label1.Location = new Point(15, 4);
-            label1.Name = "label1";
-            label1.Size = new Size(39, 30);
-            label1.TabIndex = 0;
-            label1.Text = "ID:";
-            // 
             // logoLabel
             // 
             logoLabel.AutoSize = true;
@@ -308,48 +297,28 @@
             desktopLabel.Text = "Desktop";
             desktopLabel.Click += desktopLabel_Click;
             // 
-            // previewLabel
-            // 
-            previewLabel.AutoSize = true;
-            previewLabel.BackColor = Color.FromArgb(222, 222, 222);
-            previewLabel.Font = new Font("Segoe UI", 14F);
-            previewLabel.ForeColor = Color.FromArgb(35, 35, 35);
-            previewLabel.Location = new Point(55, 113);
-            previewLabel.Name = "previewLabel";
-            previewLabel.Size = new Size(273, 32);
-            previewLabel.TabIndex = 6;
-            previewLabel.Text = "Vista Previa de Producto";
-            // 
-            // previewLine
-            // 
-            previewLine.BackColor = Color.FromArgb(190, 190, 190);
-            previewLine.Location = new Point(305, 141);
-            previewLine.Name = "previewLine";
-            previewLine.Size = new Size(325, 2);
-            previewLine.TabIndex = 7;
-            // 
             // dgvProductos
             // 
             dgvProductos.AllowUserToAddRows = false;
             dgvProductos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvProductos.BackgroundColor = Color.FromArgb(222, 222, 222);
-            dataGridViewCellStyle9.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle9.BackColor = Color.FromArgb(205, 205, 205);
-            dataGridViewCellStyle9.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle9.ForeColor = Color.FromArgb(35, 35, 35);
-            dataGridViewCellStyle9.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle9.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle9.WrapMode = DataGridViewTriState.True;
-            dgvProductos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(205, 205, 205);
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle1.ForeColor = Color.FromArgb(35, 35, 35);
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvProductos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle10.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle10.BackColor = Color.FromArgb(222, 222, 222);
-            dataGridViewCellStyle10.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle10.ForeColor = Color.FromArgb(35, 35, 35);
-            dataGridViewCellStyle10.SelectionBackColor = Color.FromArgb(55, 111, 161);
-            dataGridViewCellStyle10.SelectionForeColor = Color.White;
-            dataGridViewCellStyle10.WrapMode = DataGridViewTriState.False;
-            dgvProductos.DefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.FromArgb(222, 222, 222);
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.FromArgb(35, 35, 35);
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(55, 111, 161);
+            dataGridViewCellStyle2.SelectionForeColor = Color.White;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvProductos.DefaultCellStyle = dataGridViewCellStyle2;
             dgvProductos.EnableHeadersVisualStyles = false;
             dgvProductos.Location = new Point(21, 157);
             dgvProductos.MultiSelect = false;
@@ -362,15 +331,25 @@
             dgvProductos.CellContentClick += dgvProductos_CellContentClick;
             dgvProductos.SelectionChanged += dgvProductos_SelectionChanged;
             // 
-            // cmbCategoria
+            // label1
             // 
-            cmbCategoria.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbCategoria.Font = new Font("Segoe UI", 11F);
-            cmbCategoria.FormattingEnabled = true;
-            cmbCategoria.Location = new Point(15, 103);
-            cmbCategoria.Name = "cmbCategoria";
-            cmbCategoria.Size = new Size(294, 33);
-            cmbCategoria.TabIndex = 10;
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 13F);
+            label1.Location = new Point(15, 66);
+            label1.Name = "label1";
+            label1.Size = new Size(120, 30);
+            label1.TabIndex = 20;
+            label1.Text = "Proveedor:";
+            // 
+            // cmbProveedor
+            // 
+            cmbProveedor.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbProveedor.Font = new Font("Segoe UI", 11F);
+            cmbProveedor.FormattingEnabled = true;
+            cmbProveedor.Location = new Point(15, 99);
+            cmbProveedor.Name = "cmbProveedor";
+            cmbProveedor.Size = new Size(294, 33);
+            cmbProveedor.TabIndex = 19;
             // 
             // FrmProductos
             // 
@@ -378,8 +357,6 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
             ClientSize = new Size(1121, 684);
-            Controls.Add(previewLine);
-            Controls.Add(previewLabel);
             Controls.Add(desktopLabel);
             Controls.Add(logoLabel);
             Controls.Add(panel1);
@@ -409,8 +386,6 @@
         private Label label3;
         private TextBox txtNombre;
         private Label label2;
-        private TextBox txtId;
-        private Label label1;
         private DataGridView dgvProductos;
         private Label label4;
         private NumericUpDown numericPrecio;
@@ -422,8 +397,8 @@
         private Label label7;
         private Label logoLabel;
         private Label desktopLabel;
-        private Label previewLabel;
-        private Panel previewLine;
         private ComboBox cmbCategoria;
+        private Label label1;
+        private ComboBox cmbProveedor;
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using VentasOnline.Data;
 using VentasOnline.Forms;
 using VentasOnline.Models;
 
@@ -12,26 +13,25 @@ namespace VentasOnline
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
             Usuario usuarioAutenticado = null;
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
-            using (FrmLogin formLogin = new FrmLogin())
+            ApplicationConfiguration.Initialize();
+            try
             {
-                if (formLogin.ShowDialog() == DialogResult.OK)
-                {
-                    usuarioAutenticado = formLogin.UsuarioAutenticado;
-                }
+                Seguridad.Ejecutar(); //Completa contraseñas pendientes
             }
-
-            if (usuarioAutenticado != null)
+            catch (Exception ex)
             {
-                // Forzamos la ejecución del Menú
-                Application.Run(new Form1(usuarioAutenticado));
+                MessageBox.Show("No se pudo conectar con la base de datos.\n\n" +
+                    ex.Message, "SivarPOS", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+            using (var login = new FrmLogin())
+            {
+                if (login.ShowDialog() != DialogResult.OK)
+                    return; //si la persona agota los intentos
+            }
+            Application.Run(new FrmMenu(usuarioAutenticado)); //accedera solo cuando la sesion sea valida.
         }
     }
 }

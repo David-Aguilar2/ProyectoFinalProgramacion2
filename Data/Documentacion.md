@@ -2,26 +2,50 @@
 
 ## 1. Propósito y alcance
 
-`VentasOnline` es una aplicación de escritorio de punto de venta para gestionar usuarios, clientes, categorías, productos, pedidos, pagos y envíos. Está implementada en C# con Windows Forms; Entity Framework Core persiste los datos en SQL Server.
+`VentasOnline` es una aplicación de escritorio de punto de venta para Windows. Permite mantener catálogos de categorías, proveedores, productos, clientes y usuarios, además de registrar pedidos, sus detalles, pagos y envíos.
 
-Esta guía describe el comportamiento actual del código fuente, sus responsabilidades, reglas de negocio y ejemplos representativos. No incluye archivos `.slnx`, `.csproj`, `.resx`, `.user` ni `.sql`.
+La interfaz está implementada con Windows Forms en C#. Entity Framework Core accede a SQL Server LocalDB. Esta guía describe el código y el comportamiento que existe en el repositorio; distingue las funciones disponibles de las que todavía no están conectadas a la navegación.
 
-## 2. Componentes y tecnologías
+## 2. Tecnologías y requisitos
 
-| Componente | Responsabilidad |
+| Componente | Uso |
 |---|---|
-| `Program.cs` | Arrancar Windows Forms y exigir autenticación antes de abrir la aplicación principal. |
-| `Form1.cs` | Presentar la navegación, mostrar la sesión y abrir las pantallas funcionales. |
-| `Forms` | Implementar la interacción, carga de datos, validación de interfaz y operaciones del negocio. |
-| `Models` | Definir entidades y relaciones entre los conceptos del negocio. |
-| `Services` | Centralizar el CRUD y las reglas compartidas para categorías, clientes y productos. |
-| `Data\AppDbContext.cs` | Exponer las entidades a EF Core, configurar SQL Server y las relaciones. |
-| `Config\ConfiguracionApp.cs` | Cargar la cadena de conexión desde configuración JSON. |
-| `UI\LogoHelper.cs` | Cargar una imagen de logotipo desde el directorio de ejecución. |
+| .NET 10 para Windows | Plataforma de compilación y ejecución (`net10.0-windows`). |
+| Windows Forms | Formularios de escritorio, controles y diálogos. |
+| Entity Framework Core 10 | Mapeo objeto-relacional, consultas y migraciones. |
+| SQL Server LocalDB | Base de datos predeterminada indicada por `appsettings.json`. |
+| BCrypt.Net-Next | Creación y verificación de hashes en `AuthService`. |
+| Microsoft.Extensions.Configuration.Json | Lectura de la cadena de conexión JSON. |
 
-## 3. Configurar
+Se necesita Windows, el SDK de .NET 10, SQL Server LocalDB y acceso a la base de datos configurada. Los paquetes NuGet están declarados en `VentasOnline.csproj`.
 
-La aplicación requiere Windows y acceso a SQL Server LocalDB. La configuración actual de `appsettings.json` usa:
+## 3. Estructura del proyecto
+
+| Ruta | Responsabilidad |
+|---|---|
+| `Program.cs` | Inicializa Windows Forms, ejecuta la preparación de seguridad y abre el inicio de sesión. |
+| `FrmMenu.cs`, `FrmMenu.Designer.cs` | Ventana principal, navegación y datos del usuario en sesión. |
+| `Forms/` | Formularios de autenticación, catálogos y operaciones. Los archivos `*.Designer.cs` contienen los controles y el cableado de eventos generado por el diseñador de Windows Forms. |
+| `Models/` | Entidades persistidas y relaciones del dominio. |
+| `Dtos/LineaPedido.cs` | Elemento de trabajo que la pantalla de pedidos muestra y calcula antes de guardar. |
+| `Services/` | Acceso a datos y reglas compartidas para autenticación, catálogos, usuarios y pedidos. |
+| `Data/AppDbContext.cs` | `DbSet`, configuración de SQL Server, relaciones y datos iniciales de EF Core. |
+| `Data/Seguridad.cs` | Completa contraseñas vacías o prepara un administrador de desarrollo si la tabla no contiene usuarios. |
+| `Config/ConfiguracionApp.cs` | Carga la cadena de conexión desde `appsettings.json`. |
+| `Migrations/` | Historial de cambios del modelo y snapshot utilizado por EF Core. |
+| `Scripts/TiendaOnlineDb.sql` | Script SQL exportado de una versión inicial del esquema; no representa por sí solo el modelo actual completo. |
+| `UI/LogoHelper.cs` | Carga el logotipo desde la carpeta de imágenes de la aplicación. |
+| `Images/` | Imágenes de productos. |
+| `Properties/Resources.resx` | Recursos del proyecto compilados por Windows Forms. |
+| `appsettings.json` | Cadena de conexión predeterminada. Se copia al directorio de salida al compilar. |
+
+## 4. Configuración, base de datos y ejecución
+
+### Cadena de conexión
+
+`ConfiguracionApp.ObtenerCadenaConexion` busca primero `appsettings.json` junto al ejecutable. Si no está allí, busca en el directorio de trabajo actual. El archivo y la cadena solicitada son obligatorios; si falta el archivo o la clave, la configuración produce un error.
+
+La configuración que contiene actualmente el repositorio apunta a LocalDB:
 
 ```json
 {
@@ -31,115 +55,275 @@ La aplicación requiere Windows y acceso a SQL Server LocalDB. La configuración
 }
 ```
 
-`ConfiguracionApp` busca primero `appsettings.json` junto al ejecutable y, si no está allí, intenta cargarlo desde el directorio de trabajo actual. El archivo se considera obligatorio y se produce una excepción si falta la cadena solicitada:
+Para otro servidor se debe cambiar esa cadena por la del entorno de destino. `AppDbContext` acepta `DbContextOptions<AppDbContext>` para recibir opciones desde otro punto de composición, pero el código actual crea habitualmente el contexto sin opciones y usa la configuración anterior.
 
-```csharp
-IConfigurationRoot configuracion = new ConfigurationBuilder()
-    .SetBasePath(rutaBase)
-    .AddJsonFile(Archivo, optional: false, reloadOnChange: false)
-    .Build();
+### Migraciones y arranque
 
-return configuracion.GetConnectionString(nombre)
-    ?? throw new InvalidOperationException(
-        $"Falta la cadena '{nombre}' en {Archivo}.");
+El programa **no** ejecuta `Database.Migrate()` ni crea el esquema al arrancar. La base debe tener las tablas esperadas por el modelo antes de usar la aplicación. `Program.Main` llama `Seguridad.Ejecutar()` antes de mostrar el login; por ello, si no hay conexión o la tabla `Usuarios` no existe, el arranque muestra un error y termina.
+
+Desde la carpeta del proyecto, el flujo habitual para preparar un entorno es:
+
+```powershell
+dotnet restore
+dotnet ef database update
+dotnet build
+dotnet run
 ```
 
-El arranque no crea ni actualiza la base de datos automáticamente. La pantalla principal consulta si puede conectarse y cuenta categorías y usuarios; la base de datos debe estar previamente preparada para que las consultas de la aplicación funcionen.
+`dotnet ef` requiere que la herramienta de EF Core esté disponible en el entorno. En bases existentes, primero se debe respaldar la información y revisar las migraciones pendientes antes de aplicarlas. En particular, la migración que agrega proveedores asigna inicialmente `IdProveedor = 0` a los productos antiguos y después crea una clave foránea; una base con productos previos necesita que esos productos queden asociados a proveedores válidos antes de aplicar ese cambio, o la restricción puede impedir la migración.
 
-## 4. Arranque, autenticación y navegación
+`Scripts/TiendaOnlineDb.sql` representa el esquema de una versión inicial: contiene estructuras antiguas y no incluye el estado final actual de proveedores y usuario/pedido. Para una instalación actual se debe utilizar el modelo y las migraciones de EF Core, no asumir que ese script es equivalente a `AppDbContextModelSnapshot`.
 
-### Flujo del proceso
+### Compilar y ejecutar
 
-1. `Program.Main` configura la apariencia de Windows Forms.
-2. Presenta `FrmLogin` mediante `ShowDialog()`.
-3. Si el resultado es `DialogResult.OK`, obtiene `UsuarioAutenticado`.
-4. Solo con un usuario autenticado inicia `Form1`.
-5. Si el diálogo se cancela o se cierra sin autenticación, no se abre el formulario principal.
+El proyecto está configurado como ejecutable Windows (`WinExe`) con Windows Forms y tipos anulables habilitados:
 
-La decisión de no abrir la aplicación sin usuario se refleja en este patrón:
+```xml
+<TargetFramework>net10.0-windows</TargetFramework>
+<UseWindowsForms>true</UseWindowsForms>
+<Nullable>enable</Nullable>
+```
+
+No se encontraron proyectos de pruebas automatizadas en la solución inspeccionada. La verificación habitual disponible en el proyecto es compilarlo y probar las operaciones con una base configurada.
+
+## 5. Inicio, autenticación y sesión
+
+### Secuencia de arranque
+
+1. `ApplicationConfiguration.Initialize()` configura la aplicación WinForms.
+2. `Seguridad.Ejecutar()` comprueba la tabla de usuarios y prepara contraseñas según las reglas descritas más adelante.
+3. `FrmLogin` se muestra como diálogo. Si se cancela o se agotan los intentos, el proceso termina.
+4. `FrmLogin` inicia el estado estático `Sesion` al autenticar correctamente.
+5. Se abre `FrmMenu`; el formulario usa el usuario recibido o, si es `null`, recupera `Sesion.UsuarioActual`.
+
+El constructor del menú aplica esta alternativa de usuario:
 
 ```csharp
-using (FrmLogin formLogin = new FrmLogin())
+public FrmMenu(Usuario usuarioActual)
 {
-    if (formLogin.ShowDialog() == DialogResult.OK)
-    {
-        usuarioAutenticado = formLogin.UsuarioAutenticado;
-    }
-}
-
-if (usuarioAutenticado != null)
-{
-    Application.Run(new Form1(usuarioAutenticado));
+    _usuarioActual = usuarioActual ?? Sesion.UsuarioActual;
+    InitializeComponent();
+    ConfigurePermissions();
 }
 ```
 
-### Inicio de sesión
+En `Program.Main`, la variable local que se entrega al menú no se asigna desde `FrmLogin.UsuarioAutenticado`. El flujo actual funciona por el estado compartido que `FrmLogin` establece mediante `Sesion.Iniciar`; conservar ambas formas de pasar al usuario evitaría depender únicamente de estado estático.
 
-`FrmLogin` recorta espacios del correo, exige correo y contraseña no vacíos, consulta usuarios sin seguimiento de cambios y busca una coincidencia exacta:
+### Verificación de credenciales
+
+El login recorta espacios del correo, pero no de la contraseña. Tiene un máximo de tres intentos fallidos y presenta un mensaje genérico, sin distinguir si falló el correo o la contraseña. En la autenticación se busca al usuario por correo y BCrypt verifica la contraseña contra el hash guardado:
 
 ```csharp
-using var contexto = new AppDbContext();
-Usuario? usuario = contexto.Usuarios
+var usuario = db.Usuarios
     .AsNoTracking()
-    .FirstOrDefault(u => u.Correo == correo && u.Password == password);
+    .FirstOrDefault(u => u.Correo == correo);
 
-if (usuario is null)
-{
-    // Mostrar acceso denegado y permitir corregir la contraseña.
-    return;
-}
+if (usuario == null || string.IsNullOrEmpty(usuario.Password))
+    return null;
 
-UsuarioAutenticado = usuario;
-DialogResult = DialogResult.OK;
-Close();
+bool valida = BCrypt.Net.BCrypt.Verify(password, usuario.Password);
+return valida ? usuario : null;
 ```
 
-Si ocurre un error de base de datos o conexión, el formulario muestra el mensaje de error. Las contraseñas actualmente se comparan como texto plano; no se observa hash ni proceso de autenticación externo.
+`AuthService.GenerarHash` también ofrece la operación para generar hashes y utiliza un factor de trabajo de 11. Sin embargo, la pantalla `FrmUsuario` guarda directamente el texto de la contraseña y no llama ese método. Además, `AppDbContext` tiene un usuario semilla con contraseña en texto plano. Ambos caminos son incompatibles con la verificación BCrypt: las credenciales creadas por esos caminos pueden no permitir iniciar sesión. Esto debe corregirse antes de usar las cuentas como credenciales reales; la contraseña semilla no se reproduce en esta guía.
 
-El modelo inicial de datos define un usuario de tipo Administrador:
+### Preparación de seguridad
 
-| Campo | Valor |
-|---|---|
-| Nombre | `Administrador Principal` |
-| Correo | `admin@tiendaOnline.sv` |
-| Contraseña | `Admin123!` |
-| Teléfono | `70000000` |
-| Rol | `Administrador` |
+`Seguridad.Ejecutar` tiene dos comportamientos:
 
-### Ventana principal
+- Si `Usuarios` está vacía, agrega un administrador local con una contraseña temporal de desarrollo almacenada como hash BCrypt.
+- A los usuarios existentes cuyo campo de contraseña está vacío les asigna el hash de esa contraseña temporal.
 
-`Form1` recibe el objeto `Usuario` autenticado. Configura los colores, estados de hover y selección de botones, presenta nombre y rol en la barra lateral y abre las pantallas como diálogos modales.
+Este procedimiento no migra a BCrypt las contraseñas que ya contengan texto plano u otro valor no vacío. La contraseña temporal está escrita en el código y debe considerarse exclusiva del entorno de desarrollo; no se debe usar como contraseña de despliegue.
 
-La regla de interfaz para el botón de productos es:
+### Estado de sesión y permisos
+
+`Sesion` almacena `UsuarioActual`, ofrece `Iniciar` y `Cerrar`, y expone `EsAdministrador`. `FrmMenu.ConfigurePermissions` usa comparación de rol sin distinguir mayúsculas y minúsculas, muestra nombre y rol y deshabilita el botón de productos para usuarios que no sean administradores.
+
+La protección es solo visual: no hay autorización común en los servicios, y las pantallas pueden ser instanciadas desde código. Tampoco todos los accesos a una función están condicionados por rol en un mismo punto. `logoutButton_Click` cierra la ventana principal; no invoca `Sesion.Cerrar()`.
+
+## 6. Persistencia con Entity Framework Core
+
+### Contexto y consultas
+
+`AppDbContext` expone estas colecciones:
 
 ```csharp
-bool esAdministrador = string.Equals(
-    _usuarioActual.Rol,
-    "Administrador",
-    StringComparison.OrdinalIgnoreCase);
-
-btnProducto.Enabled = esAdministrador;
-sessionLabel.Text = $"{_usuarioActual.Nombre}\n({_usuarioActual.Rol})";
+public DbSet<Usuario> Usuarios { get; set; }
+public DbSet<Cliente> Clientes { get; set; }
+public DbSet<Categoria> Categorias { get; set; }
+public DbSet<Proveedores> Proveedores { get; set; }
+public DbSet<Producto> Productos { get; set; }
+public DbSet<Direccion> Direcciones { get; set; }
+public DbSet<Pedido> Pedidos { get; set; }
+public DbSet<DetallePedido> DetallesPedidos { get; set; }
+public DbSet<Pago> Pagos { get; set; }
+public DbSet<Envio> Envios { get; set; }
 ```
 
-Esto solo deshabilita `btnProducto`. El botón `Inicio` también abre `FrmProductos` y no está condicionado por el rol, por lo que la restricción no cubre todas las rutas hacia esa pantalla.
+Si no recibió opciones externas, configura SQL Server con `ConfiguracionApp`. Los servicios y formularios suelen crear un contexto por operación y liberarlo con `using`. Para listas de solo lectura se usa `AsNoTracking`; `Include` carga explícitamente relaciones que se necesitan para mostrar, como la categoría o proveedor del producto:
 
-La navegación configurada en el código:
+```csharp
+using var ctx = new AppDbContext();
 
-| Elemento | Acción |
-|---|---|
-| Inicio | Abre `FrmProductos`. |
-| Categoría | Abre `FrmCategorias`. |
-| Producto | Abre `FrmProductos`. |
-| Cliente | Abre `FrmCliente`. |
-| Usuarios | Abre `FrmUsuario`. |
-| Pedidos | Abre `FrmPedido`, pasando el usuario de la sesión. |
-| Detalles de pedido | Abre `FrmDetallePedido`. |
-| Envíos | Solo cambia la apariencia del botón seleccionado; no abre `FrmEnvio`. |
-| Pagos | Solo cambia la apariencia del botón seleccionado; no abre `FrmPago`. |
-| Archivo, Catálogos, Ayuda | Se ven en el menú superior, pero no tienen acciones conectadas en el código revisado. |
+var productos = ctx.Productos
+    .Include(p => p.Categoria)
+    .Include(p => p.Proveedor)
+    .AsNoTracking()
+    .OrderBy(p => p.Nombre)
+    .ToList();
+```
 
-Las pantallas que sí se abren desde `Form1` se muestran así:
+### Relaciones y borrado
+
+| Relación | Cardinalidad | Borrado configurado |
+|---|---|---|
+| Cliente → Direcciones | Un cliente tiene varias direcciones. | Cascada en EF. |
+| Cliente → Pedidos | Un cliente tiene varios pedidos. | Restringido para proteger historial. |
+| Usuario → Pedidos | Un usuario puede registrar varios pedidos. | Restringido. |
+| Categoría → Productos | Una categoría tiene varios productos. | Cascada por convención/configuración del modelo. |
+| Proveedor → Productos | Un proveedor tiene varios productos. | Cascada en el modelo; el servicio bloquea el borrado si hay productos. |
+| Pedido → Detalles | Un pedido tiene varias líneas. | Restringido. |
+| Producto → Detalles | Un producto puede aparecer en varias líneas. | Restringido. |
+| Pedido → Envíos | Un pedido puede tener envíos. | Restringido. |
+| Dirección → Envíos | Una dirección puede usarse en varios envíos. | Restringido. |
+| Pedido → Pagos | Un pedido puede tener pagos. | Cascada por convención. |
+
+Ejemplo explícito de protección del historial de pedidos:
+
+```csharp
+modelBuilder.Entity<Pedido>()
+    .HasOne(p => p.Cliente)
+    .WithMany(c => c.Pedidos)
+    .HasForeignKey(p => p.IdCliente)
+    .OnDelete(DeleteBehavior.Restrict);
+```
+
+La base aplica además restricciones de claves foráneas. Las pantallas y servicios agregan verificaciones antes de borrar, pero una operación puede igualmente ser rechazada por una referencia existente.
+
+## 7. Modelo de dominio
+
+Las clases se encuentran en `Models/`. `Id` se reconoce como clave primaria por convención; los campos `Id...` y las propiedades de navegación representan relaciones. Las anotaciones (`Required`, `MaxLength`, `EmailAddress`, `Column`) configuran metadatos/columnas, pero no implican que todos los formularios validen todas las reglas de igual manera.
+
+| Entidad | Datos principales | Relaciones |
+|---|---|---|
+| `Usuario` | Nombre, correo, contraseña, teléfono, rol y fecha de registro. Rol predeterminado: `Vendedor`. | Muchos pedidos. |
+| `Cliente` | Nombre, teléfono y correo. | Muchas direcciones y pedidos. |
+| `Categoria` | Nombre y descripción opcional. | Muchos productos. |
+| `Proveedores` | Nombre, teléfono y correo. | Muchos productos. |
+| `Producto` | Categoría, proveedor, nombre, descripción, precio, stock, imagen y fecha de publicación. | Una categoría y un proveedor; muchos detalles de pedido. |
+| `Direccion` | Cliente, departamento y ubicación. | Un cliente; varios envíos. |
+| `Pedido` | Cliente, usuario responsable, fecha, estado, costo de envío y total. | Muchos detalles, pagos y envíos. |
+| `DetallePedido` | Pedido, producto, cantidad, precio unitario y subtotal. | Un pedido y un producto. |
+| `Pago` | Pedido, método, monto, fecha y estado. | Un pedido. |
+| `Envio` | Pedido, dirección, empresa de transporte, número de seguimiento, fecha y estado. | Un pedido y una dirección. |
+
+Los importes se asignan como `decimal(10,2)`. Una línea calcula su subtotal multiplicando la cantidad por el precio:
+
+```csharp
+public class LineaPedido
+{
+    public int ProductoId { get; set; }
+    public string Producto { get; set; } = "";
+    public int Cantidad { get; set; }
+    public decimal PrecioUnitario { get; set; }
+    public decimal Subtotal => Cantidad * PrecioUnitario;
+}
+```
+
+`LineaPedido` es un DTO de trabajo de la interfaz, no una entidad persistida. Al guardar, el servicio convierte esas líneas a `DetallePedido`.
+
+## 8. Servicios y reglas de negocio
+
+Los servicios encapsulan las operaciones de datos compartidas. Un patrón común es validar, abrir un contexto, consultar la entidad, cambiar propiedades y llamar `SaveChanges()`:
+
+```csharp
+using var ctx = new AppDbContext();
+var entidad = ctx.Categorias.Find(id)
+    ?? throw new InvalidOperationException("La categoría no existe.");
+
+entidad.Nombre = categoria.Nombre;
+entidad.Descripcion = categoria.Descripcion;
+ctx.SaveChanges();
+```
+
+### `CategoriaService`
+
+- `ObtenerTodas` devuelve categorías sin seguimiento ordenadas por nombre; `ObtenerPorId` busca por clave.
+- `Crear` y `Actualizar` exigen nombre no vacío, máximo 50 caracteres y descripción de máximo 300. También impiden nombres repetidos ignorando mayúsculas/minúsculas.
+- `Eliminar` rechaza la operación si hay productos asociados.
+
+Ejemplo de regla de unicidad para una edición:
+
+```csharp
+bool existeNombre = ctx.Categorias.Any(c =>
+    c.Nombre.ToLower() == categoria.Nombre.ToLower()
+    && c.Id != categoria.Id);
+```
+
+Las pantallas de categorías, proveedores y clientes siguen el mismo patrón CRUD: construyen una entidad a partir de los controles y usan el id seleccionado para decidir entre crear o actualizar. El ejemplo de `FrmCategorias` de la sección 9 representa también ese flujo común; cada servicio aplica las reglas específicas de su entidad.
+
+### `ClienteService`
+
+- Lista clientes por nombre, busca por id y expone crear, actualizar y eliminar.
+- Exige nombre, teléfono y correo no vacíos; limita el nombre a 100 caracteres.
+- Evita correos duplicados sin distinguir mayúsculas/minúsculas y teléfonos duplicados exactos.
+- No comprueba el formato del correo ni una longitud máxima de teléfono en el servicio. `FrmCliente` valida el formato del correo antes de llamar al servicio.
+- No elimina clientes con pedidos.
+
+### `ProveedoresService`
+
+- Lista por nombre, busca por id y ofrece operaciones CRUD.
+- Exige nombre y correo, limita el nombre a 100, correo a 150 y, si se proporciona, teléfono a 20 caracteres.
+- Impide duplicar nombre o correo ignorando mayúsculas/minúsculas.
+- Impide eliminar proveedores asociados a productos.
+
+### `ProductosService`
+
+- Lista los productos incluyendo categoría y proveedor; puede buscar un producto por id.
+- Comprueba nombre obligatorio (máximo 100), id de categoría positivo, precio y stock no negativos, y descripción con máximo de 500 caracteres.
+- Comprueba que exista la categoría y que no exista otro producto con el mismo nombre ignorando mayúsculas/minúsculas.
+- Impide eliminar productos que aparezcan en detalles de pedidos.
+
+La entidad `Producto` limita `Descripcion` a 255 caracteres, aunque el servicio permite hasta 500. Por ello, textos que superen 255 pueden pasar la validación del servicio pero fallar al guardarse en el esquema actual.
+
+La pantalla valida que se seleccione un proveedor y el modelo requiere `IdProveedor`, pero `ProductosService.Crear` no comprueba explícitamente la existencia del proveedor antes de guardar. Además, `Actualizar` no copia `IdProveedor` al producto cargado: seleccionar un proveedor distinto en la interfaz no cambia la relación en base de datos.
+
+### `UsuarioService`
+
+Incluye métodos CRUD con validaciones básicas de nombre, correo y teléfono y comprobación de correo repetido. No lo utiliza `FrmUsuario`, que opera directamente con `AppDbContext`. El servicio tampoco implementa adecuadamente el guardado de todos los campos del formulario: `Actualizar` solo copia nombre y correo, y la validación de pedidos en `Eliminar` consulta `IdCliente` en vez de `IdUsuario`. No se debe tratar este servicio como la ruta funcional completa de gestión de usuarios.
+
+### `PedidoService`
+
+`FrmPedido` usa este servicio para cargar clientes, usuarios, productos con stock, pedidos e información detallada, y para registrar, actualizar o eliminar pedidos.
+
+- `Registrar` requiere al menos una línea, vuelve a leer los productos, comprueba el stock, descuenta inventario, crea los detalles con precio de catálogo y registra el pedido.
+- `Actualizar` devuelve al inventario las cantidades de las líneas anteriores, las reemplaza por las líneas nuevas y descuenta el stock de estas.
+- `Eliminar` elimina las líneas y el pedido y devuelve las cantidades al inventario.
+- `SaveChanges()` es quien persiste las modificaciones; no se declara una transacción explícita en el servicio.
+
+La actualización del pedido reemplaza cliente, usuario, detalles y total, pero no actualiza estado ni costo de envío. El total que calcula el servicio al registrar o actualizar es la suma de subtotales.
+
+Antes de descontar inventario, `CrearDetalles` comprueba el stock leído de la base de datos. El ejemplo resume esa regla:
+
+```csharp
+if (producto.Stock < linea.Cantidad)
+{
+    throw new InvalidOperationException("Stock insuficiente.");
+}
+
+producto.Stock -= linea.Cantidad;
+```
+
+## 9. Formularios y funcionamiento de la interfaz
+
+### Login — `FrmLogin`
+
+Limpia el mensaje al abrir, permite mostrar/ocultar la contraseña y solicita correo y contraseña. Una autenticación válida llama `Sesion.Iniciar` y cierra con `DialogResult.OK`. Tras tres intentos fallidos establece `DialogResult.Cancel`; los errores de acceso a datos se muestran como error en pantalla.
+
+### Menú principal — `FrmMenu`
+
+Los formularios funcionales se abren como diálogos modales mediante `ShowDialog(this)`. El método también cambia el color del botón seleccionado:
 
 ```csharp
 private void OpenForm(Form form, Button selectedButton)
@@ -152,420 +336,131 @@ private void OpenForm(Form form, Button selectedButton)
 }
 ```
 
-Mientras el diálogo está abierto, la ventana principal no recibe interacción. En `Form1_Load` se consulta la conexión y se cuentan categorías y usuarios. La excepción de esa rutina se captura sin mostrarla ni registrarla.
+La pantalla muestra nombre y rol del usuario. La consulta de conexión y conteos ejecutada al cargar captura excepciones sin mostrarlas ni registrarlas; por eso un fallo allí no se comunica al usuario.
 
-## 5. Persistencia con Entity Framework Core
+### Categorías — `FrmCategorias`
 
-### Contexto
+Carga `CategoriaService.ObtenerTodas()` en una grilla. Seleccionar una fila copia id, nombre y descripción al formulario. `Nuevo` limpia la selección y prepara un alta; `Guardar` determina alta o edición por `_idSeleccionado`; `Eliminar` requiere selección y confirmación; `Cancelar` limpia y cierra.
 
-`AppDbContext` representa la sesión de EF Core y expone nueve colecciones `DbSet`: usuarios, clientes, categorías, productos, direcciones, pedidos, detalles, pagos y envíos. Acepta opciones inyectadas, pero cuando no están configuradas usa la cadena leída por `ConfiguracionApp`:
-
-```csharp
-protected override void OnConfiguring(DbContextOptionsBuilder options)
-{
-    if (!options.IsConfigured)
-    {
-        options.UseSqlServer(ConfiguracionApp.ObtenerCadenaConexion());
-    }
-}
-```
-
-En las pantallas y servicios el patrón más frecuente es crear un contexto por operación y liberarlo al terminar:
+El evento de guardar delega al servicio, que centraliza las validaciones:
 
 ```csharp
-using var ctx = new AppDbContext();
-var categorias = ctx.Categorias
-    .AsNoTracking()
-    .OrderBy(categoria => categoria.Nombre)
-    .ToList();
-```
-
-`AsNoTracking()` es apropiado para listas de consulta que no se editarán a través del mismo contexto. Para editar, los servicios vuelven a cargar la entidad con seguimiento usando `Find`.
-
-### Relaciones y reglas de borrado
-
-En `OnModelCreating` se definen explícitamente varias relaciones:
-
-- `Cliente` tiene varias `Direccion`. La eliminación de un cliente puede eliminar en cascada sus direcciones.
-- `Cliente` tiene varios `Pedido`. La relación usa `Restrict` para proteger el historial.
-- `Usuario` tiene varios `Pedido`. También se restringe borrar un usuario referenciado.
-- `Pedido` tiene varios `DetallePedido`. Se restringe el borrado de pedidos con detalles.
-- `Producto` tiene varios `DetallePedido`. Se restringe borrar productos que forman parte de pedidos.
-- `Pedido` puede tener varios `Envio` y `Direccion` varios envíos. Se restringe borrar entidades que estén referenciadas por envíos.
-
-Ejemplo de relación cliente-direcciones:
-
-```csharp
-modelBuilder.Entity<Direccion>()
-    .HasOne(d => d.Cliente)
-    .WithMany(c => c.Direcciones)
-    .HasForeignKey(d => d.IdCliente)
-    .OnDelete(DeleteBehavior.Cascade);
-```
-
-Ejemplo de relación pedido-usuario, que protege pedidos históricos:
-
-```csharp
-modelBuilder.Entity<Pedido>()
-    .HasOne(p => p.Usuario)
-    .WithMany(u => u.Pedidos)
-    .HasForeignKey(p => p.IdUsuario)
-    .OnDelete(DeleteBehavior.Restrict);
-```
-
-El contexto también define el usuario inicial mediante `HasData`. Las reglas de relación de categoría-producto y pedido-pago siguen la configuración por convenciones reflejada en el modelo.
-
-## 6. Modelo de dominio
-
-Las entidades están en `Models`. `Id` es la clave principal convencional; las relaciones usan claves como `IdCliente`, `IdPedido` e `IdProducto` y propiedades de navegación.
-
-| Entidad | Campos importantes | Relaciones |
-|---|---|---|
-| `Usuario` | Nombre, correo, contraseña, teléfono, rol y fecha de registro. Rol predeterminado: `Vendedor`. | Muchos pedidos. |
-| `Cliente` | Nombre, teléfono y correo. | Muchas direcciones y pedidos. |
-| `Direccion` | Id de cliente, departamento y ubicación. | Un cliente; varios envíos. |
-| `Categoria` | Nombre y descripción opcional. | Muchos productos. |
-| `Producto` | Categoría, nombre, descripción, precio, stock, imagen y fecha de publicación. | Una categoría; muchos detalles de pedido. |
-| `Pedido` | Cliente, usuario, fecha, estado, costo de envío y total. | Muchos detalles, pagos y envíos. |
-| `DetallePedido` | Pedido, producto, cantidad, precio unitario y subtotal. | Un pedido y un producto. |
-| `Pago` | Pedido, método, monto, fecha y estado. | Un pedido. |
-| `Envio` | Pedido, dirección, empresa, seguimiento, fecha y estado. | Un pedido y una dirección. |
-
-Las anotaciones declaran campos requeridos, longitudes máximas y formatos de correo. Los montos utilizan `decimal(10,2)`. Por ejemplo:
-
-```csharp
-[Required]
-[MaxLength(100)]
-public string Nombre { get; set; }
-
-[Required]
-[Column(TypeName = "decimal(10,2)")]
-public decimal Precio { get; set; }
-```
-
-Las anotaciones documentan y configuran el modelo de EF Core, pero no sustituyen las validaciones adicionales hechas por servicios o formularios. La cobertura de validación no es idéntica en todas las entidades.
-
-## 7. Servicios y operaciones CRUD
-
-Los servicios existentes son `CategoriaService`, `ClienteService` y `ProductosService`. Cada uno administra un contexto por operación, valida reglas del negocio y produce excepciones específicas para que el formulario pueda mostrar el motivo del rechazo.
-
-### Categorías
-
-`CategoriaService` permite listar, consultar, crear, actualizar y eliminar. La validación exige nombre no vacío, longitud máxima de 50 caracteres y descripción de hasta 300:
-
-```csharp
-private void ValidarCategoria(Categoria categoria)
-{
-    if (string.IsNullOrWhiteSpace(categoria.Nombre))
-        throw new ArgumentException("El nombre de la categoría es obligatorio.");
-
-    if (categoria.Nombre.Length > 50)
-        throw new ArgumentException("El nombre no debe exceder los 50 caracteres.");
-
-    if (!string.IsNullOrEmpty(categoria.Descripcion)
-        && categoria.Descripcion.Length > 300)
-        throw new ArgumentException("La descripción no puede exceder los 300 caracteres.");
-}
-```
-
-Antes de crear o actualizar se comprueba que no exista otra categoría con el mismo nombre ignorando mayúsculas/minúsculas. Al actualizar, la consulta excluye el identificador actual. Antes de borrar se comprueba que no existan productos vinculados. La verificación de duplicados en una actualización se realiza así:
-
-```csharp
-bool existeNombre = ctx.Categorias.Any(c =>
-    c.Nombre.ToLower() == categoria.Nombre.ToLower()
-    && c.Id != categoria.Id);
-```
-
-La condición de eliminación consulta la relación con productos:
-
-```csharp
-bool tieneProductos = ctx.Productos.Any(p => p.IdCategoria == id);
-if (tieneProductos)
-{
-    throw new InvalidOperationException(
-        "No se puede eliminar la categoría porque tiene productos vinculados.");
-}
-```
-
-### Clientes
-
-`ClienteService` permite listar por nombre, buscar por id y ejecutar el CRUD. El nombre es obligatorio y no puede superar 100 caracteres; correo y teléfono son requeridos. Comprueba duplicidad de correo sin distinguir mayúsculas/minúsculas y de teléfono exacto. En actualización no compara contra el mismo cliente. No valida internamente la longitud del teléfono ni el formato del correo: el formato se comprueba en `FrmCliente` con `EmailAddressAttribute`.
-
-Al actualizar, la búsqueda de duplicados excluye el cliente actual:
-
-```csharp
-bool existeCorreo = ctx.Clientes.Any(c =>
-    c.Correo.ToLower() == cliente.Correo.ToLower()
-    && c.Id != cliente.Id);
-bool existeTelefono = ctx.Clientes.Any(c =>
-    c.Telefono == cliente.Telefono
-    && c.Id != cliente.Id);
-```
-
-La comprobación de relaciones antes de borrar es:
-
-```csharp
-bool tienePedidos = ctx.Pedidos.Any(p => p.IdCliente == id);
-if (tienePedidos)
-{
-    throw new InvalidOperationException(
-        "No se puede eliminar el cliente porque tiene pedidos vinculados.");
-}
-```
-
-### Productos
-
-`ProductosService` lista productos incluyendo su categoría, consulta producto por id, crea, actualiza y elimina. Las validaciones requieren nombre (máximo 100), categoría con id positivo, precio y stock no negativos; la descripción tiene límite de 500 caracteres. En creación y edición también comprueba que exista la categoría y que no exista otro producto con el mismo nombre ignorando mayúsculas/minúsculas.
-
-La lectura relacionada se hace con `Include`:
-
-```csharp
-return ctx.Productos
-    .Include(producto => producto.Categoria)
-    .AsNoTracking()
-    .OrderBy(producto => producto.Nombre)
-    .ToList();
-```
-
-La eliminación no se permite si el producto ya figura en un detalle de pedido:
-
-```csharp
-bool tieneVentas = ctx.DetallesPedidos.Any(
-    detalle => detalle.IdProducto == id);
-
-if (tieneVentas)
-{
-    throw new InvalidOperationException(
-        "No se puede eliminar el producto porque tiene historial de ventas asociado.");
-}
-```
-
-### Uso desde las pantallas
-
-`FrmCategorias`, `FrmCliente` y `FrmProductos` llaman los servicios para evitar repetir la persistencia CRUD. Por ejemplo, el formulario de categorías decide si crea o actualiza según si el identificador está vacío:
-
-```csharp
-if (string.IsNullOrEmpty(txtId.Text))
+if (_idSeleccionado == 0)
 {
     _categoriaService.Crear(categoria);
 }
 else
 {
-    categoria.Id = int.Parse(txtId.Text);
+    categoria.Id = _idSeleccionado;
     _categoriaService.Actualizar(categoria);
 }
 ```
 
-`FrmUsuario`, `FrmPedido`, `FrmDetallePedido`, `FrmPago` y `FrmEnvio` usan `AppDbContext` directamente; no hay servicios equivalentes para esas operaciones.
+### Proveedores — `FrmProveedores`
 
-## 8. Descripción técnica de las pantallas
+Muestra el listado, oculta la navegación `Productos` si aparece en la grilla y permite seleccionar, crear, editar y eliminar proveedores. El formulario recorta los campos y delega al `ProveedoresService`; el servicio valida valores duplicados y evita borrar un proveedor usado por productos. Las operaciones de borrado solicitan confirmación. `Cancelar` limpia y cierra.
 
-### `FrmCategorias`
+### Clientes — `FrmCliente`
 
-Carga categorías desde `CategoriaService` y enlaza la lista con `dgvCategorias`. Al seleccionar una fila copia `Id`, `Nombre` y `Descripcion` a los campos. `Nuevo` limpia los campos, quita la selección de la grilla y enfoca el nombre; `Cancelar` limpia, pero no cierra esta ventana. Guardar recorta los campos y crea o edita según si hay un id. Después de guardar o borrar, la grilla se vuelve a cargar y el formulario se limpia. Eliminar exige una selección, pide confirmación y muestra la razón si la operación está restringida. La colección de productos no se presenta en la grilla. Los errores al cargar se muestran como mensajes de error.
+Consulta y pinta los clientes en una grilla manual, ordenados por nombre e id. La selección carga nombre, teléfono y correo; el conteo se presenta en pantalla. El formulario recorta los campos, comprueba el formato de correo con `EmailAddressAttribute` y delega duplicados y persistencia a `ClienteService`. No permite borrar clientes que tengan pedidos. `Nuevo` limpia para crear y `Cancelar` limpia y cierra.
 
-### `FrmCliente`
+### Productos — `FrmProductos`
 
-Carga los clientes sin seguimiento de cambios, ordenados por nombre e id, y pinta las filas en una grilla manual. Muestra el total de clientes y al seleccionar una fila rellena los campos y conserva el id para distinguir alta (`0`) de edición. `Nuevo` limpia la selección y enfoca el nombre. Al guardar recorta nombre, correo y teléfono y valida el correo con `EmailAddressAttribute` antes de llamar `ClienteService`; este completa la validación y comprueba duplicados. Después de guardar, vuelve a cargar la lista y limpia el formulario. Eliminar exige selección y confirmación; si existen pedidos, presenta la restricción del servicio. `Cancelar` limpia los campos y cierra la ventana. Los errores de carga muestran la excepción interna cuando está disponible.
+Al cargar obtiene categorías y proveedores para sus combos, agrega a ambos una opción inicial no válida y muestra los productos con nombre de categoría y proveedor. Los ids se ocultan en la grilla. Seleccionar una fila carga la entidad y sus datos al formulario.
 
-### `FrmProductos`
+Al elegir una imagen se guarda temporalmente la ruta original. Al guardar:
 
-Al cargar llena el selector de categorías y la grilla. El primer valor del selector es un marcador sin categoría válida. La grilla presenta nombre de categoría, datos de producto y fecha formateada; oculta los ids, pero conserva el id del producto para la selección. Al seleccionar una fila, vuelve a consultar el producto completo y transfiere los datos al formulario. Al elegir una imagen, guarda temporalmente la ruta original y muestra el nombre del archivo.
+1. Exige una categoría y un proveedor válidos.
+2. Al crear, copia la imagen elegida con nombre GUID a `Images`; al editar, conserva la imagen existente si no se elige una nueva.
+3. Mantiene la fecha de publicación al editar.
+4. Delega alta o edición a `ProductosService`.
 
-Al guardar:
-
-1. Comprueba categoría válida y que el valor de stock sea entero.
-2. Si edita, busca el producto actual y conserva la fecha de publicación.
-3. Si se seleccionó una imagen, la copia a `Images` con un GUID y cambia el nombre guardado.
-4. Si no se seleccionó una imagen al editar, conserva la ruta de imagen existente.
-5. Construye el modelo `Producto` y delega alta o edición a `ProductosService`.
-
-La ruta física se genera desde `Application.StartupPath` y apunta a la carpeta `Images` en la raíz del proyecto. En la eliminación el formulario intenta borrar el archivo antes de llamar al servicio; si el servicio impide borrar el producto porque tiene ventas, el archivo podría haber sido borrado aunque el registro permanezca. Es una limitación del orden actual de operaciones.
-
-`Cancelar` limpia los campos y restablece categoría, precio, existencias e imagen; `Nuevo` hace lo mismo y enfoca el selector de categoría. El formulario comprueba que la categoría no sea el marcador y que el valor de stock sea entero. El servicio admite descripción de hasta 500 caracteres, aunque el modelo `Producto` declara un máximo de 255; los textos de 256 a 500 pueden superar la validación del servicio y fallar después al persistir.
-
-### `FrmUsuario`
-
-La pantalla carga la lista en `_usuarios` con `AsNoTracking`, ordenada por nombre, y muestra cantidad de registros. La grilla es de solo lectura y selección de una fila; presenta id, nombre, correo, teléfono y rol. Al seleccionar una fila rellena los campos y deja vacía la contraseña para no mostrarla. Los roles del selector son Administrador y Vendedor, además de un marcador inicial que no se puede guardar.
-
-Guardar recorta nombre, correo y teléfono y exige que estén presentes, que el rol se haya elegido y que el correo tenga formato válido. Busca el usuario por id seleccionado; si no hay selección, busca por correo. Esto hace que guardar sin una fila seleccionada actualice la cuenta si ese correo ya existe o cree una nueva si no existe. Para una cuenta nueva exige contraseña y asigna fecha de registro. Para una cuenta existente solo reemplaza la contraseña cuando el campo no queda vacío. No hay una comprobación explícita de correo duplicado cuando se edita otro usuario seleccionado.
-
-La búsqueda distingue entre la fila seleccionada y el guardado por correo:
+Ejemplo de nombre único para la copia:
 
 ```csharp
-Usuario? usuario = _usuarioSeleccionadoId.HasValue
-    ? db.Usuarios.Find(_usuarioSeleccionadoId.Value)
-    : db.Usuarios.FirstOrDefault(item => item.Correo == correo);
+string nombreArchivoUnico = $"{Guid.NewGuid()}{extension}";
+string rutaDestinoCompleta = Path.Combine(carpetaDestino, nombreArchivoUnico);
+File.Copy(rutaOrigen, rutaDestinoCompleta, true);
 ```
 
-La decisión de exigir contraseña únicamente en altas y conservar la contraseña existente cuando el campo queda vacío es:
+El formulario borra el archivo de imagen anterior antes de confirmar la edición en la base. También intenta borrar el archivo al iniciar la eliminación antes de preguntar al servicio si existen ventas. Si falla el guardado o el servicio rechaza el borrado, el archivo puede quedar eliminado mientras el registro todavía lo referencia.
+
+### Usuarios — `FrmUsuario`
+
+Lista usuarios ordenados por nombre y permite seleccionar, crear, editar y eliminar. La contraseña nunca se rellena en la grilla; para un usuario existente, dejar el campo vacío conserva el valor persistido. Para uno nuevo se exige una contraseña. Nombre, correo, teléfono y rol son obligatorios en la interfaz, y el correo se valida con `EmailAddressAttribute`.
+
+La pantalla consulta y guarda directamente con `AppDbContext`; no usa `UsuarioService`. La contraseña se asigna literalmente desde el campo, sin llamar a `AuthService.GenerarHash`, lo que causa la incompatibilidad BCrypt descrita en la sección de autenticación. La restricción de claves foráneas puede impedir borrar usuarios vinculados con pedidos.
+
+El comportamiento de asignación actual es:
 
 ```csharp
-bool esNuevo = usuario == null;
-if (esNuevo && string.IsNullOrWhiteSpace(password))
-{
-    // Informar que la contraseña es obligatoria y cancelar el guardado.
-    return;
-}
-
-usuario ??= new Usuario();
-usuario.Nombre = nombre;
-usuario.Correo = correo;
-usuario.Telefono = telefono;
-usuario.Rol = cmbRol.SelectedItem!.ToString()!;
 if (!string.IsNullOrWhiteSpace(password))
 {
     usuario.Password = password;
 }
 ```
 
-`Nuevo` limpia campos, quita la selección y enfoca el nombre. El texto de contraseña nunca se rellena desde la grilla. Después de guardar se vuelve a cargar la lista y se selecciona el usuario guardado. `Cancelar` cierra la ventana. Eliminar localiza por id seleccionado o correo escrito, pide confirmación y refresca la lista si tiene éxito; una restricción de integridad, como pedidos asociados, se muestra como error.
+En una modificación, el bloque solo se ejecuta si se escribió una contraseña nueva; el valor que se asigna sigue siendo texto plano.
 
-El archivo de lógica contiene un método `ConfigureVisualLayout()` con ajustes visuales y creación dinámica de paneles, pero el constructor no lo invoca: la ventana usa el diseño definido por `InitializeComponent()`. Por tanto, esos ajustes escritos en el método no se aplican al abrir el formulario.
+### Pedidos — `FrmPedido`
 
-### `FrmPedido`: composición del pedido
+Carga clientes, usuarios y productos con stock disponible. El combo de usuario está deshabilitado y se selecciona a partir del usuario de sesión. `dgvPedidos` muestra historial con id, fecha, cliente y total; al seleccionar un pedido, carga sus líneas y habilita la eliminación.
 
-El usuario actual puede recibirse por el constructor. Al cargar, el formulario rellena el selector de clientes, usuarios y productos con stock positivo. El usuario autenticado queda seleccionado en el combo de usuario cuando corresponde. El identificador y la fecha se presentan como campos de solo lectura. Los estados disponibles son Pendiente, Procesando, Completado y Cancelado.
-
-La lista provisional `_detalles` vive en memoria hasta guardar. `Agregar` requiere un producto, acumula cantidades si el mismo producto ya se agregó, usa el precio cargado en el selector como precio unitario, calcula subtotal y restablece el control de cantidad a uno. Antes de aceptar compara la cantidad acumulada con el stock disponible. `Eliminar` quita de la lista provisional el producto de la fila seleccionada; no cambia el stock de la base porque aún no se ha guardado el pedido. `Nuevo` descarta los detalles pendientes, limpia el id, restablece fecha, cantidad, costo de envío y estado.
-
-Al añadir:
+Las líneas nuevas se mantienen en una `BindingList<LineaPedido>` hasta guardar. Añadir producto suma la cantidad a la línea existente de ese producto o crea una nueva con el precio de catálogo:
 
 ```csharp
-int cantidadEnPedido = detalleExistente?.Cantidad ?? 0;
-if (cantidadEnPedido + cantidad > producto.Stock)
+var existente = _lineas.FirstOrDefault(l => l.ProductoId == producto.Id);
+if (existente != null)
 {
-    // Mostrar stock insuficiente y no modificar el detalle.
-    return;
+    existente.Cantidad += cantidad;
 }
-
-detalleExistente.Cantidad += cantidad;
-detalleExistente.SubTotal =
-    detalleExistente.Cantidad * detalleExistente.PrecioUnitario;
-```
-
-El total se recalcula sumando los subtotales y el costo de envío:
-
-```csharp
-decimal totalProductos = _detalles.Sum(detalle => detalle.SubTotal);
-lblTotal.Text = $"Total: {totalProductos + numCostoEnvio.Value:C2}";
-```
-
-Al guardar se exige cliente, usuario y al menos un detalle. Se abre una transacción, se consultan nuevamente las existencias y se descuenta el stock en la base. Esta segunda comprobación evita basarse solamente en la lista cargada cuando pudo cambiar el inventario:
-
-```csharp
-using var db = new AppDbContext();
-using var transaction = db.Database.BeginTransaction();
-var idsProductos = _detalles
-    .Select(detalle => detalle.IdProducto)
-    .ToList();
-var productosActuales = db.Productos
-    .Where(producto => idsProductos.Contains(producto.Id))
-    .ToDictionary(producto => producto.Id);
-
-foreach (var detalle in _detalles)
+else
 {
-    if (!productosActuales.TryGetValue(detalle.IdProducto, out var producto)
-        || producto.Stock < detalle.Cantidad)
+    _lineas.Add(new LineaPedido
     {
-        throw new InvalidOperationException(
-            "El producto ya no tiene stock suficiente.");
-    }
-
-    producto.Stock -= detalle.Cantidad;
+        ProductoId = producto.Id,
+        Producto = producto.Nombre,
+        Cantidad = cantidad,
+        PrecioUnitario = producto.Precio
+    });
 }
+```
 
-db.Pedidos.Add(pedido);
+El total visible suma `LineaPedido.Subtotal`. Guardar registra un pedido nuevo o actualiza el seleccionado; eliminar solicita confirmación y repone el stock usando `PedidoService`. La selección de una línea también intenta cargar la imagen del producto. En la actualización no se editan estado ni costo de envío desde esta pantalla.
+
+### Detalles de pedido — `FrmDetallePedido`
+
+Carga el catálogo de productos y permite consultar líneas para un id de pedido. Al abrir sin id inicial, intenta elegir el pedido de id más alto. Es necesario cargar un pedido existente antes de guardar; Enter o salir del campo carga sus detalles.
+
+Se puede agregar una línea o editar la seleccionada. Cambiar producto propone el precio de catálogo, pero el precio unitario es editable. Guardar usa una transacción de base de datos: al editar repone la cantidad anterior y descuenta la nueva; si cambia el producto, devuelve el stock al producto anterior. El subtotal se calcula como cantidad por precio y el total del pedido se recalcula sumando los detalles más el costo de envío.
+
+Al guardar una línea existente, la operación agrupa la actualización de stock, detalle y total para confirmar los cambios juntos:
+
+```csharp
+using var transaccion = db.Database.BeginTransaction();
+productoNuevo.Stock -= cantidad;
+detalleExistente.Cantidad = cantidad;
+detalleExistente.PrecioUnitario = precioUnitario;
+detalleExistente.SubTotal = cantidad * precioUnitario;
 db.SaveChanges();
-transaction.Commit();
+pedido.Total = db.DetallesPedidos
+    .Where(detalle => detalle.IdPedido == idPedido)
+    .Sum(detalle => detalle.SubTotal) + pedido.CostoEnvio;
+db.SaveChanges();
+transaccion.Commit();
 ```
 
-El pedido guarda fecha actual, estado elegido, costo de envío, total y colección de detalles con precio y subtotal. Si el guardado falla, la transacción se libera sin confirmar el descuento parcial. Tras el registro, el formulario muestra el id del pedido creado, actualiza fecha, limpia el pedido de trabajo y vuelve a cargar el combo de productos para reflejar el stock actualizado. El botón `Cancelar` cierra la pantalla; no existe en este formulario edición ni borrado de pedidos.
+Al eliminar una línea, la pantalla confirma la acción, devuelve la cantidad al inventario, elimina el detalle y recalcula el total en una transacción. Esta pantalla modifica líneas e inventario; no cambia el cliente, usuario, estado o costo de envío del pedido.
 
-### `FrmDetallePedido`: edición de líneas e inventario
+### Pagos — `FrmPago`
 
-Permite escribir un id de pedido y cargarlo con Enter o al salir del campo. Si el formulario no recibe un id inicial, intenta seleccionar el pedido más reciente. Al cambiar el id sin cargarlo, invalida la selección de detalles y limpia los campos para evitar operar sobre un pedido anterior. Al cargar detalles incluye el producto para mostrar su nombre; si existe al menos una fila, selecciona la primera.
+Carga los pagos por id descendente y, si existe, propone el pedido más reciente. Al cargar un pedido válido propone su total como monto; al seleccionar un pago existente conserva el monto de ese pago. Método y estado se eligen de listas predefinidas, pero un valor histórico que no figure en ellas se agrega al combo para permitir editarlo.
 
-El selector incluye todos los productos, incluso los que actualmente tienen stock cero; la disponibilidad se comprueba al guardar. El botón `Nuevo` conserva el pedido cargado, pero prepara un detalle nuevo: vacía la selección, pone id de detalle a cero, cantidad a uno y precio inicial según el producto seleccionado. El precio unitario es editable y cambiar producto, cantidad o precio actualiza el subtotal en pantalla, por lo que se puede guardar un precio distinto del precio de catálogo. El control de cantidad exige mínimo uno; precio y subtotal usan decimales con dos posiciones y el subtotal es de solo lectura. Al seleccionar una línea se cargan sus valores en el formulario.
+Guardar exige que se haya cargado un pedido existente y que se seleccionen método y estado; según el id de pago crea o actualiza. El monto es editable y no se valida contra el total del pedido. Eliminar requiere confirmación. Esta pantalla está implementada, pero el botón Pagos del menú principal no la abre.
 
-Al guardar se exige que el pedido indicado ya esté cargado y exista un producto seleccionado. Se vuelve a consultar pedido, detalle y producto dentro de una transacción. Cuando se modifica un detalle existente, se devuelve al stock la cantidad que se había descontado previamente, y después se descuenta la cantidad nueva. Si cambia el producto, primero se restituye el producto anterior:
-
-```csharp
-if (detalleExistente != null
-    && detalleExistente.IdProducto == idProducto)
-{
-    int stockDisponible = productoNuevo.Stock + detalleExistente.Cantidad;
-    if (cantidad > stockDisponible)
-        throw new InvalidOperationException("Stock insuficiente.");
-
-    productoNuevo.Stock = stockDisponible - cantidad;
-}
-else
-{
-    if (detalleExistente != null)
-    {
-        var productoAnterior =
-            db.Productos.Find(detalleExistente.IdProducto);
-        if (productoAnterior == null)
-            throw new InvalidOperationException(
-                "No se encontró el producto asociado al detalle actual.");
-
-        productoAnterior.Stock += detalleExistente.Cantidad;
-    }
-
-    if (cantidad > productoNuevo.Stock)
-        throw new InvalidOperationException("Stock insuficiente.");
-
-    productoNuevo.Stock -= cantidad;
-}
-```
-
-Tras guardar o borrar, recalcula el total del pedido con la suma de subtotales persistidos más el costo de envío y confirma la transacción. Al eliminar, pide confirmación y devuelve la cantidad a inventario. Si faltan el pedido o producto relacionado, detiene la operación y muestra el error. `Cancelar` cierra el formulario. La pantalla permite modificar líneas existentes y agregar/quitar líneas, pero no modifica aquí el cliente, vendedor, estado o costo de envío del pedido.
-
-### `FrmEnvio`
-
-Al abrir, carga el pedido más reciente y su lista de direcciones, si existe, además de los envíos ordenados por id descendente. La grilla muestra id de envío, id de pedido, empresa, guía y estado. Al seleccionar una fila, llena el formulario, carga las direcciones del pedido y añade a los combos los valores de empresa o estado existentes si ya no están entre las opciones predefinidas. Al escribir un id de pedido, carga las direcciones cuyo `IdCliente` coincide con el cliente del pedido. Las direcciones se muestran como `Departamento, Ubicacion`; Enter o salir del campo confirma/carga el pedido y cambiar el número invalida la dirección mostrada.
-
-Al guardar valida que el pedido se haya cargado, que exista una dirección seleccionada, que se haya elegido empresa y que el número de seguimiento no esté vacío. Vuelve a verificar en base de datos que la dirección corresponda al cliente del pedido:
+El guardado asigna al pago el pedido, método, monto, fecha y estado seleccionados:
 
 ```csharp
-bool direccionPerteneceAlCliente = db.Direcciones.Any(direccion =>
-    direccion.Id == idDireccion
-    && direccion.IdCliente == pedido.IdCliente);
-
-if (!direccionPerteneceAlCliente)
-{
-    throw new InvalidOperationException(
-        "La dirección seleccionada no pertenece al cliente del pedido.");
-}
-```
-
-Si el id de envío es positivo, actualiza el envío existente; en caso contrario crea uno. El identificador es de solo lectura. `Nuevo` limpia identificador, pedido, dirección, empresa, guía y fecha; `Cancelar` cierra la pantalla. `Eliminar` solicita confirmación y vuelve a cargar la grilla. Empresas disponibles: DHL Express, FedEx, UPS, Correos de El Salvador y Cargo Expreso. Estados: Preparación, En Tránsito, Entregado y Cancelado.
-
-Al guardar se persisten `IdPedido`, `IdDireccion`, empresa, número de guía, estado y fecha. La validación utiliza el pedido recuperado desde la base y comprueba la dirección contra el cliente de ese pedido, no solo contra el valor mostrado en pantalla.
-
-### `FrmPago`
-
-Carga pagos del más reciente al más antiguo; la grilla muestra id, pedido, método, monto formateado como moneda, estado y fecha. Al seleccionar una fila, rellena los campos, vuelve a comprobar el pedido asociado y conserva el monto del pago seleccionado. Si un método o estado guardado no forma parte de las opciones actuales, lo agrega al combo para poder editar el registro sin perder ese valor.
-
-Al introducir un id de pedido, Enter o salir del campo comprueba que exista y, por defecto, propone su total como monto. Al seleccionar un pago existente se consulta el pedido sin sobrescribir el monto del pago. El monto permanece editable y el programa no exige que coincida con el total del pedido. `Nuevo` quita selección y limpia ids y monto, deja método sin seleccionar, fecha actual y estado Pendiente. Métodos predefinidos: Efectivo, Tarjeta de crédito, Transferencia y PayPal. Estados: Pendiente, Completado, Fallido y Reembolsado.
-
-Guardar exige pedido cargado, método y estado seleccionados. Después busca si el pago seleccionado existe para actualizarlo o crea un nuevo pago:
-
-```csharp
-Pago pago;
-if (idPago > 0)
-{
-    pago = db.Pagos.FirstOrDefault(item => item.Id == idPago)
-        ?? throw new InvalidOperationException(
-            "El pago seleccionado ya no existe.");
-}
-else
-{
-    pago = new Pago();
-    db.Pagos.Add(pago);
-}
-
 pago.IdPedido = idPedido;
 pago.Metodo = metodo;
 pago.Monto = numMonto.Value;
@@ -574,90 +469,67 @@ pago.Estado = estado;
 db.SaveChanges();
 ```
 
-El formulario puede editar y eliminar pagos, solicitando confirmación antes de borrar.
+### Envíos — `FrmEnvio`
 
-## 9. Imágenes, recursos y archivos auxiliares
-
-### Imágenes de productos
-
-El diálogo de selección de imagen admite JPG, JPEG, PNG, BMP y WEBP. `FrmProductos` copia la imagen seleccionada a `Images` con un nombre único generado con `Guid`, y persiste ese nombre en `Producto.ImagenUrl`. Al ejecutar el borrado, intenta borrar la imagen asociada del disco.
-
-### Logotipo
-
-`LogoHelper.LoadLogo()` construye la ruta `Images\SivarPOSLogo.png` junto al ejecutable. Si no encuentra ese archivo devuelve `null`; si lo encuentra crea un `Bitmap` a partir de una imagen temporal. Esto permite cerrar el archivo original después de cargarlo:
+Carga los envíos por id descendente y propone el pedido más reciente. Al cargar un pedido obtiene solo direcciones de su cliente. Antes de guardar valida que el pedido se haya cargado, que exista una dirección, empresa de transporte y número de seguimiento, y vuelve a comprobar en base de datos que la dirección corresponda al cliente del pedido:
 
 ```csharp
-using var source = Image.FromFile(path);
-return new Bitmap(source);
+bool direccionPerteneceAlCliente = db.Direcciones.Any(direccion =>
+    direccion.Id == idDireccion
+    && direccion.IdCliente == pedido.IdCliente);
 ```
 
-El archivo de imagen que aparece en el inventario revisado tiene nombre GUID y extensión JPG; representa un multímetro. No es el archivo `SivarPOSLogo.png` buscado por el helper; ese archivo no aparece en los elementos revisados.
+Si existe un id de envío, actualiza; de otro modo, inserta. El formulario también permite eliminar con confirmación. La lista de empresas y estados está definida en el código. No existe una pantalla de mantenimiento de direcciones en la navegación actual. El botón Envíos del menú solo cambia su estado visual y no abre este formulario.
 
-### Archivos auxiliares
+## 10. Navegación disponible actualmente
 
-- `.gitignore` excluye `bin`, `obj` y `.vs`.
-- `.gitattributes` aplica normalización automática de finales de línea y contiene ejemplos de configuración de diff y merge.
-- `Properties\Resources.Designer.cs` es código generado para acceder a recursos tipados; el archivo serializado que define dichos recursos queda fuera del alcance.
-- Los archivos `*.Designer.cs` de formularios contienen la construcción visual y el cableado de eventos generado por Windows Forms.
+| Elemento | Comportamiento |
+|---|---|
+| Categoría | Abre `FrmCategorias`. |
+| Proveedores | Abre `FrmProveedores`. |
+| Producto | Abre `FrmProductos`; el botón se deshabilita para roles distintos de Administrador. |
+| Cliente | Abre `FrmCliente`. |
+| Usuarios | Abre `FrmUsuario`. |
+| Pedidos | Abre `FrmPedido` y pasa el usuario de sesión. |
+| Detalles de pedido | Abre `FrmDetallePedido`, también desde el submenú Operaciones. |
+| Pagos | Cambia la apariencia del botón, pero no abre `FrmPago`. |
+| Envíos | Cambia la apariencia del botón, pero no abre `FrmEnvio`. |
+| Archivo, Catálogos y Ayuda | Se muestran en la barra superior sin acciones conectadas en el código observado. |
 
-## 10. Comportamiento actual y límites conocidos
+## 11. Imágenes, recursos y archivos auxiliares
 
-- El arranque no aplica automáticamente las actualizaciones de base de datos.
-- La autenticación compara contraseñas de texto plano.
-- La restricción de rol de productos solo deshabilita `btnProducto`; el botón `Inicio` también abre la misma pantalla sin aplicar esa condición.
-- Los botones de menú de Envíos y Pagos no abren sus formularios, aunque `FrmEnvio` y `FrmPago` sí están implementados.
-- No existe una pantalla dedicada a crear o mantener direcciones. El formulario de envíos consume direcciones previamente existentes.
-- `FrmPedido` registra pedidos nuevos; no implementa edición o eliminación de pedidos. Los detalles sí se pueden editar por separado.
-- Los pagos pueden tener un monto diferente del total del pedido.
-- Al guardar un pedido se refresca el stock desde la base, pero el precio unitario procede del producto cargado previamente en el formulario y no se vuelve a consultar antes de guardar.
-- La verificación de conexión de `Form1_Load` captura errores sin notificación ni registro.
-- Al reemplazar la imagen de un producto, el archivo anterior se elimina antes de confirmar el guardado en la base; si el guardado falla, el producto puede conservar una ruta de imagen que ya no existe. En el borrado ocurre una situación similar si el servicio impide eliminar un producto con ventas.
-- Varias reglas se reparten entre anotaciones, servicios y pantallas; no hay un validador central común para todas las entidades.
+`FrmProductos` mantiene las imágenes de productos como archivos y guarda en el campo `ImagenUrl` el nombre generado, no los bytes de la imagen. La selección de imagen copia el archivo a una carpeta `Images` calculada desde la ruta de ejecución.
 
-## 11. Inventario funcional documentado
+`LogoHelper.LoadLogo()` busca `Images/SivarPOSLogo.png` junto al ejecutable. Si no existe, devuelve `null`; si existe, crea una copia en memoria para que el archivo original no quede bloqueado. El proyecto declara copiar ese PNG al directorio de salida, pero en el inventario actual de `Images/` no aparece un archivo con ese nombre, por lo que el helper puede devolver `null`.
 
-### Inicio y configuración
+Los archivos `.resx` y `*.Designer.cs` contienen recursos y controles generados para WinForms. Normalmente se editan mediante el diseñador de Visual Studio, no a mano.
 
-- `Program.cs`
-- `Form1.cs` y `Form1.Designer.cs`
-- `Data\AppDbContext.cs`
-- `Config\ConfiguracionApp.cs`
-- `appsettings.json`
+## 12. Migraciones y evolución del esquema
 
-### Modelos
+`Migrations/` conserva las migraciones y `AppDbContextModelSnapshot.cs` describe el modelo que EF Core considera actual. Las migraciones forman parte del historial de base de datos; no son formularios ni se ejecutan automáticamente al abrir la aplicación.
 
-- `Models\Categoria.cs`
-- `Models\Cliente.cs`
-- `Models\DetallePedido.cs`
-- `Models\Direccion.cs`
-- `Models\Envio.cs`
-- `Models\Pago.cs`
-- `Models\Pedido.cs`
-- `Models\Producto.cs`
-- `Models\Usuario.cs`
+Algunas migraciones presentes tienen métodos `Up` y `Down` vacíos. La migración de relación proveedor-producto agrega la tabla `Proveedores`, agrega `IdProveedor` a `Productos` y crea una clave foránea. Por esto, el SQL de `Scripts/TiendaOnlineDb.sql`, que proviene de la creación inicial, no debe confundirse con el esquema final.
 
-### Servicios
+El usuario inicial configurado mediante `HasData` en `AppDbContext` conserva una contraseña de texto plano, aunque el login actual espera un hash BCrypt. Las migraciones que aplican esa semilla pueden, por tanto, dejar una cuenta incompatible con el mecanismo de login. También debe revisarse la preparación de contraseñas antes de entregar una base a usuarios.
 
-- `Services\CategoriaService.cs`
-- `Services\ClienteService.cs`
-- `Services\ProductosService.cs`
+## 13. Limitaciones y puntos importantes del comportamiento actual
 
-### Pantallas
+1. **Contraseñas:** `AuthService` verifica BCrypt, pero el formulario de usuarios y el usuario semilla guardan/definen texto sin BCrypt. `Seguridad` solo convierte contraseñas vacías, no cualquier contraseña existente.
+2. **Autorización:** el menú deshabilita Productos según rol, pero no hay una autorización central por operación o servicio.
+3. **Proveedores en edición de producto:** el formulario permite seleccionar proveedor, pero `ProductosService.Actualizar` no asigna `IdProveedor`.
+4. **Longitud de descripción:** el servicio permite 500 caracteres y el modelo/columna de producto limita a 255.
+5. **Archivos de imagen:** el borrado y reemplazo de imágenes ocurre antes de saber si la operación de base de datos tendrá éxito.
+6. **Pagos y envíos:** sus formularios existen, pero los botones del menú no están conectados a ellos.
+7. **Direcciones:** los envíos requieren direcciones existentes, pero no hay una pantalla de mantenimiento disponible desde el menú.
+8. **Pedidos:** el formulario de pedidos permite editar y eliminar pedidos además de crearlos; esas operaciones pueden reponer o descontar stock. El detalle se puede editar por separado.
+9. **Precio de venta:** `PedidoService` toma el precio consultado al cargar el producto en la pantalla; la consulta de inventario vuelve a validar stock al guardar, pero no vuelve a validar el precio.
+10. **Edición de pedido:** el servicio reemplaza las líneas y recalcula total, pero no edita estado ni costo de envío.
 
-- `Forms\FrmCategorias.cs` y su diseñador.
-- `Forms\FrmCliente.cs` y su diseñador.
-- `Forms\FrmDetallePedido.cs` y su diseñador.
-- `Forms\FrmEnvio.cs` y su diseñador.
-- `Forms\FrmLogin.cs` y su diseñador.
-- `Forms\FrmPago.cs` y su diseñador.
-- `Forms\FrmPedido.cs` y su diseñador.
-- `Forms\FrmProductos.cs` y su diseñador.
-- `Forms\FrmUsuario.cs` y su diseñador.
+## 14. Guía breve para extender el proyecto
 
-### Interfaz y recursos
-
-- `UI\LogoHelper.cs`
-- `Properties\Resources.Designer.cs`
-- `Images\b7b104a4-fa30-444b-9271-9820ea69db56.jpg`
-- `.gitignore`
-- `.gitattributes`
+- Agregar una entidad nueva requiere crear el modelo, exponer un `DbSet` en `AppDbContext`, configurar relaciones si no bastan las convenciones, generar una migración y aplicarla.
+- Para un CRUD coherente, mantener la validación y reglas de negocio en un servicio reutilizable y dejar al formulario la lectura de controles, mensajes y selección.
+- Usar `AsNoTracking()` en lecturas que no se van a modificar dentro del mismo contexto; usar una entidad con seguimiento para actualizar y llamar a `SaveChanges()`.
+- Para operaciones que ajusten más de un registro relacionado (por ejemplo, pedido y stock), agrupar los cambios en una transacción y volver a validar las condiciones en base de datos.
+- No guardar contraseñas directamente. Generar y verificar hashes mediante `AuthService`, y actualizar de forma consistente el seed y las cuentas existentes.
+- Validar las longitudes y relaciones tanto en formulario como en servicio/modelo para que la regla de interfaz no permita valores que el esquema rechazará.

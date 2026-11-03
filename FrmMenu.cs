@@ -2,29 +2,30 @@ using Microsoft.EntityFrameworkCore;
 using VentasOnline.Data;
 using VentasOnline.Forms;
 using VentasOnline.Models;
+using VentasOnline.Services;
 
 namespace VentasOnline
 {
-    public partial class Form1 : Form
+    public partial class FrmMenu : Form
     {
         private readonly Usuario _usuarioActual;
         private Button? _botonSeleccionadoActual = null;
 
         // Definimos los colores base para que los cambies a tu gusto fácilmente
-        private readonly Color ColorAzulPorDefecto = Color.FromArgb(55, 126, 211); // Tu azul normal
-        private readonly Color ColorHover = Color.FromArgb(75, 145, 235);          // Un azul más claro al pasar el mouse
-        private readonly Color ColorActivo = Color.FromArgb(35, 95, 175);          // Un azul un poco más oscuro o intenso para el seleccionado (opcional)
+        private readonly Color ColorAzulPorDefecto = Color.FromArgb(55, 126, 211); // Azul
+        private readonly Color ColorHover = Color.FromArgb(75, 145, 235);          // Azul más claro al pasar el mouse
+        private readonly Color ColorActivo = Color.FromArgb(35, 95, 175);          // Un azul intenso al seleccionar
 
-        public Form1(Usuario usuarioActual)
+        public FrmMenu(Usuario usuarioActual)
         {
-            _usuarioActual = usuarioActual;
+            _usuarioActual = usuarioActual ?? Sesion.UsuarioActual;
             InitializeComponent();
 
             // Configurar eventos de clic y efectos de Hover para cada botón del menú
             ConfigurarBotonMenu(btnEnvios, () => SelectNavigationButton(btnEnvios));
             ConfigurarBotonMenu(btnDetallesPedido, () => OpenForm(new FrmDetallePedido(), btnDetallesPedido));
-            ConfigurarBotonMenu(productsButton, () => OpenForm(new FrmProductos(), productsButton));
             ConfigurarBotonMenu(btnCategoria, () => OpenForm(new FrmCategorias(), btnCategoria));
+            ConfigurarBotonMenu(btnProveedor, () => OpenForm(new FrmProveedores(), btnProveedor));
             ConfigurarBotonMenu(btnProducto, () => OpenForm(new FrmProductos(), btnProducto));
             ConfigurarBotonMenu(btnCliente, () => OpenForm(new FrmCliente(), btnCliente));
             ConfigurarBotonMenu(btnUsuarios, () => OpenForm(new FrmUsuario(), btnUsuarios));
@@ -87,6 +88,8 @@ namespace VentasOnline
 
         private void ConfigurePermissions()
         {
+            if (_usuarioActual == null) return;
+
             bool esAdministrador = string.Equals(_usuarioActual.Rol, "Administrador", StringComparison.OrdinalIgnoreCase);
             btnProducto.Enabled = esAdministrador;
             sessionLabel.Text = $"{_usuarioActual.Nombre}\n({_usuarioActual.Rol})";

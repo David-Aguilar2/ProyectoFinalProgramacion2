@@ -1,6 +1,6 @@
 ﻿namespace VentasOnline
 {
-    partial class Form1
+    partial class FrmMenu
     {
         /// <summary>
         ///  Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMenu));
             topMenu = new MenuStrip();
             archivoMenuItem = new ToolStripMenuItem();
             catalogosMenuItem = new ToolStripMenuItem();
@@ -37,8 +37,7 @@
             ayudaMenuItem = new ToolStripMenuItem();
             sidebar = new Panel();
             navigationPanel = new FlowLayoutPanel();
-            productsButton = new Button();
-            btnCategoria = new Button();
+            btnProveedor = new Button();
             btnProducto = new Button();
             btnCliente = new Button();
             btnUsuarios = new Button();
@@ -52,6 +51,7 @@
             contentPanel = new Panel();
             instructionLabel = new Label();
             welcomeLabel = new Label();
+            btnCategoria = new Button();
             topMenu.SuspendLayout();
             sidebar.SuspendLayout();
             navigationPanel.SuspendLayout();
@@ -115,8 +115,8 @@
             // 
             // navigationPanel
             // 
-            navigationPanel.Controls.Add(productsButton);
             navigationPanel.Controls.Add(btnCategoria);
+            navigationPanel.Controls.Add(btnProveedor);
             navigationPanel.Controls.Add(btnProducto);
             navigationPanel.Controls.Add(btnCliente);
             navigationPanel.Controls.Add(btnUsuarios);
@@ -131,25 +131,15 @@
             navigationPanel.TabIndex = 2;
             navigationPanel.WrapContents = false;
             // 
-            // productsButton
+            // btnProveedor
             // 
-            productsButton.Cursor = Cursors.Hand;
-            productsButton.ForeColor = SystemColors.ButtonHighlight;
-            productsButton.Location = new Point(3, 3);
-            productsButton.Name = "productsButton";
-            productsButton.Size = new Size(228, 52);
-            productsButton.TabIndex = 2;
-            productsButton.Text = "Inicio";
-            // 
-            // btnCategoria
-            // 
-            btnCategoria.Cursor = Cursors.Hand;
-            btnCategoria.ForeColor = SystemColors.ButtonHighlight;
-            btnCategoria.Location = new Point(3, 61);
-            btnCategoria.Name = "btnCategoria";
-            btnCategoria.Size = new Size(228, 52);
-            btnCategoria.TabIndex = 3;
-            btnCategoria.Text = "Categoria";
+            btnProveedor.Cursor = Cursors.Hand;
+            btnProveedor.ForeColor = SystemColors.ButtonHighlight;
+            btnProveedor.Location = new Point(3, 61);
+            btnProveedor.Name = "btnProveedor";
+            btnProveedor.Size = new Size(228, 52);
+            btnProveedor.TabIndex = 3;
+            btnProveedor.Text = "Proveedores";
             // 
             // btnProducto
             // 
@@ -289,7 +279,17 @@
             welcomeLabel.TabIndex = 2;
             welcomeLabel.Text = "¡Bienvenido/a!";
             // 
-            // Form1
+            // btnCategoria
+            // 
+            btnCategoria.Cursor = Cursors.Hand;
+            btnCategoria.ForeColor = SystemColors.ButtonHighlight;
+            btnCategoria.Location = new Point(3, 3);
+            btnCategoria.Name = "btnCategoria";
+            btnCategoria.Size = new Size(228, 52);
+            btnCategoria.TabIndex = 9;
+            btnCategoria.Text = "Categorias";
+            // 
+            // FrmMenu
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -298,7 +298,9 @@
             Controls.Add(sidebar);
             Controls.Add(topMenu);
             Font = new Font("Segoe UI", 9F);
-            Name = "Form1";
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            Name = "FrmMenu";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "SivarPOS - Sistema de Punto de Venta";
             Load += Form1_Load;
@@ -345,8 +347,7 @@
         private FlowLayoutPanel navigationPanel;
         private Button btnEnvios;
         private Button btnDetallesPedido;
-        private Button productsButton;
-        private Button btnCategoria;
+        private Button btnProveedor;
         private Button btnProducto;
         private Button btnCliente;
         private Button btnUsuarios;
@@ -356,5 +357,6 @@
         private Panel contentPanel;
         private Label welcomeLabel;
         private Label instructionLabel;
+        private Button btnCategoria;
     }
 }

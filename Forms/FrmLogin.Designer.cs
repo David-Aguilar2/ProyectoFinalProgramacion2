@@ -14,6 +14,8 @@ namespace VentasOnline.Forms
         private void InitializeComponent()
         {
             panelLogin = new Panel();
+            lblMensaje = new Label();
+            chkMostrar = new CheckBox();
             infoLabel = new Label();
             btnSalir = new Button();
             btnIngresar = new Button();
@@ -29,6 +31,8 @@ namespace VentasOnline.Forms
             // panelLogin
             // 
             panelLogin.BackColor = Color.White;
+            panelLogin.Controls.Add(lblMensaje);
+            panelLogin.Controls.Add(chkMostrar);
             panelLogin.Controls.Add(infoLabel);
             panelLogin.Controls.Add(btnSalir);
             panelLogin.Controls.Add(btnIngresar);
@@ -38,18 +42,39 @@ namespace VentasOnline.Forms
             panelLogin.Controls.Add(correoLabel);
             panelLogin.Controls.Add(subtitleLabel);
             panelLogin.Controls.Add(titleLabel);
-            panelLogin.Cursor = Cursors.Arrow;
             panelLogin.Location = new Point(53, 27);
             panelLogin.Margin = new Padding(3, 4, 3, 4);
             panelLogin.Name = "panelLogin";
             panelLogin.Size = new Size(638, 704);
             panelLogin.TabIndex = 0;
             // 
+            // lblMensaje
+            // 
+            lblMensaje.AutoSize = true;
+            lblMensaje.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblMensaje.Location = new Point(108, 441);
+            lblMensaje.Name = "lblMensaje";
+            lblMensaje.Size = new Size(84, 28);
+            lblMensaje.TabIndex = 6;
+            lblMensaje.Text = "Mensaje";
+            // 
+            // chkMostrar
+            // 
+            chkMostrar.AutoSize = true;
+            chkMostrar.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            chkMostrar.Location = new Point(108, 394);
+            chkMostrar.Name = "chkMostrar";
+            chkMostrar.Size = new Size(206, 32);
+            chkMostrar.TabIndex = 5;
+            chkMostrar.Text = "Mostrar Contraseña";
+            chkMostrar.UseVisualStyleBackColor = true;
+            chkMostrar.CheckedChanged += chkMostrar_CheckedChanged;
+            // 
             // infoLabel
             // 
             infoLabel.AutoSize = true;
             infoLabel.ForeColor = Color.FromArgb(100, 100, 100);
-            infoLabel.Location = new Point(108, 595);
+            infoLabel.Location = new Point(108, 655);
             infoLabel.Name = "infoLabel";
             infoLabel.Size = new Size(271, 20);
             infoLabel.TabIndex = 4;
@@ -63,7 +88,7 @@ namespace VentasOnline.Forms
             btnSalir.FlatStyle = FlatStyle.Flat;
             btnSalir.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             btnSalir.ForeColor = Color.White;
-            btnSalir.Location = new Point(108, 512);
+            btnSalir.Location = new Point(108, 572);
             btnSalir.Margin = new Padding(3, 4, 3, 4);
             btnSalir.Name = "btnSalir";
             btnSalir.Size = new Size(417, 56);
@@ -80,7 +105,7 @@ namespace VentasOnline.Forms
             btnIngresar.FlatStyle = FlatStyle.Flat;
             btnIngresar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
             btnIngresar.ForeColor = Color.White;
-            btnIngresar.Location = new Point(108, 428);
+            btnIngresar.Location = new Point(108, 488);
             btnIngresar.Margin = new Padding(3, 4, 3, 4);
             btnIngresar.Name = "btnIngresar";
             btnIngresar.Size = new Size(417, 64);
@@ -167,6 +192,7 @@ namespace VentasOnline.Forms
             Name = "FrmLogin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "SivarPOS - Inicio de sesión";
+            Load += FrmLogin_Load;
             panelLogin.ResumeLayout(false);
             panelLogin.PerformLayout();
             ResumeLayout(false);
@@ -182,5 +208,7 @@ namespace VentasOnline.Forms
         private Button btnIngresar;
         private Button btnSalir;
         private Label infoLabel;
+        private CheckBox chkMostrar;
+        private Label lblMensaje;
     }
 }

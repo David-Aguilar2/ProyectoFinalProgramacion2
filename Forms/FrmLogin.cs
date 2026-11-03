@@ -1,54 +1,80 @@
 using Microsoft.EntityFrameworkCore;
 using VentasOnline.Data;
 using VentasOnline.Models;
+using VentasOnline.Services;
+using static System.Collections.Specialized.BitVector32;
 
 namespace VentasOnline.Forms
 {
     public partial class FrmLogin : Form
     {
         public Usuario? UsuarioAutenticado { get; private set; }
+        private const int MaxIntentos = 3;
+        private int intentosFallidos = 0;
 
         public FrmLogin()
         {
             InitializeComponent();
         }
 
+        private void FrmLogin_Load(object sender, EventArgs e)
+        {
+            lblMensaje.Text = "";
+            ActiveControl = txtCorreo;      // el cursor inicia en el correo
+
+        }
+        private void chkMostrar_CheckedChanged(object sender, EventArgs e)
+            => txtPassword.UseSystemPasswordChar = !chkMostrar.Checked;
+
         private void btnIngresar_Click(object? sender, EventArgs e)
         {
             string correo = txtCorreo.Text.Trim();
-            string password = txtPassword.Text;
+            string password = txtPassword.Text;   // la contraseña No se recorta
 
-            if (string.IsNullOrWhiteSpace(correo) || string.IsNullOrWhiteSpace(password))
+            if (correo == "" || password == "")
             {
-                MessageBox.Show("Escriba el correo y la contraseña.", "Inicio de sesión",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                lblMensaje.Text = "Ingrese correo y contraseña.";
                 return;
             }
 
             try
             {
-                using var contexto = new AppDbContext();
-                Usuario? usuario = contexto.Usuarios
-                    .AsNoTracking()
-                    .FirstOrDefault(u => u.Correo == correo && u.Password == password);
+                Cursor = Cursors.WaitCursor;
+                var usuarioValido = AuthService.IniciarSesion(correo, password);
 
-                if (usuario is null)
+                if (usuarioValido != null)
                 {
-                    MessageBox.Show("El correo o la contraseña no son correctos.", "Acceso denegado",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    txtPassword.SelectAll();
-                    txtPassword.Focus();
+                    Sesion.Iniciar(usuarioValido);
+                    DialogResult = DialogResult.OK;   // cierra el login y devuelve OK
                     return;
                 }
 
-                UsuarioAutenticado = usuario;
-                DialogResult = DialogResult.OK;
-                Close();
+                intentosFallidos++;
+                int restantes = MaxIntentos - intentosFallidos;
+
+                if (restantes <= 0)
+                {
+                    MessageBox.Show("Superó el número de intentos permitidos.\n" +
+                                    "El sistema se cerrará.", "Acceso bloqueado",
+                        MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    DialogResult = DialogResult.Cancel;
+                    return;
+                }
+
+                // Mensaje genérico: no revela si falló el usuario o la contraseña
+                lblMensaje.Text = "Usuario o contraseña incorrectos. " +
+                                  $"Intentos restantes: {restantes}";
+                txtPassword.Clear();
+                txtPassword.Focus();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"No se pudo iniciar sesión: {ex.Message}", "Error de conexión",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"No se pudo validar el acceso.\n\nDetalle: {ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                Cursor = Cursors.Default;
             }
         }
 
@@ -56,11 +82,6 @@ namespace VentasOnline.Forms
         {
             DialogResult = DialogResult.Cancel;
             Close();
-        }
-
-        private void panelLogin_Paint(object sender, PaintEventArgs e)
-        {
-
         }
     }
 }

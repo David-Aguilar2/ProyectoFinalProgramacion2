@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using VentasOnline.Models;
@@ -14,18 +16,22 @@ namespace VentasOnline.Forms
     {
         private readonly ProductosService _productoService;
         private readonly CategoriaService _categoriaService;
+        private readonly ProveedoresService _proveedorService;
+        private int _idSeleccionado = 0;
         private string _rutaOrigenImagen = string.Empty; // Mantiene la ruta temporal si se selecciona una nueva imagen
+
         public FrmProductos()
         {
             InitializeComponent();
             _productoService = new ProductosService();
             _categoriaService = new CategoriaService();
-
+            _proveedorService = new ProveedoresService();
         }
 
         private void FrmProductos_Load(object sender, EventArgs e)
         {
             CargarComboCategorias();
+            CargarComboProveedores();
             CargarGrilla();
             LimpiarFormulario();
         }
@@ -46,7 +52,7 @@ namespace VentasOnline.Forms
                 cmbCategoria.DataSource = categorias;
                 cmbCategoria.DisplayMember = "Nombre";
                 cmbCategoria.ValueMember = "Id";
-                cmbCategoria.SelectedIndex = 0; // Selecciona por defecto la opción "-- Seleccione una categoría --"
+                cmbCategoria.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
@@ -54,7 +60,30 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Cargar datos en el DataGridView desde el servicio
+        // Cargar el ComboBox de Proveedores
+        private void CargarComboProveedores()
+        {
+            try
+            {
+                var proveedores = _proveedorService.ObtenerTodas();
+
+                proveedores.Insert(0, new Proveedores
+                {
+                    Id = 0,
+                    Nombre = "-- Seleccione un proveedor --"
+                });
+
+                cmbProveedor.DataSource = proveedores;
+                cmbProveedor.DisplayMember = "Nombre";
+                cmbProveedor.ValueMember = "Id";
+                cmbProveedor.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar proveedores: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         // Cargar datos en el DataGridView desde el servicio
         private void CargarGrilla()
         {
@@ -64,28 +93,34 @@ namespace VentasOnline.Forms
                 {
                     p.Id,
                     Categoria = p.Categoria?.Nombre ?? "Sin Categoría",
+                    Proveedor = p.Proveedor != null ? p.Proveedor.Nombre : "Sin Proveedor", // <--- Validación segura
                     p.Nombre,
                     p.Descripcion,
                     p.Precio,
                     p.Stock,
                     p.ImagenUrl,
                     FechaPublicacion = p.FechaPublicacion.ToString("yyyy-MM-dd HH:mm"),
-                    p.IdCategoria
+                    p.IdCategoria,
+                    p.IdProveedor
                 }).ToList();
 
                 dgvProductos.DataSource = null;
                 dgvProductos.DataSource = lista;
 
-                // Ocultar el ID de la categoría y del productos que ya no es necesario ver en la grilla
                 if (dgvProductos.Columns["IdCategoria"] != null)
                     dgvProductos.Columns["IdCategoria"].Visible = false;
+
+                if (dgvProductos.Columns["IdProveedor"] != null)
+                    dgvProductos.Columns["IdProveedor"].Visible = false;
 
                 if (dgvProductos.Columns["Id"] != null)
                     dgvProductos.Columns["Id"].Visible = false;
 
-                // Posicionar la columna de la categoría despues del nombre del producto
                 if (dgvProductos.Columns["Categoria"] != null)
                     dgvProductos.Columns["Categoria"].DisplayIndex = 2;
+
+                if (dgvProductos.Columns["Proveedor"] != null)
+                    dgvProductos.Columns["Proveedor"].DisplayIndex = 3;
             }
             catch (Exception ex)
             {
@@ -103,8 +138,9 @@ namespace VentasOnline.Forms
 
                 if (seleccionado != null)
                 {
-                    txtId.Text = seleccionado.Id.ToString();
+                    _idSeleccionado = seleccionado.Id;
                     cmbCategoria.SelectedValue = seleccionado.IdCategoria;
+                    cmbProveedor.SelectedValue = seleccionado.IdProveedor;
                     txtNombre.Text = seleccionado.Nombre;
                     txtDescripcion.Text = seleccionado.Descripcion;
                     numericPrecio.Value = seleccionado.Precio;
@@ -125,7 +161,7 @@ namespace VentasOnline.Forms
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     _rutaOrigenImagen = dialog.FileName;
-                    txtImagen.Text = Path.GetFileName(_rutaOrigenImagen); // Mostrar solo el nombre del archivo en la caja de texto
+                    txtImagen.Text = Path.GetFileName(_rutaOrigenImagen); // Mostrar solo el nombre del archivo
                 }
             }
         }
@@ -142,12 +178,21 @@ namespace VentasOnline.Forms
         {
             try
             {
-                // Validar que se haya seleccionado una categoría válida (mayor a 0)
+                // Validar categoría
                 int idCategoriaSeleccionada = Convert.ToInt32(cmbCategoria.SelectedValue);
                 if (idCategoriaSeleccionada <= 0)
                 {
                     MessageBox.Show("Por favor, seleccione una categoría válida de la lista.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     cmbCategoria.Focus();
+                    return;
+                }
+
+                // Validar proveedor
+                int idProveedorSeleccionado = Convert.ToInt32(cmbProveedor.SelectedValue);
+                if (idProveedorSeleccionado <= 0)
+                {
+                    MessageBox.Show("Por favor, seleccione un proveedor válido de la lista.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    cmbProveedor.Focus();
                     return;
                 }
 
@@ -159,26 +204,21 @@ namespace VentasOnline.Forms
                 }
 
                 string rutaRelativaImagenBD = txtImagen.Text.Trim();
-                bool esActualizacion = !string.IsNullOrEmpty(txtId.Text);
+                bool esActualizacion = _idSeleccionado != 0;
                 DateTime fechaFinalPublicacion = DateTime.Now;
 
                 if (esActualizacion)
                 {
-                    int idProducto = int.Parse(txtId.Text);
-                    // Obtenemos el registro actual de la base de datos para conocer su imagen anterior
+                    int idProducto = _idSeleccionado;
                     var productoActual = _productoService.ObtenerPorId(idProducto);
 
                     if (productoActual != null)
                     {
-                        // Conservamos la fecha original de cuando se creó el producto
                         fechaFinalPublicacion = productoActual.FechaPublicacion;
-                        // Si el usuario seleccionó una NUEVA imagen (_rutaOrigenImagen tiene valor)
                         if (!string.IsNullOrEmpty(_rutaOrigenImagen))
                         {
-                            // 1. Copiamos la nueva imagen y obtenemos su nombre único
                             rutaRelativaImagenBD = CopiarImagenACarpetaLocal(_rutaOrigenImagen);
 
-                            // 2. Eliminamos la imagen vieja de la carpeta física si existe
                             if (!string.IsNullOrEmpty(productoActual.ImagenUrl))
                             {
                                 string rutaBase = Application.StartupPath;
@@ -192,14 +232,12 @@ namespace VentasOnline.Forms
                         }
                         else
                         {
-                            // Si no seleccionó una nueva imagen, mantenemos la que ya tenía guardada
                             rutaRelativaImagenBD = productoActual.ImagenUrl;
                         }
                     }
                 }
                 else
                 {
-                    // Si es un producto NUEVO y seleccionó imagen, la copiamos
                     if (!string.IsNullOrEmpty(_rutaOrigenImagen))
                     {
                         rutaRelativaImagenBD = CopiarImagenACarpetaLocal(_rutaOrigenImagen);
@@ -209,6 +247,7 @@ namespace VentasOnline.Forms
                 var producto = new Producto
                 {
                     IdCategoria = idCategoriaSeleccionada,
+                    IdProveedor = idProveedorSeleccionado,
                     Nombre = txtNombre.Text.Trim(),
                     Descripcion = txtDescripcion.Text.Trim(),
                     Precio = numericPrecio.Value,
@@ -217,14 +256,14 @@ namespace VentasOnline.Forms
                     FechaPublicacion = fechaFinalPublicacion
                 };
 
-                if (string.IsNullOrEmpty(txtId.Text))
+                if (_idSeleccionado == 0)
                 {
                     _productoService.Crear(producto);
                     MessageBox.Show("Producto registrado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    producto.Id = int.Parse(txtId.Text);
+                    producto.Id = _idSeleccionado;
                     _productoService.Actualizar(producto);
                     MessageBox.Show("Producto actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -239,17 +278,16 @@ namespace VentasOnline.Forms
             }
         }
 
-
         // Botón Eliminar
         private void btnEliminar_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtId.Text))
+            if (_idSeleccionado == 0)
             {
                 MessageBox.Show("Seleccione un producto de la lista para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            int id = int.Parse(txtId.Text);
+            int id = _idSeleccionado;
 
             var confirmacion = MessageBox.Show($"¿Está seguro de eliminar el producto '{txtNombre.Text}'?",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -260,7 +298,6 @@ namespace VentasOnline.Forms
                 {
                     var productoAEliminar = _productoService.ObtenerPorId(id);
 
-                    // Borrar archivo físico si existe
                     if (productoAEliminar != null && !string.IsNullOrEmpty(productoAEliminar.ImagenUrl))
                     {
                         string rutaBase = Application.StartupPath;
@@ -288,13 +325,15 @@ namespace VentasOnline.Forms
         private void btnCancelar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
+            Close();
         }
 
         // Limpieza de campos
         private void LimpiarFormulario()
         {
-            txtId.Clear();
-            cmbCategoria.SelectedIndex = 0;
+            _idSeleccionado = 0;
+            if (cmbCategoria.Items.Count > 0) cmbCategoria.SelectedIndex = 0;
+            if (cmbProveedor.Items.Count > 0) cmbProveedor.SelectedIndex = 0;
             txtNombre.Clear();
             txtDescripcion.Clear();
             numericPrecio.Value = 0;
@@ -308,13 +347,12 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Copiar la imagen seleccionada a la carpeta /images en el directorio del ejecutable
+        // Copiar la imagen seleccionada a la carpeta /images
         private string CopiarImagenACarpetaLocal(string rutaOrigen)
         {
             string rutaBase = Application.StartupPath;
             string carpetaDestino = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images"));
 
-            // Si la carpeta Images no existe en la raíz del proyecto la creamos
             if (!Directory.Exists(carpetaDestino))
             {
                 Directory.CreateDirectory(carpetaDestino);
@@ -324,7 +362,6 @@ namespace VentasOnline.Forms
             string nombreArchivoUnico = $"{Guid.NewGuid()}{extension}";
             string rutaDestinoCompleta = Path.Combine(carpetaDestino, nombreArchivoUnico);
 
-            // Copia el archivo directamente al directorio del proyecto
             File.Copy(rutaOrigen, rutaDestinoCompleta, true);
 
             return nombreArchivoUnico;
@@ -332,12 +369,10 @@ namespace VentasOnline.Forms
 
         private void dgvProductos_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-
         }
 
         private void desktopLabel_Click(object sender, EventArgs e)
         {
-
         }
     }
 }

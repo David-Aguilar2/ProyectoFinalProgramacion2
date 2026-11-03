@@ -21,28 +21,33 @@ namespace VentasOnline.Forms
             logoLabel = new Label();
             desktopLabel = new Label();
             groupBox1 = new GroupBox();
-            btnNuevaVenta = new Button();
-            comboBox1 = new ComboBox();
+            lblVenta = new Label();
+            cboUsuario = new ComboBox();
             label2 = new Label();
-            cmbClienteEncabezado = new ComboBox();
+            cboCliente = new ComboBox();
             label1 = new Label();
             groupBox2 = new GroupBox();
-            label4 = new Label();
+            lblTotal = new Label();
             btnQuitarLinea = new Button();
-            dgvDetallePedido = new DataGridView();
+            dgvDetalle = new DataGridView();
             btnAgregar = new Button();
-            numericUpDown1 = new NumericUpDown();
+            nudCantidad = new NumericUpDown();
             label3 = new Label();
-            comboBox3 = new ComboBox();
+            cboProducto = new ComboBox();
             cmbProducto = new Label();
             groupBox3 = new GroupBox();
-            dgvHistorialPedidos = new DataGridView();
+            dgvPedidos = new DataGridView();
+            btnEliminar = new Button();
+            btnGuardar = new Button();
+            btnNueva = new Button();
+            pictureBoxProducto = new PictureBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvDetallePedido).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvDetalle).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)nudCantidad).BeginInit();
             groupBox3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvHistorialPedidos).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvPedidos).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBoxProducto).BeginInit();
             SuspendLayout();
             // 
             // logoLabel
@@ -69,39 +74,38 @@ namespace VentasOnline.Forms
             // 
             // groupBox1
             // 
-            groupBox1.Controls.Add(btnNuevaVenta);
-            groupBox1.Controls.Add(comboBox1);
+            groupBox1.Controls.Add(lblVenta);
+            groupBox1.Controls.Add(cboUsuario);
             groupBox1.Controls.Add(label2);
-            groupBox1.Controls.Add(cmbClienteEncabezado);
+            groupBox1.Controls.Add(cboCliente);
             groupBox1.Controls.Add(label1);
             groupBox1.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             groupBox1.Location = new Point(21, 66);
             groupBox1.Margin = new Padding(3, 4, 3, 4);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(3, 4, 3, 4);
-            groupBox1.Size = new Size(705, 140);
+            groupBox1.Size = new Size(705, 127);
             groupBox1.TabIndex = 7;
             groupBox1.TabStop = false;
             groupBox1.Text = "Encabezado de la Venta";
             // 
-            // btnNuevaVenta
+            // lblVenta
             // 
-            btnNuevaVenta.Location = new Point(7, 96);
-            btnNuevaVenta.Margin = new Padding(3, 4, 3, 4);
-            btnNuevaVenta.Name = "btnNuevaVenta";
-            btnNuevaVenta.Size = new Size(114, 31);
-            btnNuevaVenta.TabIndex = 5;
-            btnNuevaVenta.Text = "Nueva Venta";
-            btnNuevaVenta.UseVisualStyleBackColor = true;
+            lblVenta.AutoSize = true;
+            lblVenta.Location = new Point(7, 100);
+            lblVenta.Name = "lblVenta";
+            lblVenta.Size = new Size(121, 23);
+            lblVenta.TabIndex = 5;
+            lblVenta.Text = "Nuevo Pedido";
             // 
-            // comboBox1
+            // cboUsuario
             // 
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(431, 43);
-            comboBox1.Margin = new Padding(3, 4, 3, 4);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(267, 29);
-            comboBox1.TabIndex = 4;
+            cboUsuario.FormattingEnabled = true;
+            cboUsuario.Location = new Point(431, 43);
+            cboUsuario.Margin = new Padding(3, 4, 3, 4);
+            cboUsuario.Name = "cboUsuario";
+            cboUsuario.Size = new Size(267, 29);
+            cboUsuario.TabIndex = 4;
             // 
             // label2
             // 
@@ -113,14 +117,14 @@ namespace VentasOnline.Forms
             label2.TabIndex = 3;
             label2.Text = "Usuario:";
             // 
-            // cmbClienteEncabezado
+            // cboCliente
             // 
-            cmbClienteEncabezado.FormattingEnabled = true;
-            cmbClienteEncabezado.Location = new Point(87, 43);
-            cmbClienteEncabezado.Margin = new Padding(3, 4, 3, 4);
-            cmbClienteEncabezado.Name = "cmbClienteEncabezado";
-            cmbClienteEncabezado.Size = new Size(267, 29);
-            cmbClienteEncabezado.TabIndex = 2;
+            cboCliente.FormattingEnabled = true;
+            cboCliente.Location = new Point(87, 43);
+            cboCliente.Margin = new Padding(3, 4, 3, 4);
+            cboCliente.Name = "cboCliente";
+            cboCliente.Size = new Size(267, 29);
+            cboCliente.TabIndex = 2;
             // 
             // label1
             // 
@@ -134,16 +138,16 @@ namespace VentasOnline.Forms
             // 
             // groupBox2
             // 
-            groupBox2.Controls.Add(label4);
+            groupBox2.Controls.Add(lblTotal);
             groupBox2.Controls.Add(btnQuitarLinea);
-            groupBox2.Controls.Add(dgvDetallePedido);
+            groupBox2.Controls.Add(dgvDetalle);
             groupBox2.Controls.Add(btnAgregar);
-            groupBox2.Controls.Add(numericUpDown1);
+            groupBox2.Controls.Add(nudCantidad);
             groupBox2.Controls.Add(label3);
-            groupBox2.Controls.Add(comboBox3);
+            groupBox2.Controls.Add(cboProducto);
             groupBox2.Controls.Add(cmbProducto);
             groupBox2.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            groupBox2.Location = new Point(21, 279);
+            groupBox2.Location = new Point(21, 290);
             groupBox2.Margin = new Padding(3, 4, 3, 4);
             groupBox2.Name = "groupBox2";
             groupBox2.Padding = new Padding(3, 4, 3, 4);
@@ -152,15 +156,15 @@ namespace VentasOnline.Forms
             groupBox2.TabStop = false;
             groupBox2.Text = "Detalle de Productos";
             // 
-            // label4
+            // lblTotal
             // 
-            label4.AutoSize = true;
-            label4.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label4.Location = new Point(367, 296);
-            label4.Name = "label4";
-            label4.Size = new Size(49, 23);
-            label4.TabIndex = 11;
-            label4.Text = "Total";
+            lblTotal.AutoSize = true;
+            lblTotal.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTotal.Location = new Point(367, 296);
+            lblTotal.Name = "lblTotal";
+            lblTotal.Size = new Size(49, 23);
+            lblTotal.TabIndex = 11;
+            lblTotal.Text = "Total";
             // 
             // btnQuitarLinea
             // 
@@ -172,15 +176,16 @@ namespace VentasOnline.Forms
             btnQuitarLinea.Text = "Quitar Linea";
             btnQuitarLinea.UseVisualStyleBackColor = true;
             // 
-            // dgvDetallePedido
+            // dgvDetalle
             // 
-            dgvDetallePedido.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvDetallePedido.Location = new Point(7, 97);
-            dgvDetallePedido.Margin = new Padding(3, 4, 3, 4);
-            dgvDetallePedido.Name = "dgvDetallePedido";
-            dgvDetallePedido.RowHeadersWidth = 51;
-            dgvDetallePedido.Size = new Size(651, 173);
-            dgvDetallePedido.TabIndex = 9;
+            dgvDetalle.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvDetalle.Location = new Point(7, 97);
+            dgvDetalle.Margin = new Padding(3, 4, 3, 4);
+            dgvDetalle.Name = "dgvDetalle";
+            dgvDetalle.RowHeadersWidth = 51;
+            dgvDetalle.Size = new Size(651, 173);
+            dgvDetalle.TabIndex = 9;
+            dgvDetalle.SelectionChanged += dgvDetalle_SelectionChanged;
             // 
             // btnAgregar
             // 
@@ -191,14 +196,15 @@ namespace VentasOnline.Forms
             btnAgregar.TabIndex = 9;
             btnAgregar.Text = "Agregar";
             btnAgregar.UseVisualStyleBackColor = true;
+            btnAgregar.Click += btnAgregar_Click;
             // 
-            // numericUpDown1
+            // nudCantidad
             // 
-            numericUpDown1.Location = new Point(431, 43);
-            numericUpDown1.Margin = new Padding(3, 4, 3, 4);
-            numericUpDown1.Name = "numericUpDown1";
-            numericUpDown1.Size = new Size(80, 29);
-            numericUpDown1.TabIndex = 6;
+            nudCantidad.Location = new Point(431, 43);
+            nudCantidad.Margin = new Padding(3, 4, 3, 4);
+            nudCantidad.Name = "nudCantidad";
+            nudCantidad.Size = new Size(80, 29);
+            nudCantidad.TabIndex = 6;
             // 
             // label3
             // 
@@ -210,14 +216,14 @@ namespace VentasOnline.Forms
             label3.TabIndex = 3;
             label3.Text = "Cant:";
             // 
-            // comboBox3
+            // cboProducto
             // 
-            comboBox3.FormattingEnabled = true;
-            comboBox3.Location = new Point(87, 43);
-            comboBox3.Margin = new Padding(3, 4, 3, 4);
-            comboBox3.Name = "comboBox3";
-            comboBox3.Size = new Size(267, 29);
-            comboBox3.TabIndex = 2;
+            cboProducto.FormattingEnabled = true;
+            cboProducto.Location = new Point(87, 43);
+            cboProducto.Margin = new Padding(3, 4, 3, 4);
+            cboProducto.Name = "cboProducto";
+            cboProducto.Size = new Size(267, 29);
+            cboProducto.TabIndex = 2;
             // 
             // cmbProducto
             // 
@@ -231,34 +237,80 @@ namespace VentasOnline.Forms
             // 
             // groupBox3
             // 
-            groupBox3.Controls.Add(dgvHistorialPedidos);
+            groupBox3.Controls.Add(dgvPedidos);
             groupBox3.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            groupBox3.Location = new Point(789, 66);
+            groupBox3.Location = new Point(746, 66);
             groupBox3.Margin = new Padding(3, 4, 3, 4);
             groupBox3.Name = "groupBox3";
             groupBox3.Padding = new Padding(3, 4, 3, 4);
-            groupBox3.Size = new Size(319, 504);
+            groupBox3.Size = new Size(362, 556);
             groupBox3.TabIndex = 9;
             groupBox3.TabStop = false;
             groupBox3.Text = "Historial de Pedidos";
             // 
-            // dgvHistorialPedidos
+            // dgvPedidos
             // 
-            dgvHistorialPedidos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgvHistorialPedidos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvHistorialPedidos.Location = new Point(7, 43);
-            dgvHistorialPedidos.Margin = new Padding(3, 4, 3, 4);
-            dgvHistorialPedidos.Name = "dgvHistorialPedidos";
-            dgvHistorialPedidos.RowHeadersWidth = 51;
-            dgvHistorialPedidos.Size = new Size(305, 436);
-            dgvHistorialPedidos.TabIndex = 10;
+            dgvPedidos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvPedidos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvPedidos.Location = new Point(7, 30);
+            dgvPedidos.Margin = new Padding(3, 4, 3, 4);
+            dgvPedidos.Name = "dgvPedidos";
+            dgvPedidos.RowHeadersWidth = 51;
+            dgvPedidos.Size = new Size(349, 526);
+            dgvPedidos.TabIndex = 10;
+            dgvPedidos.CellClick += dgvPedidos_CellClick;
+            // 
+            // btnEliminar
+            // 
+            btnEliminar.Location = new Point(491, 634);
+            btnEliminar.Margin = new Padding(3, 4, 3, 4);
+            btnEliminar.Name = "btnEliminar";
+            btnEliminar.Size = new Size(134, 31);
+            btnEliminar.TabIndex = 18;
+            btnEliminar.Text = "Eliminar Pedido";
+            btnEliminar.UseVisualStyleBackColor = true;
+            btnEliminar.Click += btnEliminar_Click;
+            // 
+            // btnGuardar
+            // 
+            btnGuardar.Location = new Point(271, 634);
+            btnGuardar.Margin = new Padding(3, 4, 3, 4);
+            btnGuardar.Name = "btnGuardar";
+            btnGuardar.Size = new Size(136, 31);
+            btnGuardar.TabIndex = 17;
+            btnGuardar.Text = "Guardar Pedido";
+            btnGuardar.UseVisualStyleBackColor = true;
+            btnGuardar.Click += btnGuardar_Click;
+            // 
+            // btnNueva
+            // 
+            btnNueva.Location = new Point(72, 634);
+            btnNueva.Margin = new Padding(3, 4, 3, 4);
+            btnNueva.Name = "btnNueva";
+            btnNueva.Size = new Size(117, 31);
+            btnNueva.TabIndex = 16;
+            btnNueva.Text = "Nuevo Pedido";
+            btnNueva.UseVisualStyleBackColor = true;
+            btnNueva.Click += btnNueva_Click;
+            // 
+            // pictureBoxProducto
+            // 
+            pictureBoxProducto.Location = new Point(483, 191);
+            pictureBoxProducto.Name = "pictureBoxProducto";
+            pictureBoxProducto.Size = new Size(125, 107);
+            pictureBoxProducto.TabIndex = 19;
+            pictureBoxProducto.TabStop = false;
             // 
             // FrmPedido
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(1121, 627);
+            ClientSize = new Size(1121, 673);
+            Controls.Add(pictureBoxProducto);
+            Controls.Add(btnEliminar);
+            Controls.Add(btnGuardar);
+            Controls.Add(btnNueva);
             Controls.Add(groupBox3);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
@@ -268,34 +320,40 @@ namespace VentasOnline.Forms
             Name = "FrmPedido";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "FrmPedido";
+            Load += FrmPedido_Load;
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvDetallePedido).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvDetalle).EndInit();
+            ((System.ComponentModel.ISupportInitialize)nudCantidad).EndInit();
             groupBox3.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvHistorialPedidos).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvPedidos).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBoxProducto).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
 
         private GroupBox groupBox1;
         private Label label1;
-        private ComboBox cmbClienteEncabezado;
-        private ComboBox comboBox1;
+        private ComboBox cboCliente;
+        private ComboBox cboUsuario;
         private Label label2;
-        private Button btnNuevaVenta;
         private GroupBox groupBox2;
         private Label label3;
-        private ComboBox comboBox3;
+        private ComboBox cboProducto;
         private Label cmbProducto;
-        private NumericUpDown numericUpDown1;
+        private NumericUpDown nudCantidad;
         private Button btnAgregar;
-        private DataGridView dgvDetallePedido;
-        private Label label4;
+        private DataGridView dgvDetalle;
+        private Label lblTotal;
         private Button btnQuitarLinea;
         private GroupBox groupBox3;
-        private DataGridView dgvHistorialPedidos;
+        private DataGridView dgvPedidos;
+        private Button btnEliminar;
+        private Button btnGuardar;
+        private Button btnNueva;
+        private PictureBox pictureBoxProducto;
+        private Label lblVenta;
     }
 }

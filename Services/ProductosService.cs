@@ -17,6 +17,7 @@ namespace VentasOnline.Services
             using var ctx = new AppDbContext();
             return ctx.Productos
                 .Include(p => p.Categoria)
+                .Include(p => p.Proveedor)
                 .AsNoTracking()
                 .OrderBy(p => p.Nombre)
                 .ToList();

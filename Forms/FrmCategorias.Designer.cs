@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             dgvCategorias = new DataGridView();
             panel1 = new Panel();
             btnCancelar = new Button();
@@ -40,12 +40,8 @@
             label3 = new Label();
             txtNombre = new TextBox();
             label2 = new Label();
-            txtId = new TextBox();
-            label1 = new Label();
             logoLabel = new Label();
             desktopLabel = new Label();
-            previewLabel = new Label();
-            previewLine = new Panel();
             ((System.ComponentModel.ISupportInitialize)dgvCategorias).BeginInit();
             panel1.SuspendLayout();
             SuspendLayout();
@@ -54,24 +50,24 @@
             // 
             dgvCategorias.AllowUserToAddRows = false;
             dgvCategorias.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgvCategorias.BackgroundColor = Color.FromArgb(38, 38, 38);
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.FromArgb(55, 55, 55);
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.White;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            dgvCategorias.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dgvCategorias.BackgroundColor = Color.FromArgb(222, 222, 222);
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.FromArgb(55, 55, 55);
+            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle3.ForeColor = Color.White;
+            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
+            dgvCategorias.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dgvCategorias.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.FromArgb(38, 38, 38);
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.White;
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(55, 111, 161);
-            dataGridViewCellStyle2.SelectionForeColor = Color.White;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvCategorias.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.FromArgb(38, 38, 38);
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle4.ForeColor = Color.White;
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(55, 111, 161);
+            dataGridViewCellStyle4.SelectionForeColor = Color.White;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dgvCategorias.DefaultCellStyle = dataGridViewCellStyle4;
             dgvCategorias.EnableHeadersVisualStyles = false;
             dgvCategorias.GridColor = Color.FromArgb(55, 55, 55);
             dgvCategorias.Location = new Point(55, 105);
@@ -96,8 +92,6 @@
             panel1.Controls.Add(label3);
             panel1.Controls.Add(txtNombre);
             panel1.Controls.Add(label2);
-            panel1.Controls.Add(txtId);
-            panel1.Controls.Add(label1);
             panel1.Location = new Point(655, 105);
             panel1.Name = "panel1";
             panel1.Size = new Size(395, 470);
@@ -166,10 +160,10 @@
             // txtDescripcion
             // 
             txtDescripcion.Font = new Font("Segoe UI", 11F);
-            txtDescripcion.Location = new Point(22, 180);
+            txtDescripcion.Location = new Point(22, 148);
             txtDescripcion.Multiline = true;
             txtDescripcion.Name = "txtDescripcion";
-            txtDescripcion.Size = new Size(347, 90);
+            txtDescripcion.Size = new Size(347, 131);
             txtDescripcion.TabIndex = 5;
             txtDescripcion.TextChanged += txtDescripcion_TextChanged;
             // 
@@ -177,7 +171,7 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 13F);
-            label3.Location = new Point(22, 150);
+            label3.Location = new Point(21, 118);
             label3.Name = "label3";
             label3.Size = new Size(130, 30);
             label3.TabIndex = 4;
@@ -186,7 +180,7 @@
             // txtNombre
             // 
             txtNombre.Font = new Font("Segoe UI", 11F);
-            txtNombre.Location = new Point(22, 105);
+            txtNombre.Location = new Point(22, 66);
             txtNombre.MaxLength = 100;
             txtNombre.Name = "txtNombre";
             txtNombre.Size = new Size(347, 32);
@@ -196,30 +190,11 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 13F);
-            label2.Location = new Point(22, 75);
+            label2.Location = new Point(21, 36);
             label2.Name = "label2";
             label2.Size = new Size(99, 30);
             label2.TabIndex = 2;
             label2.Text = "Nombre:";
-            // 
-            // txtId
-            // 
-            txtId.Font = new Font("Segoe UI", 11F);
-            txtId.Location = new Point(22, 37);
-            txtId.Name = "txtId";
-            txtId.ReadOnly = true;
-            txtId.Size = new Size(347, 32);
-            txtId.TabIndex = 1;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 13F);
-            label1.Location = new Point(22, 10);
-            label1.Name = "label1";
-            label1.Size = new Size(39, 30);
-            label1.TabIndex = 0;
-            label1.Text = "ID:";
             // 
             // logoLabel
             // 
@@ -243,34 +218,12 @@
             desktopLabel.TabIndex = 3;
             desktopLabel.Text = "Desktop";
             // 
-            // previewLabel
-            // 
-            previewLabel.AutoSize = true;
-            previewLabel.BackColor = Color.FromArgb(38, 38, 38);
-            previewLabel.Font = new Font("Segoe UI", 14F);
-            previewLabel.ForeColor = Color.White;
-            previewLabel.Location = new Point(55, 113);
-            previewLabel.Name = "previewLabel";
-            previewLabel.Size = new Size(279, 32);
-            previewLabel.TabIndex = 4;
-            previewLabel.Text = "Vista Previa de Categoría";
-            // 
-            // previewLine
-            // 
-            previewLine.BackColor = Color.FromArgb(90, 90, 90);
-            previewLine.Location = new Point(330, 131);
-            previewLine.Name = "previewLine";
-            previewLine.Size = new Size(300, 2);
-            previewLine.TabIndex = 5;
-            // 
             // FrmCategorias
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
             ClientSize = new Size(1090, 650);
-            Controls.Add(previewLine);
-            Controls.Add(previewLabel);
             Controls.Add(desktopLabel);
             Controls.Add(logoLabel);
             Controls.Add(panel1);
@@ -292,8 +245,6 @@
 
         private DataGridView dgvCategorias;
         private Panel panel1;
-        private TextBox txtId;
-        private Label label1;
         private TextBox txtNombre;
         private Label label2;
         private Button btnCancelar;
@@ -304,7 +255,5 @@
         private Label label3;
         private Label logoLabel;
         private Label desktopLabel;
-        private Label previewLabel;
-        private Panel previewLine;
     }
 }
