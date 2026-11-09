@@ -8,21 +8,25 @@ namespace VentasOnline.Forms
 {
     public partial class FrmLogin : Form
     {
+        // Propiedad para almacenar el usuario autenticado
         public Usuario? UsuarioAutenticado { get; private set; }
-        private const int MaxIntentos = 3;
-        private int intentosFallidos = 0;
+        private const int MaxIntentos = 3;// Número máximo de intentos permitidos
+        private int intentosFallidos = 0;// Contador de intentos fallidos
 
         public FrmLogin()
         {
             InitializeComponent();
         }
 
+        // Evento que se ejecuta cuando se carga el formulario
         private void FrmLogin_Load(object sender, EventArgs e)
         {
             lblMensaje.Text = "";
             ActiveControl = txtCorreo;      // el cursor inicia en el correo
 
         }
+
+        // Evento que se ejecuta cuando se cambia el estado del CheckBox para mostrar/ocultar la contraseña
         private void chkMostrar_CheckedChanged(object sender, EventArgs e)
         {
             if (chkMostrar.Checked)
@@ -39,11 +43,13 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta cuando se hace clic en el botón "Ingresar" para validar el correo y la contraseña ingresados
         private void btnIngresar_Click(object? sender, EventArgs e)
         {
             string correo = txtCorreo.Text.Trim();
             string password = txtPassword.Text;   // la contraseña No se recorta
 
+            // Validación básica: verificar que los campos no estén vacíos
             if (correo == "" || password == "")
             {
                 lblMensaje.Text = "Ingrese correo y contraseña.";
@@ -52,9 +58,11 @@ namespace VentasOnline.Forms
 
             try
             {
+                // Cambiamos el cursor a "espera" mientras se realiza la validación
                 Cursor = Cursors.WaitCursor;
                 var usuarioValido = AuthService.IniciarSesion(correo, password);
 
+                // Si el usuario es válido, iniciamos la sesión y cerramos el formulario de login con un resultado OK
                 if (usuarioValido != null)
                 {
                     Sesion.Iniciar(usuarioValido);
@@ -65,6 +73,7 @@ namespace VentasOnline.Forms
                 intentosFallidos++;
                 int restantes = MaxIntentos - intentosFallidos;
 
+                // Si se han agotado los intentos permitidos, mostramos un mensaje y cerramos el formulario con un resultado Cancel
                 if (restantes <= 0)
                 {
                     MessageBox.Show("Superó el número de intentos permitidos.\n" +

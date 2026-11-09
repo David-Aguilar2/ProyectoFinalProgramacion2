@@ -11,7 +11,7 @@ namespace VentasOnline
         private readonly Usuario _usuarioActual;
         private Button? _botonSeleccionadoActual = null;
 
-        // Definimos los colores base para que los cambies a tu gusto fácilmente
+        // Colores base para el hover del menú y el botón activo
         private readonly Color ColorAzulPorDefecto = Color.FromArgb(55, 126, 211); // Azul
         private readonly Color ColorHover = Color.FromArgb(75, 145, 235);          // Azul más claro al pasar el mouse
         private readonly Color ColorActivo = Color.FromArgb(35, 95, 175);          // Un azul intenso al seleccionar
@@ -21,9 +21,9 @@ namespace VentasOnline
             _usuarioActual = usuarioActual ?? Sesion.UsuarioActual;
             InitializeComponent();
 
-            // Configurar eventos de clic y efectos de Hover para cada botón del menú
+            // Eventos de clic y efectos de Hover para cada botón del menú
+            // Con este evento, al hacer clic en un botón, se selecciona y se abre el formulario correspondiente
             ConfigurarBotonMenu(btnEnvios, () => SelectNavigationButton(btnEnvios));
-            //ConfigurarBotonMenu(btnDetallesPedido, () => OpenForm(new FrmDetallePedido(), btnDetallesPedido));
             ConfigurarBotonMenu(btnCategoria, () => OpenForm(new FrmCategorias(), btnCategoria));
             ConfigurarBotonMenu(btnProveedor, () => OpenForm(new FrmProveedores(), btnProveedor));
             ConfigurarBotonMenu(btnProducto, () => OpenForm(new FrmProductos(), btnProducto));
@@ -68,10 +68,11 @@ namespace VentasOnline
             };
         }
 
+        // Evento que se ejecuta al cargar el formulario principal
         private void Form1_Load(object sender, EventArgs e)
         {
             try
-            {
+            {// Verificar la conexión a la base de datos y obtener información básica
                 using var contexto = new AppDbContext();
                 bool conecta = contexto.Database.CanConnect();
                 int categorias = contexto.Categorias.Count();
@@ -80,10 +81,11 @@ namespace VentasOnline
             }
             catch (Exception ex)
             {
-
+                MessageBox.Show("Error al conectar con la base de datos: " + ex.Message, "Error de Conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
+        // Método que configura los permisos de los botones según el rol del usuario
         private void ConfigurePermissions()
         {
             if (_usuarioActual == null) return;
@@ -96,11 +98,13 @@ namespace VentasOnline
             //admin@localhost.com Test123!
         }
 
+        // Evento que se ejecuta al hacer clic en el botón de cerrar sesión
         private void logoutButton_Click(object? sender, EventArgs e)
         {
             Close();
         }
 
+        // Método que se usa para que el botón seleccionado se mantenga con un color fijo y los demás regresen a su color azul normal
         private void SelectNavigationButton(Button selectedButton)
         {
             _botonSeleccionadoActual = selectedButton;
@@ -123,6 +127,7 @@ namespace VentasOnline
             }
         }
 
+        // Método que abre un formulario y valida si el usuario tiene permisos para acceder a él
         private void OpenForm(Form form, Button selectedButton)
         {
             // Validación de seguridad por si intentan acceder mediante código
@@ -132,7 +137,7 @@ namespace VentasOnline
                 form.Dispose();
                 return;
             }
-
+            // Si el usuario tiene permisos, se selecciona el botón y se abre el formulario
             SelectNavigationButton(selectedButton);
             using (form)
             {
@@ -140,9 +145,6 @@ namespace VentasOnline
             }
         }
 
-        private void navigationPanel_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
+        private void navigationPanel_Paint(object sender, PaintEventArgs e){}
     }
 }

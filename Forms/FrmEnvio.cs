@@ -6,10 +6,12 @@ namespace VentasOnline.Forms
 {
     public partial class FrmEnvio : Form
     {
+        // Variables privadas que controlan el estado de la carga de datos y el pedido actualmente cargado
         private bool _cargandoDatos;
         private int? _pedidoCargadoId;
         private List<Envio> _envios = new();
 
+        // Constructor que inicializa el formulario y configura los elementos de la interfaz de usuario
         public FrmEnvio()
         {
             InitializeComponent();

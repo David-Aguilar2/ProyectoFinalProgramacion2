@@ -6,20 +6,21 @@ namespace VentasOnline.Data
 {
     public static class Seguridad
     {
-        // Contraseña temporal SOLO para el entorno de desarrollo
+        // Contraseña temporal solo para el entorno de desarrollo
         private const string PasswordTemporal = "Test123!";
 
         public static void Ejecutar()
         {
             using var db = new AppDbContext();
 
-            // 1) Si la tabla está vacía, crea un administrador para no quedar sin acceso
+            // 1) Si la tabla está vacía, crea un administrador para no quedarse sin acceso
             if (!db.Usuarios.Any())
             {
                 db.Usuarios.Add(new Usuario
                 {
                     Correo = "admin@localhost.com",
                     Rol = "Administrador",
+                    // Genera un hash de la contraseña temporal para almacenarla de forma segura
                     Password = AuthService.GenerarHash(PasswordTemporal),
                     Nombre = "Administrador",
                     Telefono = "0000000000",

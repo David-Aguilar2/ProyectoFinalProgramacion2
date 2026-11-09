@@ -14,12 +14,14 @@ namespace VentasOnline.Forms
 {
     public partial class FrmProductos : Form
     {
+        // Servicios para manejar productos, categorías y proveedores
         private readonly ProductosService _productoService;
         private readonly CategoriaService _categoriaService;
         private readonly ProveedoresService _proveedorService;
         private int _idSeleccionado = 0; // 0 significa nuevo registro
-        private string _rutaOrigenImagen = string.Empty;
+        private string _rutaOrigenImagen = string.Empty;// Variable para almacenar la ruta de la imagen seleccionada
 
+        // Constructor que inicializa los servicios y componentes del formulario
         public FrmProductos()
         {
             InitializeComponent();
@@ -28,6 +30,7 @@ namespace VentasOnline.Forms
             _proveedorService = new ProveedoresService();
         }
 
+        // Evento que se ejecuta al cargar el formulario, inicializa los combos y la grilla
         private void FrmProductos_Load(object sender, EventArgs e)
         {
             CargarComboCategorias();
@@ -36,6 +39,7 @@ namespace VentasOnline.Forms
             LimpiarFormulario();
         }
 
+        // Método para cargar las categorías en el combo box
         private void CargarComboCategorias()
         {
             try
@@ -54,6 +58,7 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Método para cargar los proveedores en el combo box
         private void CargarComboProveedores()
         {
             try
@@ -72,6 +77,7 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Método para cargar los productos en la grilla
         private void CargarGrilla()
         {
             try
@@ -94,6 +100,7 @@ namespace VentasOnline.Forms
                 dgvProductos.DataSource = null;
                 dgvProductos.DataSource = lista;
 
+                // Ocultar columnas que no son necesarias para la visualización
                 if (dgvProductos.Columns["IdCategoria"] != null) dgvProductos.Columns["IdCategoria"].Visible = false;
                 if (dgvProductos.Columns["IdProveedor"] != null) dgvProductos.Columns["IdProveedor"].Visible = false;
                 if (dgvProductos.Columns["Id"] != null) dgvProductos.Columns["Id"].Visible = false;
@@ -107,17 +114,19 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Reemplazo de SelectionChanged por CellClick para evitar sobrescrituras de ID no deseadas
+        // Evento que se ejecuta al hacer clic en una celda de la grilla, carga los datos del producto seleccionado en el formulario
         private void dgvProductos_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0) return;// Evita errores al hacer clic en el encabezado de la grilla
 
+            // Obtiene la fila seleccionada y carga los datos del producto en el formulario
             var fila = dgvProductos.Rows[e.RowIndex];
             if (fila.Cells["Id"].Value != null)
             {
                 int id = Convert.ToInt32(fila.Cells["Id"].Value);
                 var seleccionado = _productoService.ObtenerPorId(id);
 
+                // Carga los datos del producto seleccionado en los controles del formulario
                 if (seleccionado != null)
                 {
                     _idSeleccionado = seleccionado.Id;
@@ -133,24 +142,28 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón de buscar imagen, abre un diálogo para seleccionar una imagen y actualiza el campo de texto con el nombre del archivo
         private void btnBuscarImagen_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog dialog = new OpenFileDialog())
             {
+                // Filtra los tipos de archivos de imagen permitidos
                 dialog.Filter = "Archivos de Imagen|*.jpg;*.jpeg;*.png;*.bmp;*.webp";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    _rutaOrigenImagen = dialog.FileName;
-                    txtImagen.Text = Path.GetFileName(_rutaOrigenImagen);
+                    _rutaOrigenImagen = dialog.FileName;// Almacena la ruta completa de la imagen seleccionada
+                    txtImagen.Text = Path.GetFileName(_rutaOrigenImagen);// Muestra solo el nombre del archivo en el campo de texto
                 }
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón de nuevo, limpia el formulario para ingresar un nuevo producto
         private void btnNuevo_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
         }
 
+        // Evento que se ejecuta al hacer clic en el botón de guardar, valida los datos y guarda o actualiza el producto en la base de datos
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             try
@@ -205,6 +218,7 @@ namespace VentasOnline.Forms
                     return;
                 }
 
+                // Determinar la ruta relativa de la imagen y si es una actualización o un nuevo registro
                 string rutaRelativaImagenBD = txtImagen.Text.Trim();
                 bool esActualizacion = _idSeleccionado != 0;
                 DateTime fechaFinalPublicacion = DateTime.Now;
@@ -212,34 +226,40 @@ namespace VentasOnline.Forms
                 if (esActualizacion)
                 {
                     var productoActual = _productoService.ObtenerPorId(_idSeleccionado);
+                    // Si el producto existe, se mantiene la fecha de publicación original
                     if (productoActual != null)
                     {
                         fechaFinalPublicacion = productoActual.FechaPublicacion;
+                        // Si se seleccionó una nueva imagen, se copia a la carpeta local y se elimina la anterior
                         if (!string.IsNullOrEmpty(_rutaOrigenImagen))
                         {
                             rutaRelativaImagenBD = CopiarImagenACarpetaLocal(_rutaOrigenImagen);
 
+                            // Eliminar la imagen anterior si existe
                             if (!string.IsNullOrEmpty(productoActual.ImagenUrl))
                             {
                                 string rutaBase = Application.StartupPath;
                                 string rutaImagenAnterior = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images", productoActual.ImagenUrl));
+                                // Eliminar la imagen anterior si existe
                                 if (File.Exists(rutaImagenAnterior)) File.Delete(rutaImagenAnterior);
                             }
                         }
                         else
                         {
-                            rutaRelativaImagenBD = productoActual.ImagenUrl;
+                            rutaRelativaImagenBD = productoActual.ImagenUrl;// Mantener la imagen anterior si no se seleccionó una nueva
                         }
                     }
                 }
                 else
                 {
+                    // Si es un nuevo registro y se seleccionó una imagen, se copia a la carpeta local
                     if (!string.IsNullOrEmpty(_rutaOrigenImagen))
                     {
                         rutaRelativaImagenBD = CopiarImagenACarpetaLocal(_rutaOrigenImagen);
                     }
                 }
 
+                // Crear un objeto Producto con los datos del formulario
                 var producto = new Producto
                 {
                     Id = _idSeleccionado,
@@ -253,13 +273,16 @@ namespace VentasOnline.Forms
                     FechaPublicacion = fechaFinalPublicacion
                 };
 
+                // Guardar o actualizar el producto según corresponda
                 if (_idSeleccionado == 0)
                 {
+                    // Nuevo registro
                     _productoService.Crear(producto);
                     MessageBox.Show("Producto registrado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
+                    // Actualización de registro existente
                     _productoService.Actualizar(producto);
                     MessageBox.Show("Producto actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -274,6 +297,7 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón de eliminar, elimina el producto seleccionado después de confirmar la acción
         private void btnEliminar_Click(object sender, EventArgs e)
         {
             if (_idSeleccionado == 0)
@@ -285,18 +309,21 @@ namespace VentasOnline.Forms
             var confirmacion = MessageBox.Show($"¿Está seguro de eliminar el producto '{txtNombre.Text}'?",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
+            // Si el usuario confirma la eliminación, se procede a eliminar el producto y su imagen asociada
             if (confirmacion == DialogResult.Yes)
             {
                 try
                 {
                     var productoAEliminar = _productoService.ObtenerPorId(_idSeleccionado);
+                    // Eliminar la imagen asociada al producto si existe
                     if (productoAEliminar != null && !string.IsNullOrEmpty(productoAEliminar.ImagenUrl))
                     {
                         string rutaBase = Application.StartupPath;
                         string rutaImagenFisica = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images", productoAEliminar.ImagenUrl));
+                        // Eliminar la imagen física si existe
                         if (File.Exists(rutaImagenFisica)) File.Delete(rutaImagenFisica);
                     }
-
+                    // Eliminar el producto de la base de datos
                     _productoService.Eliminar(_idSeleccionado);
                     MessageBox.Show("Producto eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -310,12 +337,14 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón de cancelar, limpia el formulario y cierra la ventana
         private void btnCancelar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
             Close();
         }
 
+        // Método para limpiar los controles del formulario y restablecer el estado inicial
         private void LimpiarFormulario()
         {
             _idSeleccionado = 0;
@@ -332,21 +361,24 @@ namespace VentasOnline.Forms
             cmbCategoria.Focus();
         }
 
+        // Método para copiar la imagen seleccionada a la carpeta local del proyecto y devolver el nombre del archivo copiado
         private string CopiarImagenACarpetaLocal(string rutaOrigen)
         {
             string rutaBase = Application.StartupPath;
             string carpetaDestino = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images"));
 
+            // Crear la carpeta de destino si no existe
             if (!Directory.Exists(carpetaDestino))
             {
                 Directory.CreateDirectory(carpetaDestino);
             }
 
+            // Generar un nombre de archivo único para evitar conflictos
             string extension = Path.GetExtension(rutaOrigen);
             string nombreArchivoUnico = $"{Guid.NewGuid()}{extension}";
             string rutaDestinoCompleta = Path.Combine(carpetaDestino, nombreArchivoUnico);
 
-            File.Copy(rutaOrigen, rutaDestinoCompleta, true);
+            File.Copy(rutaOrigen, rutaDestinoCompleta, true);// Copia la imagen a la carpeta local, sobrescribiendo si ya existe
             return nombreArchivoUnico;
         }
 

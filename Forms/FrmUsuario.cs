@@ -6,15 +6,18 @@ namespace VentasOnline.Forms
 {
     public partial class FrmUsuario : Form
     {
+        // Servicio para manejar operaciones relacionadas con usuarios
         private readonly UsuarioService _usuarioService;
         private int _idSeleccionado = 0;
 
+        // Constructor que inicializa el formulario y el servicio de usuario
         public FrmUsuario()
         {
             InitializeComponent();
             _usuarioService = new UsuarioService();
         }
 
+        // Evento que se ejecuta al cargar el formulario, cargando los usuarios y limpiando el formulario
         private void FrmUsuario_Load(object? sender, EventArgs e)
         {
             try
@@ -28,6 +31,7 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Método para cargar los usuarios desde el servicio y mostrarlos en el DataGridView
         private void CargarUsuarios()
         {
             try
@@ -45,14 +49,17 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en una celda del DataGridView, llenando los campos del formulario con los datos del usuario seleccionado
         private void dgvUsuarios_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
+            // Evita que se ejecute si se hace clic en el encabezado de la columna
             if (e.RowIndex < 0) return;
 
             var fila = dgvUsuarios.Rows[e.RowIndex]; // Asegúrate de que el nombre del control sea dgvUsuarios
             // Corregido: dgvUsuarios.Rows[e.RowIndex]
             var filaReal = dgvUsuarios.Rows[e.RowIndex];
 
+            // Verifica si la celda de la columna "Id" contiene un valor válido y lo asigna a _idSeleccionado
             if (filaReal.Cells[colId.Name].Value is int idUsuario)
             {
                 _idSeleccionado = idUsuario;
@@ -61,6 +68,7 @@ namespace VentasOnline.Forms
                 txtTelefono.Text = Convert.ToString(filaReal.Cells[colTelefono.Name].Value) ?? string.Empty;
                 txtPassword.Clear();
 
+                // Selecciona el rol correspondiente en el ComboBox, si existe
                 string rol = Convert.ToString(filaReal.Cells[colRol.Name].Value) ?? string.Empty;
                 if (!string.IsNullOrEmpty(rol) && cmbRol.Items.Contains(rol))
                 {
@@ -73,15 +81,18 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón "Nuevo", limpiando el formulario para ingresar un nuevo usuario
         private void btnNuevo_Click(object? sender, EventArgs e)
         {
             LimpiarFormulario();
         }
 
+        // Evento que se ejecuta al hacer clic en el botón "Guardar", validando los datos y guardando o actualizando el usuario
         private void btnGuardar_Click(object? sender, EventArgs e)
         {
             try
             {
+                // Validación de campos obligatorios
                 string nombre = txtNombre.Text.Trim();
                 string correo = txtCorreo.Text.Trim();
                 string password = txtPassword.Text;
@@ -92,6 +103,7 @@ namespace VentasOnline.Forms
                     ? cmbRol.SelectedItem.ToString()!
                     : string.Empty;
 
+                // Validamos que el Email sea válido
                 if (!new EmailAddressAttribute().IsValid(correo))
                 {
                     MessageBox.Show("Escribe un correo electrónico válido.", "Correo no válido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -99,6 +111,7 @@ namespace VentasOnline.Forms
                     return;
                 }
 
+                // Esto asegura que el rol no esté vacío antes de crear o actualizar el usuario
                 var usuario = new Usuario
                 {
                     Id = _idSeleccionado,
@@ -108,13 +121,17 @@ namespace VentasOnline.Forms
                     Rol = rol
                 };
 
+                // Si el ID seleccionado es 0, significa que estamos creando un nuevo usuario; de lo contrario, estamos actualizando uno existente
+
                 if (_idSeleccionado == 0)
                 {
+                    // Guardamos el nuevo usuario
                     _usuarioService.Crear(usuario, password);
                     MessageBox.Show("Usuario registrado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
+                    // Actualizamos el usuario existente
                     _usuarioService.Actualizar(usuario, password);
                     MessageBox.Show("Usuario actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -128,6 +145,7 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón "Eliminar", eliminando el usuario seleccionado después de una confirmación
         private void btnEliminar_Click(object? sender, EventArgs e)
         {
             if (_idSeleccionado == 0)
@@ -136,6 +154,7 @@ namespace VentasOnline.Forms
                 return;
             }
 
+            // Confirmación antes de eliminar
             var confirmacion = MessageBox.Show($"¿Está seguro de eliminar al usuario '{txtNombre.Text}'?",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -143,6 +162,7 @@ namespace VentasOnline.Forms
             {
                 try
                 {
+                    // Llamada al servicio para eliminar el usuario seleccionado
                     _usuarioService.Eliminar(_idSeleccionado);
                     MessageBox.Show("Usuario eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -156,12 +176,14 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón "Cancelar", limpiando el formulario y cerrando la ventana
         private void btnCancelar_Click(object? sender, EventArgs e)
         {
             LimpiarFormulario();
             Close();
         }
 
+        // Método para limpiar los campos del formulario y restablecer el estado inicial
         private void LimpiarFormulario()
         {
             _idSeleccionado = 0;

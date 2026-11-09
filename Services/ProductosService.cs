@@ -9,6 +9,7 @@ namespace VentasOnline.Services
 {
     public class ProductosService
     {
+        // Lista de productos con sus categorías y proveedores asociados
         public List<Producto> ObtenerTodos()
         {
             using var ctx = new AppDbContext();
@@ -29,6 +30,7 @@ namespace VentasOnline.Services
                 .FirstOrDefault(p => p.Id == id);
         }
 
+        // Método para crear un nuevo producto, validando que la categoría y el proveedor existan, y que no haya otro producto con el mismo nombre
         public void Crear(Producto producto)
         {
             ValidarProducto(producto);
@@ -57,6 +59,7 @@ namespace VentasOnline.Services
             ctx.SaveChanges();
         }
 
+        // Método para actualizar un producto existente, validando que la categoría y el proveedor existan, y que no haya otro producto con el mismo nombre
         public void Actualizar(Producto producto)
         {
             ValidarProducto(producto);
@@ -87,6 +90,7 @@ namespace VentasOnline.Services
                 throw new InvalidOperationException("Ya existe otro producto registrado con ese nombre.");
             }
 
+            // Actualizar los campos del producto existente
             productoDb.Nombre = producto.Nombre;
             productoDb.Descripcion = producto.Descripcion;
             productoDb.Precio = producto.Precio;
@@ -98,6 +102,7 @@ namespace VentasOnline.Services
             ctx.SaveChanges();
         }
 
+        // Método para eliminar un producto, validando que no tenga historial de ventas asociado
         public void Eliminar(int id)
         {
             using var ctx = new AppDbContext();
@@ -118,6 +123,7 @@ namespace VentasOnline.Services
             ctx.SaveChanges();
         }
 
+        // Método privado para validar los datos de un producto antes de crearlo o actualizarlo
         private void ValidarProducto(Producto producto)
         {
             if (string.IsNullOrWhiteSpace(producto.Nombre))

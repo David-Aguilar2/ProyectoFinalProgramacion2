@@ -8,11 +8,12 @@ namespace VentasOnline.Models
 {
     public class Proveedores
     {
-        [Key]
+        //Propiedades de la entidad Proveedores
+        [Key]//Llave primaria
         public int Id { get; set; }
 
-        [Required]
-        [MaxLength(100)]
+        [Required]//Indica que el campo es obligatorio
+        [MaxLength(100)]//Indica la longitud máxima del campo que es de 100 caracteres
         public string Nombre { get; set; }
 
         [MaxLength(20)]

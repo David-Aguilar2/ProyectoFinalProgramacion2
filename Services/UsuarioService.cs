@@ -10,18 +10,20 @@ namespace VentasOnline.Services
 {
     public class UsuarioService
     {
+        // Método para obtener todos los usuarios ordenados por nombre
         public List<Usuario> ObtenerTodas()
         {
             using var ctx = new AppDbContext();
             return ctx.Usuarios.AsNoTracking().OrderBy(u => u.Nombre).ToList();
         }
 
+        // Método para obtener un usuario por su ID
         public Usuario? ObtenerPorId(int id)
         {
             using var ctx = new AppDbContext();
             return ctx.Usuarios.Find(id);
         }
-
+        // Método para obtener un usuario por su correo electrónico
         public void Crear(Usuario usuario, string passwordEnTextoPlano)
         {
             ValidarUsuario(usuario);
@@ -47,6 +49,7 @@ namespace VentasOnline.Services
             ctx.SaveChanges();
         }
 
+        // Método para actualizar un usuario existente
         public void Actualizar(Usuario usuario, string? passwordEnTextoPlano = null)
         {
             ValidarUsuario(usuario);
@@ -79,6 +82,7 @@ namespace VentasOnline.Services
             ctx.SaveChanges();
         }
 
+        // Método para eliminar un usuario por su ID
         public void Eliminar(int id)
         {
             using var ctx = new AppDbContext();

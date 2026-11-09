@@ -13,25 +13,30 @@ namespace VentasOnline.Forms
 {
     public partial class FrmPedido : Form
     {
+        // Servicios para manejar operaciones relacionadas con pedidos
         private readonly PedidoService _servicio = new();
         private readonly BindingList<LineaPedido> _lineas = new();
         private int _pedidoId = 0; // 0 = Pedido nuevo
-        private readonly Usuario? _usuarioActual;
+        private readonly Usuario? _usuarioActual;// Usuario autenticado que realiza el pedido
 
+        // Constructor por defecto que llama al constructor principal con null
         public FrmPedido() : this(null) { }
 
+        // Constructor principal que recibe el usuario autenticado
         public FrmPedido(Usuario? usuarioActual)
         {
             InitializeComponent();
             _usuarioActual = usuarioActual ?? Sesion.UsuarioActual;
         }
 
+        // Evento que se ejecuta al cargar el formulario
         private void FrmPedido_Load(object sender, EventArgs e)
         {
             CargarCatalogos();
             cboProducto.SelectedIndexChanged += cboProducto_SelectedIndexChanged;
             dgvDetalle.DataSource = _lineas;
 
+            // Aqui ocultamos las columnas que no queremos mostrar en el DataGridView
             if (dgvDetalle.Columns["ProductoId"] != null)
                 dgvDetalle.Columns["ProductoId"].Visible = false;
 
@@ -47,9 +52,11 @@ namespace VentasOnline.Forms
             CargarHistorial();
             NuevoPedido();
 
+            // Cargar la imagen del producto seleccionado al iniciar el formulario
             cboProducto_SelectedIndexChanged(cboProducto, EventArgs.Empty);
         }
 
+        // Carga los datos de clientes, usuarios y productos en los ComboBoxes correspondientes
         private void CargarCatalogos()
         {
             cboCliente.DisplayMember = "Nombre";
@@ -66,6 +73,7 @@ namespace VentasOnline.Forms
             cboProducto.DataSource = _servicio.ListarProductosActivos();
         }
 
+        // Carga el historial de pedidos en el DataGridView
         private void CargarHistorial()
         {
             dgvPedidos.DataSource = _servicio.ListarPedidos()
@@ -79,6 +87,7 @@ namespace VentasOnline.Forms
                 .ToList();
         }
 
+        // Inicializa un nuevo pedido, reseteando los campos y la lista de líneas
         private void NuevoPedido()
         {
             _pedidoId = 0;
@@ -90,17 +99,21 @@ namespace VentasOnline.Forms
             ActualizarTotal();
             LimpiarImagenProducto();
 
+            // Si hay un usuario autenticado se selecciona automáticamente en el ComboBox de usuarios
+
             if (_usuarioActual != null)
             {
                 cboUsuario.SelectedValue = _usuarioActual.Id;
             }
         }
 
+        // Actualiza el total del pedido sumando los subtotales de cada línea
         private void ActualizarTotal()
         {
             lblTotal.Text = $"Total: ${_lineas.Sum(l => l.Subtotal):N2}";
         }
 
+        // Evento que se ejecuta al hacer clic en el botón "Agregar" para añadir un producto al pedido
         private void btnAgregar_Click(object sender, EventArgs e)
         {
             if (cboProducto.SelectedItem is not Producto productoSeleccionado) return;
@@ -132,6 +145,7 @@ namespace VentasOnline.Forms
                 return;
             }
 
+            // Si el producto ya existe en la lista, simplemente actualizamos la cantidad
             if (existente != null)
             {
                 existente.Cantidad += cantidadSolicitada;
@@ -148,10 +162,11 @@ namespace VentasOnline.Forms
                 });
             }
 
-            nudCantidad.Value = 1;
+            nudCantidad.Value = 1;// Reinicia la cantidad a 1 después de agregar
             ActualizarTotal();
         }
 
+        // Evento que se ejecuta al hacer clic en el botón "Quitar" para eliminar un producto del pedido
         private void btnQuitar_Click(object sender, EventArgs e)
         {
             if (dgvDetalle.CurrentRow?.DataBoundItem is LineaPedido linea)
@@ -161,10 +176,13 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón "Nuevo" para iniciar un nuevo pedido
         private void btnNueva_Click(object sender, EventArgs e) => NuevoPedido();
 
+        // Evento que se ejecuta al hacer clic en el botón "Guardar" para registrar o actualizar el pedido
         private void btnGuardar_Click(object sender, EventArgs e)
         {
+            // Validar que haya al menos un producto en el pedido
             if (cboCliente.SelectedValue is not int clienteId ||
                 cboUsuario.SelectedValue is not int usuarioId)
             {
@@ -174,14 +192,17 @@ namespace VentasOnline.Forms
 
             try
             {
+                // Si el pedido es nuevo, se registra; si ya existe, se actualiza
                 if (_pedidoId == 0)
                 {
+                    // Registrar un nuevo pedido y obtener su ID
                     int id = _servicio.Registrar(clienteId, usuarioId, _lineas);
                     MessageBox.Show($"Pedido #{id} registrado exitosamente.", "VentasOnline",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
+                    // Actualizar un pedido existente
                     _servicio.Actualizar(_pedidoId, clienteId, usuarioId, _lineas);
                     MessageBox.Show($"Pedido #{_pedidoId} actualizado exitosamente.", "VentasOnline",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -197,11 +218,14 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en una celda del DataGridView de pedidos para cargar los detalles del pedido seleccionado
         private void dgvPedidos_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            // Evita que se ejecute si se hace clic en el encabezado de la columna
             if (e.RowIndex < 0) return;
             int id = Convert.ToInt32(dgvPedidos.Rows[e.RowIndex].Cells["Id"].Value);
 
+            // Cargar el pedido seleccionado desde la base de datos
             Pedido? pedido = _servicio.ObtenerConDetalle(id);
             if (pedido == null) return;
 
@@ -209,6 +233,7 @@ namespace VentasOnline.Forms
             cboCliente.SelectedValue = pedido.IdCliente;
             cboUsuario.SelectedValue = pedido.IdUsuario;
 
+            // Limpiar y cargar las líneas del pedido en el BindingList
             _lineas.Clear();
             foreach (var d in pedido.DetallesPedidos)
             {
@@ -220,6 +245,7 @@ namespace VentasOnline.Forms
                     PrecioUnitario = d.PrecioUnitario
                 });
             }
+            // Actualizar la interfaz para reflejar que se está editando un pedido existente
             lblVenta.Text = $"Editando pedido #{pedido.Id}";
             btnEliminar.Enabled = true;
             ActualizarTotal();
@@ -233,11 +259,13 @@ namespace VentasOnline.Forms
                 // Muestra el stock disponible en el Label
                 lblStock.Text = $"Stock: {producto.Stock}";
 
+                // Cargar la imagen del producto desde la carpeta "Images" si existe
                 if (!string.IsNullOrEmpty(producto.ImagenUrl))
                 {
                     string rutaBase = Application.StartupPath;
                     string rutaCompleta = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images", producto.ImagenUrl));
 
+                    // Verifica si el archivo de imagen existe antes de intentar cargarlo
                     if (File.Exists(rutaCompleta))
                     {
                         try
@@ -251,10 +279,12 @@ namespace VentasOnline.Forms
                 }
             }
 
+            // Si no hay producto seleccionado o no se puede cargar la imagen, se limpia la imagen y se muestra un stock vacío
             lblStock.Text = "Stock: -";
             LimpiarImagenProducto();
         }
 
+        // Método auxiliar para limpiar la imagen del PictureBox y liberar recursos
         private void LimpiarImagenProducto()
         {
             if (pictureBoxProducto.Image != null)
@@ -264,6 +294,7 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón "Eliminar" para borrar un pedido existente
         private void btnEliminar_Click(object sender, EventArgs e)
         {
             if (_pedidoId == 0) return;
@@ -272,6 +303,7 @@ namespace VentasOnline.Forms
                 $"¿Eliminar el pedido #{_pedidoId}?\nSe devolverá al inventario el stock de sus productos.",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
+            // Si el usuario no confirma la eliminación, se sale del método
             if (respuesta != DialogResult.Yes) return;
 
             try

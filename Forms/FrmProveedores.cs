@@ -12,15 +12,18 @@ namespace VentasOnline.Forms
 {
     public partial class FrmProveedores : Form
     {
+        // Servicio para manejar operaciones de proveedores
         private readonly ProveedoresService _proveedorService;
         private int _idSeleccionado = 0;
 
+        // Constructor que inicializa el formulario y el servicio de proveedores
         public FrmProveedores()
         {
             InitializeComponent();
             _proveedorService = new ProveedoresService();
         }
 
+        // Evento Load del formulario que carga la grilla de proveedores y limpia el formulario al iniciar
         private void FormProveedores_Load(object sender, EventArgs e)
         {
             CargarGrilla();
@@ -32,6 +35,7 @@ namespace VentasOnline.Forms
         {
             try
             {
+                // Obtener la lista de proveedores desde el servicio
                 var lista = _proveedorService.ObtenerTodas();
                 dgvProveedores.DataSource = null;
                 dgvProveedores.DataSource = lista;
@@ -48,18 +52,19 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Botón Nuevo
+        // Botón Nuevo que limpia el formulario para ingresar un nuevo proveedor
         private void btnNuevo_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
             txtNombre.Focus();
         }
 
-        // Botón Guardar
+        // Botón Guardar que crea o actualiza un proveedor según el estado del formulario
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             try
             {
+                // Validar campos obligatorios
                 var proveedor = new Proveedores
                 {
                     Nombre = txtNombre.Text.Trim(),
@@ -92,7 +97,7 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Botón Eliminar
+        // Botón Eliminar que elimina el proveedor seleccionado después de confirmar la acción
         private void btnEliminar_Click(object sender, EventArgs e)
         {
             if (_idSeleccionado == 0)
@@ -101,6 +106,7 @@ namespace VentasOnline.Forms
                 return;
             }
 
+            // Confirmar eliminación
             var confirmacion = MessageBox.Show($"¿Está seguro de eliminar el proveedor '{txtNombre.Text}'?",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -121,7 +127,7 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Botón Cancelar
+        // Botón Cancelar que limpia el formulario y cierra la ventana
         private void btnCancelar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();

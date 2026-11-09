@@ -13,9 +13,10 @@ namespace VentasOnline
         [STAThread]
         static void Main()
         {
+            //Establecer la variable de usuario autenticado para que pueda ser utilizada en toda la aplicación
             Usuario usuarioAutenticado = null;
 
-            ApplicationConfiguration.Initialize();
+            ApplicationConfiguration.Initialize();//configura la aplicacion para que se vea bien en pantallas de alta resolucion
             try
             {
                 Seguridad.Ejecutar(); //Completa contraseñas pendientes
@@ -26,6 +27,7 @@ namespace VentasOnline
                     ex.Message, "SivarPOS", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+            //Se muestra el formulario de login y se valida la sesión
             using (var login = new FrmLogin())
             {
                 if (login.ShowDialog() != DialogResult.OK)

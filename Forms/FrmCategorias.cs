@@ -12,21 +12,25 @@ namespace VentasOnline.Forms
 {
     public partial class FrmCategorias : Form
     {
+        // Servicio para manejar operaciones relacionadas con categorías
         private readonly CategoriaService _categoriaService;
         private int _idSeleccionado = 0; // 0 significa registro nuevo
 
+        // Constructor del formulario, inicializa componentes y el servicio de categorías
         public FrmCategorias()
         {
             InitializeComponent();
             _categoriaService = new CategoriaService();
         }
 
+        // Evento que se ejecuta al cargar el formulario, carga las categorías y limpia el formulario
         private void FrmCategorias_Load(object sender, EventArgs e)
         {
             CargarCategorias();
             LimpiarFormulario();
         }
 
+        // Método que carga las categorías desde la base de datos y las muestra en el DataGridView
         private void CargarCategorias()
         {
             try
@@ -35,6 +39,7 @@ namespace VentasOnline.Forms
                 dgvCategorias.DataSource = null;
                 dgvCategorias.DataSource = lista;
 
+                // Ocultar la columna de productos si existe
                 if (dgvCategorias.Columns["Productos"] != null)
                 {
                     dgvCategorias.Columns["Productos"].Visible = false;
@@ -46,6 +51,7 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Método que limpia los campos del formulario y resetea el estado de selección
         private void LimpiarFormulario()
         {
             _idSeleccionado = 0;
@@ -57,13 +63,14 @@ namespace VentasOnline.Forms
             txtNombre.Focus();
         }
 
+        // Evento que se ejecuta al hacer clic en una celda del DataGridView, selecciona la categoría correspondiente
         private void dgvCategorias_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0) return;// Evita errores si se hace clic en el encabezado
 
             var fila = dgvCategorias.Rows[e.RowIndex];
 
-            // Verificamos si la fuente de datos está enlazada directamente a objetos Categoria
+            // Verificamos si es una fila válida y obtenemos la categoría seleccionada
             if (fila.DataBoundItem is Categoria categoriaSeleccionada)
             {
                 _idSeleccionado = categoriaSeleccionada.Id;
@@ -73,11 +80,13 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que al hacer clic limpia el formulario para crear una nueva categoría
         private void btnNuevo_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
         }
 
+        // Evento que se ejecuta al hacer clic en el botón de guardar, crea o actualiza la categoría según corresponda
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             try
@@ -85,6 +94,7 @@ namespace VentasOnline.Forms
                 string nombre = txtNombre.Text.Trim();
                 string descripcion = txtDescripcion.Text.Trim();
 
+                // Validación básica: el nombre de la categoría no puede estar vacío
                 if (string.IsNullOrEmpty(nombre))
                 {
                     MessageBox.Show("El nombre de la categoría es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -92,6 +102,7 @@ namespace VentasOnline.Forms
                     return;
                 }
 
+                // Crear un objeto de categoría con los datos ingresados
                 var categoria = new Categoria
                 {
                     Id = _idSeleccionado,
@@ -99,6 +110,7 @@ namespace VentasOnline.Forms
                     Descripcion = descripcion
                 };
 
+                // Dependiendo de si es un registro nuevo o una actualización, se llama al método correspondiente del servicio
                 if (_idSeleccionado == 0)
                 {
                     _categoriaService.Crear(categoria);
@@ -120,13 +132,16 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic elimina la categoría seleccionada después de confirmar la acción
         private void btnEliminar_Click(object sender, EventArgs e)
         {
+            // Validación: si no hay una categoría seleccionada no se hace nada
             if (_idSeleccionado == 0) return;
 
             var respuesta = MessageBox.Show($"¿Estás seguro de eliminar la categoría \"{txtNombre.Text}\"?", "Eliminar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (respuesta != DialogResult.Yes) return;
 
+            // Intento de eliminar la categoría seleccionada, mostrando un mensaje de éxito o error según corresponda
             try
             {
                 _categoriaService.Eliminar(_idSeleccionado);
@@ -140,15 +155,13 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Evento que se ejecuta al hacer clic en el botón de cancelar, limpia el formulario y cierra la ventana
         private void btnCancelar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
             Close();
         }
 
-        private void txtDescripcion_TextChanged(object sender, EventArgs e)
-        {
-
-        }
+        private void txtDescripcion_TextChanged(object sender, EventArgs e){}
     }
 }

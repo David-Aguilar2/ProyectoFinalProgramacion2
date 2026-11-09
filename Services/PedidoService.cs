@@ -10,6 +10,7 @@ namespace VentasOnline.Services
 {
     public class PedidoService
     {
+        // Listar clientes, usuarios y productos activos
         public List<Cliente> ListarClientes()
         {
             using var ctx = new AppDbContext();
@@ -58,6 +59,7 @@ namespace VentasOnline.Services
             if (lista.Count == 0)
                 throw new InvalidOperationException("El pedido no tiene productos.");
 
+            // Crear el pedido y sus detalles, descontando stock
             using var ctx = new AppDbContext();
             var pedido = new Pedido
             {
@@ -138,8 +140,10 @@ namespace VentasOnline.Services
             ctx.SaveChanges();
         }
 
+        // Método auxiliar para crear detalles de pedido y actualizar stock
         private static List<DetallePedido> CrearDetalles(AppDbContext ctx, List<LineaPedido> lineas)
         {
+            // Validar stock y crear detalles
             var detalles = new List<DetallePedido>();
             foreach (var linea in lineas)
             {
