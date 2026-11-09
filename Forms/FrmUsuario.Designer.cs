@@ -13,7 +13,6 @@
         private TextBox txtNombre;
         private TextBox txtCorreo;
         private TextBox txtPassword;
-        private TextBox txtTelefono;
         private ComboBox cmbRol;
         private Button btnNuevo;
         private Button btnGuardar;
@@ -54,6 +53,7 @@
             colTelefono = new DataGridViewTextBoxColumn();
             colRol = new DataGridViewTextBoxColumn();
             panelFormulario = new Panel();
+            txtTelefono = new MaskedTextBox();
             lblDetalleUsuario = new Label();
             label1 = new Label();
             txtNombre = new TextBox();
@@ -62,7 +62,6 @@
             label3 = new Label();
             txtPassword = new TextBox();
             label4 = new Label();
-            txtTelefono = new TextBox();
             label5 = new Label();
             cmbRol = new ComboBox();
             lblAyudaPassword = new Label();
@@ -132,7 +131,7 @@
             dgvUsuarios.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvUsuarios.Size = new Size(609, 415);
             dgvUsuarios.TabIndex = 1;
-            dgvUsuarios.SelectionChanged += dgvUsuarios_SelectionChanged;
+            dgvUsuarios.CellClick += dgvUsuarios_CellClick;
             // 
             // colId
             // 
@@ -178,6 +177,7 @@
             // 
             panelFormulario.BackColor = Color.White;
             panelFormulario.BorderStyle = BorderStyle.FixedSingle;
+            panelFormulario.Controls.Add(txtTelefono);
             panelFormulario.Controls.Add(lblDetalleUsuario);
             panelFormulario.Controls.Add(label1);
             panelFormulario.Controls.Add(txtNombre);
@@ -186,7 +186,6 @@
             panelFormulario.Controls.Add(label3);
             panelFormulario.Controls.Add(txtPassword);
             panelFormulario.Controls.Add(label4);
-            panelFormulario.Controls.Add(txtTelefono);
             panelFormulario.Controls.Add(label5);
             panelFormulario.Controls.Add(cmbRol);
             panelFormulario.Controls.Add(lblAyudaPassword);
@@ -198,6 +197,14 @@
             panelFormulario.Name = "panelFormulario";
             panelFormulario.Size = new Size(405, 538);
             panelFormulario.TabIndex = 1;
+            // 
+            // txtTelefono
+            // 
+            txtTelefono.Location = new Point(112, 283);
+            txtTelefono.Mask = "0000-0000";
+            txtTelefono.Name = "txtTelefono";
+            txtTelefono.Size = new Size(88, 27);
+            txtTelefono.TabIndex = 14;
             // 
             // lblDetalleUsuario
             // 
@@ -284,16 +291,6 @@
             label4.Size = new Size(88, 25);
             label4.TabIndex = 6;
             label4.Text = "Teléfono:";
-            // 
-            // txtTelefono
-            // 
-            txtTelefono.Font = new Font("Segoe UI", 10F);
-            txtTelefono.Location = new Point(105, 277);
-            txtTelefono.MaxLength = 15;
-            txtTelefono.Name = "txtTelefono";
-            txtTelefono.PlaceholderText = "(503) 1234-5678";
-            txtTelefono.Size = new Size(278, 30);
-            txtTelefono.TabIndex = 7;
             // 
             // label5
             // 
@@ -435,5 +432,7 @@
             ResumeLayout(false);
             PerformLayout();
         }
+
+        private MaskedTextBox txtTelefono;
     }
 }

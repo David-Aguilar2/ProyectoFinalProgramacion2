@@ -29,14 +29,9 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMenu));
-            topMenu = new MenuStrip();
-            archivoMenuItem = new ToolStripMenuItem();
-            catalogosMenuItem = new ToolStripMenuItem();
-            operacionesMenuItem = new ToolStripMenuItem();
-            detallePedidoMenuItem = new ToolStripMenuItem();
-            ayudaMenuItem = new ToolStripMenuItem();
             sidebar = new Panel();
             navigationPanel = new FlowLayoutPanel();
+            btnCategoria = new Button();
             btnProveedor = new Button();
             btnProducto = new Button();
             btnCliente = new Button();
@@ -44,73 +39,26 @@
             btnPedidos = new Button();
             btnPagos = new Button();
             btnEnvios = new Button();
-            btnDetallesPedido = new Button();
-            sessionLabel = new Label();
             subtitleLabel = new Label();
             brandLabel = new Label();
             contentPanel = new Panel();
             instructionLabel = new Label();
             welcomeLabel = new Label();
-            btnCategoria = new Button();
-            topMenu.SuspendLayout();
             sidebar.SuspendLayout();
             navigationPanel.SuspendLayout();
             contentPanel.SuspendLayout();
             SuspendLayout();
             // 
-            // topMenu
-            // 
-            topMenu.BackColor = Color.WhiteSmoke;
-            topMenu.Font = new Font("Segoe UI", 9F);
-            topMenu.ImageScalingSize = new Size(20, 20);
-            topMenu.Items.AddRange(new ToolStripItem[] { archivoMenuItem, catalogosMenuItem, operacionesMenuItem, ayudaMenuItem });
-            topMenu.Location = new Point(0, 0);
-            topMenu.Name = "topMenu";
-            topMenu.Size = new Size(1100, 28);
-            topMenu.TabIndex = 0;
-            // 
-            // archivoMenuItem
-            // 
-            archivoMenuItem.Name = "archivoMenuItem";
-            archivoMenuItem.Size = new Size(73, 24);
-            archivoMenuItem.Text = "Archivo";
-            // 
-            // catalogosMenuItem
-            // 
-            catalogosMenuItem.Name = "catalogosMenuItem";
-            catalogosMenuItem.Size = new Size(90, 24);
-            catalogosMenuItem.Text = "Catálogos";
-            // 
-            // operacionesMenuItem
-            // 
-            operacionesMenuItem.DropDownItems.AddRange(new ToolStripItem[] { detallePedidoMenuItem });
-            operacionesMenuItem.Name = "operacionesMenuItem";
-            operacionesMenuItem.Size = new Size(106, 24);
-            operacionesMenuItem.Text = "Operaciones";
-            // 
-            // detallePedidoMenuItem
-            // 
-            detallePedidoMenuItem.Name = "detallePedidoMenuItem";
-            detallePedidoMenuItem.Size = new Size(219, 26);
-            detallePedidoMenuItem.Text = "Detalles de pedido";
-            // 
-            // ayudaMenuItem
-            // 
-            ayudaMenuItem.Name = "ayudaMenuItem";
-            ayudaMenuItem.Size = new Size(65, 24);
-            ayudaMenuItem.Text = "Ayuda";
-            // 
             // sidebar
             // 
             sidebar.BackColor = Color.FromArgb(18, 51, 105);
             sidebar.Controls.Add(navigationPanel);
-            sidebar.Controls.Add(sessionLabel);
             sidebar.Controls.Add(subtitleLabel);
             sidebar.Controls.Add(brandLabel);
             sidebar.Dock = DockStyle.Left;
-            sidebar.Location = new Point(0, 28);
+            sidebar.Location = new Point(0, 0);
             sidebar.Name = "sidebar";
-            sidebar.Size = new Size(255, 662);
+            sidebar.Size = new Size(255, 619);
             sidebar.TabIndex = 1;
             // 
             // navigationPanel
@@ -123,13 +71,23 @@
             navigationPanel.Controls.Add(btnPedidos);
             navigationPanel.Controls.Add(btnPagos);
             navigationPanel.Controls.Add(btnEnvios);
-            navigationPanel.Controls.Add(btnDetallesPedido);
             navigationPanel.FlowDirection = FlowDirection.TopDown;
             navigationPanel.Location = new Point(12, 108);
             navigationPanel.Name = "navigationPanel";
-            navigationPanel.Size = new Size(231, 535);
+            navigationPanel.Size = new Size(231, 464);
             navigationPanel.TabIndex = 2;
             navigationPanel.WrapContents = false;
+            navigationPanel.Paint += navigationPanel_Paint;
+            // 
+            // btnCategoria
+            // 
+            btnCategoria.Cursor = Cursors.Hand;
+            btnCategoria.ForeColor = SystemColors.ButtonHighlight;
+            btnCategoria.Location = new Point(3, 3);
+            btnCategoria.Name = "btnCategoria";
+            btnCategoria.Size = new Size(228, 52);
+            btnCategoria.TabIndex = 9;
+            btnCategoria.Text = "Categorias";
             // 
             // btnProveedor
             // 
@@ -201,27 +159,6 @@
             btnEnvios.TabIndex = 0;
             btnEnvios.Text = "Envios";
             // 
-            // btnDetallesPedido
-            // 
-            btnDetallesPedido.Cursor = Cursors.Hand;
-            btnDetallesPedido.ForeColor = SystemColors.ButtonHighlight;
-            btnDetallesPedido.Location = new Point(3, 466);
-            btnDetallesPedido.Name = "btnDetallesPedido";
-            btnDetallesPedido.Size = new Size(228, 54);
-            btnDetallesPedido.TabIndex = 1;
-            btnDetallesPedido.Text = "Detalles Pedido";
-            // 
-            // sessionLabel
-            // 
-            sessionLabel.Font = new Font("Segoe UI", 9F);
-            sessionLabel.ForeColor = Color.White;
-            sessionLabel.Location = new Point(18, 575);
-            sessionLabel.Name = "sessionLabel";
-            sessionLabel.Size = new Size(220, 35);
-            sessionLabel.TabIndex = 9;
-            sessionLabel.Text = "Usuario";
-            sessionLabel.TextAlign = ContentAlignment.MiddleLeft;
-            // 
             // subtitleLabel
             // 
             subtitleLabel.AutoSize = true;
@@ -252,9 +189,9 @@
             contentPanel.Controls.Add(instructionLabel);
             contentPanel.Controls.Add(welcomeLabel);
             contentPanel.Dock = DockStyle.Fill;
-            contentPanel.Location = new Point(255, 28);
+            contentPanel.Location = new Point(255, 0);
             contentPanel.Name = "contentPanel";
-            contentPanel.Size = new Size(845, 662);
+            contentPanel.Size = new Size(845, 619);
             contentPanel.TabIndex = 2;
             // 
             // instructionLabel
@@ -262,7 +199,7 @@
             instructionLabel.AutoSize = true;
             instructionLabel.Font = new Font("Segoe UI", 13F);
             instructionLabel.ForeColor = Color.FromArgb(90, 110, 140);
-            instructionLabel.Location = new Point(167, 539);
+            instructionLabel.Location = new Point(167, 532);
             instructionLabel.Name = "instructionLabel";
             instructionLabel.Size = new Size(480, 30);
             instructionLabel.TabIndex = 3;
@@ -279,24 +216,13 @@
             welcomeLabel.TabIndex = 2;
             welcomeLabel.Text = "¡Bienvenido/a!";
             // 
-            // btnCategoria
-            // 
-            btnCategoria.Cursor = Cursors.Hand;
-            btnCategoria.ForeColor = SystemColors.ButtonHighlight;
-            btnCategoria.Location = new Point(3, 3);
-            btnCategoria.Name = "btnCategoria";
-            btnCategoria.Size = new Size(228, 52);
-            btnCategoria.TabIndex = 9;
-            btnCategoria.Text = "Categorias";
-            // 
             // FrmMenu
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1100, 690);
+            ClientSize = new Size(1100, 619);
             Controls.Add(contentPanel);
             Controls.Add(sidebar);
-            Controls.Add(topMenu);
             Font = new Font("Segoe UI", 9F);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
@@ -304,15 +230,12 @@
             StartPosition = FormStartPosition.CenterScreen;
             Text = "SivarPOS - Sistema de Punto de Venta";
             Load += Form1_Load;
-            topMenu.ResumeLayout(false);
-            topMenu.PerformLayout();
             sidebar.ResumeLayout(false);
             sidebar.PerformLayout();
             navigationPanel.ResumeLayout(false);
             contentPanel.ResumeLayout(false);
             contentPanel.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         private void ConfigureNavigationButton(Button button, string text)
@@ -334,26 +257,17 @@
         }
 
         #endregion
-
-        private MenuStrip topMenu;
-        private ToolStripMenuItem archivoMenuItem;
-        private ToolStripMenuItem catalogosMenuItem;
-        private ToolStripMenuItem operacionesMenuItem;
-        private ToolStripMenuItem detallePedidoMenuItem;
-        private ToolStripMenuItem ayudaMenuItem;
         private Panel sidebar;
         private Label brandLabel;
         private Label subtitleLabel;
         private FlowLayoutPanel navigationPanel;
         private Button btnEnvios;
-        private Button btnDetallesPedido;
         private Button btnProveedor;
         private Button btnProducto;
         private Button btnCliente;
         private Button btnUsuarios;
         private Button btnPedidos;
         private Button btnPagos;
-        private Label sessionLabel;
         private Panel contentPanel;
         private Label welcomeLabel;
         private Label instructionLabel;

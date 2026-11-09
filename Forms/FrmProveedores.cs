@@ -48,17 +48,6 @@ namespace VentasOnline.Forms
             }
         }
 
-        private void dgvProveedores_SelectionChanged(object sender, EventArgs e)
-        {
-            /*if (dgvProveedores.CurrentRow?.DataBoundItem is Proveedores seleccionada)
-            {
-                _idSeleccionado = seleccionada.Id;
-                txtNombre.Text = seleccionada.Nombre;
-                txtTelefono.Text = seleccionada.Telefono;
-                txtCorreo.Text = seleccionada.Correo;
-            }*/
-        }
-
         // Botón Nuevo
         private void btnNuevo_Click(object sender, EventArgs e)
         {

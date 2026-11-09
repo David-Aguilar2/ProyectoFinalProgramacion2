@@ -5,6 +5,9 @@
     <Compile Update="Forms\FrmCategorias.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\FrmPagos.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="FrmMenu.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -14,16 +17,10 @@
     <Compile Update="Forms\FrmCliente.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Forms\FrmDetallePedido.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Update="Forms\FrmEnvio.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Forms\FrmLogin.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="Forms\FrmPago.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Forms\FrmPedido.cs">

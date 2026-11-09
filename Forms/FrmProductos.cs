@@ -17,8 +17,8 @@ namespace VentasOnline.Forms
         private readonly ProductosService _productoService;
         private readonly CategoriaService _categoriaService;
         private readonly ProveedoresService _proveedorService;
-        private int _idSeleccionado = 0;
-        private string _rutaOrigenImagen = string.Empty; // Mantiene la ruta temporal si se selecciona una nueva imagen
+        private int _idSeleccionado = 0; // 0 significa nuevo registro
+        private string _rutaOrigenImagen = string.Empty;
 
         public FrmProductos()
         {
@@ -36,18 +36,12 @@ namespace VentasOnline.Forms
             LimpiarFormulario();
         }
 
-        // Cargar el ComboBox de Categorías
         private void CargarComboCategorias()
         {
             try
             {
                 var categorias = _categoriaService.ObtenerTodas();
-
-                categorias.Insert(0, new Categoria
-                {
-                    Id = 0,
-                    Nombre = "-- Seleccione una categoría --"
-                });
+                categorias.Insert(0, new Categoria { Id = 0, Nombre = "-- Seleccione una categoría --" });
 
                 cmbCategoria.DataSource = categorias;
                 cmbCategoria.DisplayMember = "Nombre";
@@ -60,18 +54,12 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Cargar el ComboBox de Proveedores
         private void CargarComboProveedores()
         {
             try
             {
                 var proveedores = _proveedorService.ObtenerTodas();
-
-                proveedores.Insert(0, new Proveedores
-                {
-                    Id = 0,
-                    Nombre = "-- Seleccione un proveedor --"
-                });
+                proveedores.Insert(0, new Proveedores { Id = 0, Nombre = "-- Seleccione un proveedor --" });
 
                 cmbProveedor.DataSource = proveedores;
                 cmbProveedor.DisplayMember = "Nombre";
@@ -84,7 +72,6 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Cargar datos en el DataGridView desde el servicio
         private void CargarGrilla()
         {
             try
@@ -93,7 +80,7 @@ namespace VentasOnline.Forms
                 {
                     p.Id,
                     Categoria = p.Categoria?.Nombre ?? "Sin Categoría",
-                    Proveedor = p.Proveedor != null ? p.Proveedor.Nombre : "Sin Proveedor", // <--- Validación segura
+                    Proveedor = p.Proveedor != null ? p.Proveedor.Nombre : "Sin Proveedor",
                     p.Nombre,
                     p.Descripcion,
                     p.Precio,
@@ -107,20 +94,12 @@ namespace VentasOnline.Forms
                 dgvProductos.DataSource = null;
                 dgvProductos.DataSource = lista;
 
-                if (dgvProductos.Columns["IdCategoria"] != null)
-                    dgvProductos.Columns["IdCategoria"].Visible = false;
+                if (dgvProductos.Columns["IdCategoria"] != null) dgvProductos.Columns["IdCategoria"].Visible = false;
+                if (dgvProductos.Columns["IdProveedor"] != null) dgvProductos.Columns["IdProveedor"].Visible = false;
+                if (dgvProductos.Columns["Id"] != null) dgvProductos.Columns["Id"].Visible = false;
 
-                if (dgvProductos.Columns["IdProveedor"] != null)
-                    dgvProductos.Columns["IdProveedor"].Visible = false;
-
-                if (dgvProductos.Columns["Id"] != null)
-                    dgvProductos.Columns["Id"].Visible = false;
-
-                if (dgvProductos.Columns["Categoria"] != null)
-                    dgvProductos.Columns["Categoria"].DisplayIndex = 2;
-
-                if (dgvProductos.Columns["Proveedor"] != null)
-                    dgvProductos.Columns["Proveedor"].DisplayIndex = 3;
+                if (dgvProductos.Columns["Categoria"] != null) dgvProductos.Columns["Categoria"].DisplayIndex = 2;
+                if (dgvProductos.Columns["Proveedor"] != null) dgvProductos.Columns["Proveedor"].DisplayIndex = 3;
             }
             catch (Exception ex)
             {
@@ -128,12 +107,15 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Selección de fila en la grilla
-        private void dgvProductos_SelectionChanged(object sender, EventArgs e)
+        // Reemplazo de SelectionChanged por CellClick para evitar sobrescrituras de ID no deseadas
+        private void dgvProductos_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (dgvProductos.CurrentRow != null && dgvProductos.CurrentRow.Cells["Id"].Value != null)
+            if (e.RowIndex < 0) return;
+
+            var fila = dgvProductos.Rows[e.RowIndex];
+            if (fila.Cells["Id"].Value != null)
             {
-                int id = Convert.ToInt32(dgvProductos.CurrentRow.Cells["Id"].Value);
+                int id = Convert.ToInt32(fila.Cells["Id"].Value);
                 var seleccionado = _productoService.ObtenerPorId(id);
 
                 if (seleccionado != null)
@@ -142,17 +124,15 @@ namespace VentasOnline.Forms
                     cmbCategoria.SelectedValue = seleccionado.IdCategoria;
                     cmbProveedor.SelectedValue = seleccionado.IdProveedor;
                     txtNombre.Text = seleccionado.Nombre;
-                    txtDescripcion.Text = seleccionado.Descripcion;
+                    txtDescripcion.Text = seleccionado.Descripcion ?? string.Empty;
                     numericPrecio.Value = seleccionado.Precio;
                     numericStock.Value = seleccionado.Stock;
                     txtImagen.Text = seleccionado.ImagenUrl ?? string.Empty;
-
                     _rutaOrigenImagen = string.Empty;
                 }
             }
         }
 
-        // Botón Buscar imagen
         private void btnBuscarImagen_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog dialog = new OpenFileDialog())
@@ -161,24 +141,21 @@ namespace VentasOnline.Forms
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     _rutaOrigenImagen = dialog.FileName;
-                    txtImagen.Text = Path.GetFileName(_rutaOrigenImagen); // Mostrar solo el nombre del archivo
+                    txtImagen.Text = Path.GetFileName(_rutaOrigenImagen);
                 }
             }
         }
 
-        // Botón Nuevo
         private void btnNuevo_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
-            cmbCategoria.Focus();
         }
 
-        // Botón Guardar (Crear / Actualizar)
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             try
             {
-                // Validar categoría
+                // 1. Validar Categoría
                 int idCategoriaSeleccionada = Convert.ToInt32(cmbCategoria.SelectedValue);
                 if (idCategoriaSeleccionada <= 0)
                 {
@@ -187,7 +164,7 @@ namespace VentasOnline.Forms
                     return;
                 }
 
-                // Validar proveedor
+                // 2. Validar Proveedor
                 int idProveedorSeleccionado = Convert.ToInt32(cmbProveedor.SelectedValue);
                 if (idProveedorSeleccionado <= 0)
                 {
@@ -196,10 +173,35 @@ namespace VentasOnline.Forms
                     return;
                 }
 
-                if (numericStock.Value % 1 != 0)
+                // 3. Validar Nombre
+                if (string.IsNullOrWhiteSpace(txtNombre.Text))
                 {
-                    MessageBox.Show("El stock debe ser un número entero (no se permiten decimales).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("El nombre del producto es obligatorio.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // 4. Validar Precio
+                if (numericPrecio.Value <= 0)
+                {
+                    MessageBox.Show("El precio debe ser mayor a cero.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    numericPrecio.Focus();
+                    return;
+                }
+
+                // 5. Validar Stock (Entero y no negativo)
+                if (numericStock.Value < 0 || numericStock.Value % 1 != 0)
+                {
+                    MessageBox.Show("El stock debe ser un número entero válido (no se permiten negativos ni decimales).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     numericStock.Focus();
+                    return;
+                }
+
+                // 6. Validar Imagen Obligatoria
+                if (string.IsNullOrWhiteSpace(txtImagen.Text))
+                {
+                    MessageBox.Show("Debe seleccionar una imagen para el producto.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    btnBuscarImagen.Focus();
                     return;
                 }
 
@@ -209,9 +211,7 @@ namespace VentasOnline.Forms
 
                 if (esActualizacion)
                 {
-                    int idProducto = _idSeleccionado;
-                    var productoActual = _productoService.ObtenerPorId(idProducto);
-
+                    var productoActual = _productoService.ObtenerPorId(_idSeleccionado);
                     if (productoActual != null)
                     {
                         fechaFinalPublicacion = productoActual.FechaPublicacion;
@@ -223,11 +223,7 @@ namespace VentasOnline.Forms
                             {
                                 string rutaBase = Application.StartupPath;
                                 string rutaImagenAnterior = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images", productoActual.ImagenUrl));
-
-                                if (File.Exists(rutaImagenAnterior))
-                                {
-                                    File.Delete(rutaImagenAnterior);
-                                }
+                                if (File.Exists(rutaImagenAnterior)) File.Delete(rutaImagenAnterior);
                             }
                         }
                         else
@@ -246,6 +242,7 @@ namespace VentasOnline.Forms
 
                 var producto = new Producto
                 {
+                    Id = _idSeleccionado,
                     IdCategoria = idCategoriaSeleccionada,
                     IdProveedor = idProveedorSeleccionado,
                     Nombre = txtNombre.Text.Trim(),
@@ -263,7 +260,6 @@ namespace VentasOnline.Forms
                 }
                 else
                 {
-                    producto.Id = _idSeleccionado;
                     _productoService.Actualizar(producto);
                     MessageBox.Show("Producto actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -274,11 +270,10 @@ namespace VentasOnline.Forms
             catch (Exception ex)
             {
                 string mensajeError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                MessageBox.Show(mensajeError, "Error detallado", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(mensajeError, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
-        // Botón Eliminar
         private void btnEliminar_Click(object sender, EventArgs e)
         {
             if (_idSeleccionado == 0)
@@ -287,8 +282,6 @@ namespace VentasOnline.Forms
                 return;
             }
 
-            int id = _idSeleccionado;
-
             var confirmacion = MessageBox.Show($"¿Está seguro de eliminar el producto '{txtNombre.Text}'?",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -296,19 +289,15 @@ namespace VentasOnline.Forms
             {
                 try
                 {
-                    var productoAEliminar = _productoService.ObtenerPorId(id);
-
+                    var productoAEliminar = _productoService.ObtenerPorId(_idSeleccionado);
                     if (productoAEliminar != null && !string.IsNullOrEmpty(productoAEliminar.ImagenUrl))
                     {
                         string rutaBase = Application.StartupPath;
                         string rutaImagenFisica = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images", productoAEliminar.ImagenUrl));
-
-                        if (File.Exists(rutaImagenFisica))
-                        {
-                            File.Delete(rutaImagenFisica);
-                        }
+                        if (File.Exists(rutaImagenFisica)) File.Delete(rutaImagenFisica);
                     }
-                    _productoService.Eliminar(id);
+
+                    _productoService.Eliminar(_idSeleccionado);
                     MessageBox.Show("Producto eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     CargarGrilla();
@@ -321,19 +310,17 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Botón Cancelar
         private void btnCancelar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
             Close();
         }
 
-        // Limpieza de campos
         private void LimpiarFormulario()
         {
             _idSeleccionado = 0;
-            cmbCategoria.SelectedIndex = 0;
-            cmbProveedor.SelectedIndex = 0;
+            if (cmbCategoria.Items.Count > 0) cmbCategoria.SelectedIndex = 0;
+            if (cmbProveedor.Items.Count > 0) cmbProveedor.SelectedIndex = 0;
             dgvProductos.ClearSelection();
             dgvProductos.CurrentCell = null;
             txtNombre.Clear();
@@ -342,9 +329,9 @@ namespace VentasOnline.Forms
             numericStock.Value = 0;
             txtImagen.Clear();
             _rutaOrigenImagen = string.Empty;
+            cmbCategoria.Focus();
         }
 
-        // Copiar la imagen seleccionada a la carpeta /images
         private string CopiarImagenACarpetaLocal(string rutaOrigen)
         {
             string rutaBase = Application.StartupPath;
@@ -360,16 +347,9 @@ namespace VentasOnline.Forms
             string rutaDestinoCompleta = Path.Combine(carpetaDestino, nombreArchivoUnico);
 
             File.Copy(rutaOrigen, rutaDestinoCompleta, true);
-
             return nombreArchivoUnico;
         }
 
-        private void dgvProductos_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-        }
-
-        private void desktopLabel_Click(object sender, EventArgs e)
-        {
-        }
+        private void desktopLabel_Click(object sender, EventArgs e) { }
     }
 }

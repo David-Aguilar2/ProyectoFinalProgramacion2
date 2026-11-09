@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Text.RegularExpressions;
 using VentasOnline.Data;
 using VentasOnline.Models;
 using Microsoft.EntityFrameworkCore;
@@ -9,43 +10,44 @@ namespace VentasOnline.Services
 {
     public class UsuarioService
     {
-        // READ
-
-        //Obtener todas las categorías ordenadas
         public List<Usuario> ObtenerTodas()
         {
-            // Un contexto por operación
             using var ctx = new AppDbContext();
             return ctx.Usuarios.AsNoTracking().OrderBy(u => u.Nombre).ToList();
         }
 
-        //Obtener un usuario por su Id
         public Usuario? ObtenerPorId(int id)
         {
             using var ctx = new AppDbContext();
             return ctx.Usuarios.Find(id);
         }
 
-        // CREATE: Insertar un nuevo usuario
-        public void Crear(Usuario usuario)
+        public void Crear(Usuario usuario, string passwordEnTextoPlano)
         {
             ValidarUsuario(usuario);
 
+            if (string.IsNullOrWhiteSpace(passwordEnTextoPlano))
+            {
+                throw new ArgumentException("La contraseña es obligatoria para un usuario nuevo.");
+            }
+
             using var ctx = new AppDbContext();
 
-            // Validar que no exista otro usuario con el mismo correo electrónico
             bool existe = ctx.Usuarios.Any(u => u.Correo.ToLower() == usuario.Correo.ToLower());
             if (existe)
             {
                 throw new InvalidOperationException("Ya existe un usuario con ese mismo correo electrónico.");
             }
 
+            // Hashear contraseña con BCrypt
+            usuario.Password = BCrypt.Net.BCrypt.HashPassword(passwordEnTextoPlano);
+            usuario.FechaRegistro = DateTime.Now;
+
             ctx.Usuarios.Add(usuario);
             ctx.SaveChanges();
         }
 
-        // UPDATE: Actualizar un usuario existente
-        public void Actualizar(Usuario usuario)
+        public void Actualizar(Usuario usuario, string? passwordEnTextoPlano = null)
         {
             ValidarUsuario(usuario);
 
@@ -57,7 +59,6 @@ namespace VentasOnline.Services
                 throw new InvalidOperationException("El usuario que intenta actualizar no existe.");
             }
 
-            // Validar duplicidad de correo electrónico excluyendo el registro actual
             bool existeCorreo = ctx.Usuarios.Any(u => u.Correo.ToLower() == usuario.Correo.ToLower() && u.Id != usuario.Id);
             if (existeCorreo)
             {
@@ -66,11 +67,18 @@ namespace VentasOnline.Services
 
             usuarioDb.Nombre = usuario.Nombre;
             usuarioDb.Correo = usuario.Correo;
+            usuarioDb.Telefono = usuario.Telefono;
+            usuarioDb.Rol = usuario.Rol;
+
+            // Si se ingresó una nueva contraseña, se hashea y se actualiza
+            if (!string.IsNullOrWhiteSpace(passwordEnTextoPlano))
+            {
+                usuarioDb.Password = BCrypt.Net.BCrypt.HashPassword(passwordEnTextoPlano);
+            }
 
             ctx.SaveChanges();
         }
 
-        // DELETE: Eliminar un usuario con validación de relación
         public void Eliminar(int id)
         {
             using var ctx = new AppDbContext();
@@ -81,7 +89,7 @@ namespace VentasOnline.Services
                 throw new InvalidOperationException("El usuario no existe o ya fue eliminado.");
             }
 
-            bool tienePedidos = ctx.Pedidos.Any(p => p.IdCliente == id);
+            bool tienePedidos = ctx.Pedidos.Any(p => p.IdUsuario == id);
             if (tienePedidos)
             {
                 throw new InvalidOperationException("No se puede eliminar el usuario porque tiene pedidos vinculados.");
@@ -91,30 +99,27 @@ namespace VentasOnline.Services
             ctx.SaveChanges();
         }
 
-        // Reglas de validación para el usuario
+        // Reglas de validación para el usuario (sin restricción de prefijo telefónico)
         private void ValidarUsuario(Usuario usuario)
         {
-            //Validar el nombre del usuario
             if (string.IsNullOrWhiteSpace(usuario.Nombre))
-            {
                 throw new ArgumentException("El nombre del usuario es obligatorio.");
-            }
 
             if (usuario.Nombre.Length > 100)
-            {
                 throw new ArgumentException("El nombre no debe exceder los 100 caracteres.");
-            }
 
-            // Validar el correo electrónico
             if (string.IsNullOrWhiteSpace(usuario.Correo))
-            {
                 throw new ArgumentException("El correo electrónico es obligatorio.");
-            }
 
-            //Validar el teléfono
+            // Solo valida que no esté vacío
             if (string.IsNullOrWhiteSpace(usuario.Telefono))
-            {
                 throw new ArgumentException("El teléfono es obligatorio.");
+
+            // Validar que el rol sea estrictamente Administrador o Vendedor
+            if (string.IsNullOrWhiteSpace(usuario.Rol) ||
+                (usuario.Rol != "Administrador" && usuario.Rol != "Vendedor"))
+            {
+                throw new ArgumentException("Debe seleccionar un rol válido (Administrador o Vendedor).");
             }
         }
     }

@@ -33,7 +33,6 @@
             label2 = new Label();
             txtNombre = new TextBox();
             txtCorreo = new TextBox();
-            txtTelefono = new TextBox();
             desktopLabel = new Label();
             dgvProveedores = new DataGridView();
             panel2 = new Panel();
@@ -43,6 +42,7 @@
             btnNuevo = new Button();
             label6 = new Label();
             label5 = new Label();
+            txtTelefono = new MaskedTextBox();
             ((System.ComponentModel.ISupportInitialize)dgvProveedores).BeginInit();
             panel2.SuspendLayout();
             SuspendLayout();
@@ -86,14 +86,6 @@
             txtCorreo.Size = new Size(281, 27);
             txtCorreo.TabIndex = 5;
             // 
-            // txtTelefono
-            // 
-            txtTelefono.Location = new Point(23, 171);
-            txtTelefono.Margin = new Padding(3, 4, 3, 4);
-            txtTelefono.Name = "txtTelefono";
-            txtTelefono.Size = new Size(281, 27);
-            txtTelefono.TabIndex = 6;
-            // 
             // desktopLabel
             // 
             desktopLabel.AutoSize = true;
@@ -123,12 +115,12 @@
             dgvProveedores.RowHeadersWidth = 51;
             dgvProveedores.Size = new Size(518, 419);
             dgvProveedores.TabIndex = 9;
-            dgvProveedores.SelectionChanged += dgvProveedores_SelectionChanged;
             // 
             // panel2
             // 
             panel2.BackColor = Color.White;
             panel2.BorderStyle = BorderStyle.FixedSingle;
+            panel2.Controls.Add(txtTelefono);
             panel2.Controls.Add(btnEliminar);
             panel2.Controls.Add(btnCancelar);
             panel2.Controls.Add(btnGuardar);
@@ -137,7 +129,6 @@
             panel2.Controls.Add(label5);
             panel2.Controls.Add(label2);
             panel2.Controls.Add(txtCorreo);
-            panel2.Controls.Add(txtTelefono);
             panel2.Controls.Add(txtNombre);
             panel2.Location = new Point(591, 37);
             panel2.Margin = new Padding(3, 4, 3, 4);
@@ -219,6 +210,14 @@
             label5.TabIndex = 7;
             label5.Text = "Correo:";
             // 
+            // txtTelefono
+            // 
+            txtTelefono.Location = new Point(23, 183);
+            txtTelefono.Mask = "0000-0000";
+            txtTelefono.Name = "txtTelefono";
+            txtTelefono.Size = new Size(88, 27);
+            txtTelefono.TabIndex = 12;
+            // 
             // FrmProveedores
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -250,7 +249,6 @@
         private Label label2;
         private TextBox txtNombre;
         private TextBox txtCorreo;
-        private TextBox txtTelefono;
         private Label desktopLabel;
         private DataGridView dgvProveedores;
         private Panel panel2;
@@ -260,5 +258,6 @@
         private Button btnGuardar;
         private Button btnEliminar;
         private Button btnCancelar;
+        private MaskedTextBox txtTelefono;
     }
 }

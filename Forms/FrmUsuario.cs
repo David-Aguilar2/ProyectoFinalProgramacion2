@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using VentasOnline.Data;
+﻿using System.ComponentModel.DataAnnotations;
 using VentasOnline.Models;
 using VentasOnline.Services;
 
@@ -8,14 +6,12 @@ namespace VentasOnline.Forms
 {
     public partial class FrmUsuario : Form
     {
-        private bool _cargandoDatos;
-        private UsuarioService _usuarioService;
-        private int _idSeleccionado = 0; // 0 significa nuevo, otro valor indica edición
+        private readonly UsuarioService _usuarioService;
+        private int _idSeleccionado = 0;
 
         public FrmUsuario()
         {
             InitializeComponent();
-            cmbRol.SelectedIndex = 0;
             _usuarioService = new UsuarioService();
         }
 
@@ -24,161 +20,111 @@ namespace VentasOnline.Forms
             try
             {
                 CargarUsuarios();
+                LimpiarFormulario();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"No se pudieron cargar los usuarios: {ObtenerMensajeError(ex)}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"No se pudieron cargar los usuarios: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void CargarUsuarios(int? usuarioSeleccionadoId = null)
+        private void CargarUsuarios()
         {
             try
             {
-                using var db = new AppDbContext();
-                var usuarios = db.Usuarios
-                    .AsNoTracking()
-                    .OrderBy(u => u.Nombre)
-                    .ThenBy(u => u.Id)
-                    .ToList();
-
-                _cargandoDatos = true;
+                var usuarios = _usuarioService.ObtenerTodas();
                 dgvUsuarios.Rows.Clear();
                 foreach (var usuario in usuarios)
                 {
                     dgvUsuarios.Rows.Add(usuario.Id, usuario.Nombre, usuario.Correo, usuario.Telefono, usuario.Rol);
                 }
-
-                dgvUsuarios.ClearSelection();
-                if (usuarioSeleccionadoId.HasValue)
-                {
-                    foreach (DataGridViewRow fila in dgvUsuarios.Rows)
-                    {
-                        if (Convert.ToInt32(fila.Cells[colId.Name].Value) == usuarioSeleccionadoId.Value)
-                        {
-                            fila.Selected = true;
-                            dgvUsuarios.CurrentCell = fila.Cells[colNombre.Name];
-                            break;
-                        }
-                    }
-                }
-
-                if (dgvUsuarios.CurrentRow == null && dgvUsuarios.Rows.Count > 0)
-                {
-                    dgvUsuarios.CurrentCell = dgvUsuarios.Rows[0].Cells[colNombre.Name];
-                }
-
-                _cargandoDatos = false;
-                MostrarUsuarioSeleccionado();
             }
             catch (Exception ex)
             {
-                _cargandoDatos = false;
-                MessageBox.Show($"No se pudieron cargar los usuarios: {ObtenerMensajeError(ex)}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"No se pudieron cargar los usuarios: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void dgvUsuarios_SelectionChanged(object? sender, EventArgs e)
+        private void dgvUsuarios_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
-            if (!_cargandoDatos)
-            {
-                MostrarUsuarioSeleccionado();
-            }
-        }
+            if (e.RowIndex < 0) return;
 
-        private void MostrarUsuarioSeleccionado()
-        {
-            if (dgvUsuarios.CurrentRow == null || dgvUsuarios.CurrentRow.Cells[colId.Name].Value is not int idUsuario)
-            {
-                return;
-            }
+            var fila = dgvUsuarios.Rows[e.RowIndex]; // Asegúrate de que el nombre del control sea dgvUsuarios
+            // Corregido: dgvUsuarios.Rows[e.RowIndex]
+            var filaReal = dgvUsuarios.Rows[e.RowIndex];
 
-            _idSeleccionado = Convert.ToInt32(dgvUsuarios.CurrentRow.Cells[colId.Name].Value);
-            txtNombre.Text = Convert.ToString(dgvUsuarios.CurrentRow.Cells[colNombre.Name].Value) ?? string.Empty;
-            txtCorreo.Text = Convert.ToString(dgvUsuarios.CurrentRow.Cells[colCorreo.Name].Value) ?? string.Empty;
-            txtTelefono.Text = Convert.ToString(dgvUsuarios.CurrentRow.Cells[colTelefono.Name].Value) ?? string.Empty;
-            txtPassword.Clear(); // La contraseña no se muestra por seguridad en la interfaz
+            if (filaReal.Cells[colId.Name].Value is int idUsuario)
+            {
+                _idSeleccionado = idUsuario;
+                txtNombre.Text = Convert.ToString(filaReal.Cells[colNombre.Name].Value) ?? string.Empty;
+                txtCorreo.Text = Convert.ToString(filaReal.Cells[colCorreo.Name].Value) ?? string.Empty;
+                txtTelefono.Text = Convert.ToString(filaReal.Cells[colTelefono.Name].Value) ?? string.Empty;
+                txtPassword.Clear();
 
-            string rol = Convert.ToString(dgvUsuarios.CurrentRow.Cells[colRol.Name].Value) ?? string.Empty;
-            if (!string.IsNullOrEmpty(rol) && cmbRol.Items.Contains(rol))
-            {
-                cmbRol.SelectedItem = rol;
-            }
-            else
-            {
-                cmbRol.SelectedIndex = 0;
+                string rol = Convert.ToString(filaReal.Cells[colRol.Name].Value) ?? string.Empty;
+                if (!string.IsNullOrEmpty(rol) && cmbRol.Items.Contains(rol))
+                {
+                    cmbRol.SelectedItem = rol;
+                }
+                else
+                {
+                    cmbRol.SelectedIndex = 0;
+                }
             }
         }
 
         private void btnNuevo_Click(object? sender, EventArgs e)
         {
             LimpiarFormulario();
-            txtNombre.Focus();
         }
 
         private void btnGuardar_Click(object? sender, EventArgs e)
         {
-            string nombre = txtNombre.Text.Trim();
-            string correo = txtCorreo.Text.Trim();
-            string password = txtPassword.Text;
-            string telefono = txtTelefono.Text.Trim();
-
-            if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(correo) ||
-                string.IsNullOrWhiteSpace(telefono) || cmbRol.SelectedIndex <= 0)
-            {
-                MessageBox.Show("Completa nombre, correo, teléfono y selecciona un rol.", "Campos obligatorios", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (!new EmailAddressAttribute().IsValid(correo))
-            {
-                MessageBox.Show("Escribe un correo electrónico válido.", "Correo no válido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtCorreo.Focus();
-                return;
-            }
-
             try
             {
-                using var db = new AppDbContext();
-                Usuario? usuario = _idSeleccionado != 0
-                    ? db.Usuarios.Find(_idSeleccionado)
-                    : db.Usuarios.FirstOrDefault(item => item.Correo == correo);
+                string nombre = txtNombre.Text.Trim();
+                string correo = txtCorreo.Text.Trim();
+                string password = txtPassword.Text;
+                string telefono = txtTelefono.Text.Trim();
 
-                bool esNuevo = usuario == null;
-                if (esNuevo && string.IsNullOrWhiteSpace(password))
+                // Si el ComboBox tiene un índice 0 o el texto es el placeholder, enviamos vacío para que valide el servicio
+                string rol = (cmbRol.SelectedIndex > 0 && cmbRol.SelectedItem != null)
+                    ? cmbRol.SelectedItem.ToString()!
+                    : string.Empty;
+
+                if (!new EmailAddressAttribute().IsValid(correo))
                 {
-                    MessageBox.Show("La contraseña es obligatoria para un usuario nuevo.", "Contraseña requerida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    txtPassword.Focus();
+                    MessageBox.Show("Escribe un correo electrónico válido.", "Correo no válido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
                     return;
                 }
 
-                usuario ??= new Usuario();
-                usuario.Nombre = nombre;
-                usuario.Correo = correo;
-                usuario.Telefono = telefono;
-                usuario.Rol = cmbRol.SelectedItem!.ToString()!;
-
-                // Hashear la contraseña de forma segura si se ingresó una nueva
-                if (!string.IsNullOrWhiteSpace(password))
+                var usuario = new Usuario
                 {
-                    usuario.Password = BCrypt.Net.BCrypt.HashPassword(password);
+                    Id = _idSeleccionado,
+                    Nombre = nombre,
+                    Correo = correo,
+                    Telefono = telefono,
+                    Rol = rol
+                };
+
+                if (_idSeleccionado == 0)
+                {
+                    _usuarioService.Crear(usuario, password);
+                    MessageBox.Show("Usuario registrado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    _usuarioService.Actualizar(usuario, password);
+                    MessageBox.Show("Usuario actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
-                if (esNuevo)
-                {
-                    usuario.FechaRegistro = DateTime.Now;
-                    db.Usuarios.Add(usuario);
-                }
-
-                db.SaveChanges();
-                MessageBox.Show(esNuevo ? "Usuario registrado exitosamente." : "Usuario actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                CargarUsuarios(usuario.Id);
+                CargarUsuarios();
                 LimpiarFormulario();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"No se pudo guardar el usuario: {ObtenerMensajeError(ex)}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -197,21 +143,15 @@ namespace VentasOnline.Forms
             {
                 try
                 {
-                    using var db = new AppDbContext();
-                    var usuario = db.Usuarios.Find(_idSeleccionado);
-                    if (usuario != null)
-                    {
-                        db.Usuarios.Remove(usuario);
-                        db.SaveChanges();
-                        MessageBox.Show("Usuario eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
+                    _usuarioService.Eliminar(_idSeleccionado);
+                    MessageBox.Show("Usuario eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     CargarUsuarios();
                     LimpiarFormulario();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"No se pudo eliminar el usuario. Puede tener registros asociados. Detalle: {ObtenerMensajeError(ex)}", "Restricción de Borrado", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    MessageBox.Show(ex.Message, "Restricción de Borrado", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 }
             }
         }
@@ -231,12 +171,8 @@ namespace VentasOnline.Forms
             txtCorreo.Clear();
             txtPassword.Clear();
             txtTelefono.Clear();
-            cmbRol.SelectedIndex = 0;
-        }
-
-        private static string ObtenerMensajeError(Exception ex)
-        {
-            return ex.InnerException?.Message ?? ex.Message;
+            if (cmbRol.Items.Count > 0) cmbRol.SelectedIndex = 0;
+            txtNombre.Focus();
         }
     }
 }

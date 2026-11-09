@@ -18,7 +18,7 @@ namespace VentasOnline.Models
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal Monto { get; set; }
-        public DateTime FechaPago { get; set; }
+        public DateTime? FechaPago { get; set; }
         [Required]
         [MaxLength(50)]
         public string Estado { get; set; }

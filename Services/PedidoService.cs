@@ -51,7 +51,7 @@ namespace VentasOnline.Services
                       .FirstOrDefault(p => p.Id == id);
         }
 
-        // Registrar un nuevo pedido y descontar stock
+        // Registrar un nuevo pedido, descontar stock y generar su pago pendiente asociado
         public int Registrar(int clienteId, int usuarioId, IEnumerable<LineaPedido> lineas)
         {
             var lista = lineas.ToList();
@@ -68,11 +68,18 @@ namespace VentasOnline.Services
                 CostoEnvio = 0.00m
             };
 
+            // Se asignan los detalles una sola vez de forma correcta
             pedido.DetallesPedidos.AddRange(CrearDetalles(ctx, lista));
             pedido.Total = pedido.DetallesPedidos.Sum(d => d.SubTotal);
 
             ctx.Pedidos.Add(pedido);
-            ctx.SaveChanges();
+            ctx.SaveChanges(); // Se guarda el pedido para que genere su ID
+
+            // Generamos automáticamente el pago pendiente usando el contexto actual
+            var pagoService = new PagoService();
+            pagoService.RegistrarPagoPendiente(ctx, pedido.Id, pedido.Total);
+            ctx.SaveChanges(); // Guardamos el registro de pago vinculado
+
             return pedido.Id;
         }
 
@@ -106,6 +113,8 @@ namespace VentasOnline.Services
             pedido.Total = nuevos.Sum(d => d.SubTotal);
 
             ctx.SaveChanges();
+
+            // Opcional: Si el total del pedido cambia al editarlo, podrías actualizar también el monto del pago pendiente asociado si lo deseas.
         }
 
         // Eliminar pedido y reponer inventario
@@ -122,6 +131,8 @@ namespace VentasOnline.Services
                 if (producto != null) producto.Stock += d.Cantidad;
             }
 
+            // Nota: Si tienes configurada eliminación en cascada en la base de datos (Cascade Delete) 
+            // para la relación Pedido-Pago, se borrará solo. Si no, recuerda eliminar el pago asociado aquí antes de borrar el pedido.
             ctx.DetallesPedidos.RemoveRange(pedido.DetallesPedidos);
             ctx.Pedidos.Remove(pedido);
             ctx.SaveChanges();

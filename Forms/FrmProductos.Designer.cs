@@ -31,7 +31,9 @@
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             panel1 = new Panel();
-            button1 = new Button();
+            label1 = new Label();
+            cmbProveedor = new ComboBox();
+            btnBuscarImagen = new Button();
             txtImagen = new TextBox();
             label7 = new Label();
             numericStock = new NumericUpDown();
@@ -51,8 +53,6 @@
             logoLabel = new Label();
             desktopLabel = new Label();
             dgvProductos = new DataGridView();
-            label1 = new Label();
-            cmbProveedor = new ComboBox();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericStock).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericPrecio).BeginInit();
@@ -65,7 +65,7 @@
             panel1.BorderStyle = BorderStyle.FixedSingle;
             panel1.Controls.Add(label1);
             panel1.Controls.Add(cmbProveedor);
-            panel1.Controls.Add(button1);
+            panel1.Controls.Add(btnBuscarImagen);
             panel1.Controls.Add(txtImagen);
             panel1.Controls.Add(label7);
             panel1.Controls.Add(numericStock);
@@ -87,18 +87,38 @@
             panel1.Size = new Size(330, 651);
             panel1.TabIndex = 3;
             // 
-            // button1
+            // label1
             // 
-            button1.BackColor = Color.White;
-            button1.FlatStyle = FlatStyle.Flat;
-            button1.Font = new Font("Segoe UI", 11F);
-            button1.Location = new Point(238, 478);
-            button1.Name = "button1";
-            button1.Size = new Size(87, 38);
-            button1.TabIndex = 18;
-            button1.Text = "Buscar";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += btnBuscarImagen_Click;
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 13F);
+            label1.Location = new Point(15, 66);
+            label1.Name = "label1";
+            label1.Size = new Size(120, 30);
+            label1.TabIndex = 20;
+            label1.Text = "Proveedor:";
+            // 
+            // cmbProveedor
+            // 
+            cmbProveedor.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbProveedor.Font = new Font("Segoe UI", 11F);
+            cmbProveedor.FormattingEnabled = true;
+            cmbProveedor.Location = new Point(15, 99);
+            cmbProveedor.Name = "cmbProveedor";
+            cmbProveedor.Size = new Size(294, 33);
+            cmbProveedor.TabIndex = 19;
+            // 
+            // btnBuscarImagen
+            // 
+            btnBuscarImagen.BackColor = Color.White;
+            btnBuscarImagen.FlatStyle = FlatStyle.Flat;
+            btnBuscarImagen.Font = new Font("Segoe UI", 11F);
+            btnBuscarImagen.Location = new Point(238, 478);
+            btnBuscarImagen.Name = "btnBuscarImagen";
+            btnBuscarImagen.Size = new Size(87, 38);
+            btnBuscarImagen.TabIndex = 18;
+            btnBuscarImagen.Text = "Buscar";
+            btnBuscarImagen.UseVisualStyleBackColor = true;
+            btnBuscarImagen.Click += btnBuscarImagen_Click;
             // 
             // txtImagen
             // 
@@ -328,28 +348,7 @@
             dgvProductos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvProductos.Size = new Size(752, 515);
             dgvProductos.TabIndex = 2;
-            dgvProductos.CellContentClick += dgvProductos_CellContentClick;
-            dgvProductos.SelectionChanged += dgvProductos_SelectionChanged;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 13F);
-            label1.Location = new Point(15, 66);
-            label1.Name = "label1";
-            label1.Size = new Size(120, 30);
-            label1.TabIndex = 20;
-            label1.Text = "Proveedor:";
-            // 
-            // cmbProveedor
-            // 
-            cmbProveedor.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbProveedor.Font = new Font("Segoe UI", 11F);
-            cmbProveedor.FormattingEnabled = true;
-            cmbProveedor.Location = new Point(15, 99);
-            cmbProveedor.Name = "cmbProveedor";
-            cmbProveedor.Size = new Size(294, 33);
-            cmbProveedor.TabIndex = 19;
+            dgvProductos.CellClick += dgvProductos_CellClick;
             // 
             // FrmProductos
             // 
@@ -392,7 +391,7 @@
         private Label label5;
         private NumericUpDown numericStock;
         private Label label6;
-        private Button button1;
+        private Button btnBuscarImagen;
         private TextBox txtImagen;
         private Label label7;
         private Label logoLabel;

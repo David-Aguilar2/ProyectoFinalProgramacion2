@@ -30,7 +30,7 @@ namespace VentasOnline
             ConfigurarBotonMenu(btnCliente, () => OpenForm(new FrmCliente(), btnCliente));
             ConfigurarBotonMenu(btnUsuarios, () => OpenForm(new FrmUsuario(), btnUsuarios));
             ConfigurarBotonMenu(btnPedidos, () => OpenForm(new FrmPedido(_usuarioActual), btnPedidos));
-            ConfigurarBotonMenu(btnPagos, () => SelectNavigationButton(btnPagos));
+            ConfigurarBotonMenu(btnPagos, () => OpenForm(new FrmPagos(), btnPagos));
 
             SelectNavigationButton(btnEnvios);
             ConfigurePermissions();
@@ -93,8 +93,7 @@ namespace VentasOnline
             // Restringir módulos exclusivos para Administradores
             btnProveedor.Enabled = esAdministrador;  // Bloqueado para Vendedores
             btnUsuarios.Enabled = esAdministrador;   // Bloqueado para Vendedores
-
-            sessionLabel.Text = $"{_usuarioActual.Nombre}\n({_usuarioActual.Rol})";
+            //admin@localhost.com Test123!
         }
 
         private void logoutButton_Click(object? sender, EventArgs e)
@@ -139,6 +138,11 @@ namespace VentasOnline
             {
                 form.ShowDialog(this);
             }
+        }
+
+        private void navigationPanel_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }
