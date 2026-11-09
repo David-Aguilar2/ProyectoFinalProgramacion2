@@ -29,6 +29,7 @@ namespace VentasOnline.Forms
         private void FrmPedido_Load(object sender, EventArgs e)
         {
             CargarCatalogos();
+            cboProducto.SelectedIndexChanged += cboProducto_SelectedIndexChanged;
             dgvDetalle.DataSource = _lineas;
 
             if (dgvDetalle.Columns["ProductoId"] != null)
@@ -45,6 +46,8 @@ namespace VentasOnline.Forms
 
             CargarHistorial();
             NuevoPedido();
+
+            cboProducto_SelectedIndexChanged(cboProducto, EventArgs.Empty);
         }
 
         private void CargarCatalogos()
@@ -100,25 +103,51 @@ namespace VentasOnline.Forms
 
         private void btnAgregar_Click(object sender, EventArgs e)
         {
-            if (cboProducto.SelectedItem is not Producto producto) return;
-            int cantidad = (int)nudCantidad.Value;
+            if (cboProducto.SelectedItem is not Producto productoSeleccionado) return;
+            int cantidadSolicitada = (int)nudCantidad.Value;
 
-            LineaPedido? existente = _lineas.FirstOrDefault(l => l.ProductoId == producto.Id);
+            // Consultar el stock real y actualizado desde la base de datos
+            using var ctx = new AppDbContext();
+            var productoDb = ctx.Productos.AsNoTracking().FirstOrDefault(p => p.Id == productoSeleccionado.Id);
+
+            if (productoDb == null)
+            {
+                MessageBox.Show("El producto ya no existe.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Verificar si el producto ya está agregado en el carrito temporal
+            LineaPedido? existente = _lineas.FirstOrDefault(l => l.ProductoId == productoDb.Id);
+            int cantidadTotalEnCarrito = (existente != null ? existente.Cantidad : 0) + cantidadSolicitada;
+
+            // Validar que la cantidad acumulada no supere el stock de la base de datos
+            if (cantidadTotalEnCarrito > productoDb.Stock)
+            {
+                MessageBox.Show(
+                    $"No hay suficiente stock disponible.\n\n" +
+                    $"Stock actual en BD: {productoDb.Stock}\n" +
+                    $"Ya tienes en el carrito: {(existente != null ? existente.Cantidad : 0)}\n" +
+                    $"Intentas agregar: {cantidadSolicitada}",
+                    "Stock Insuficiente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             if (existente != null)
             {
-                existente.Cantidad += cantidad;
+                existente.Cantidad += cantidadSolicitada;
                 _lineas.ResetBindings();
             }
             else
             {
                 _lineas.Add(new LineaPedido
                 {
-                    ProductoId = producto.Id,
-                    Producto = producto.Nombre,
-                    Cantidad = cantidad,
-                    PrecioUnitario = producto.Precio
+                    ProductoId = productoDb.Id,
+                    Producto = productoDb.Nombre,
+                    Cantidad = cantidadSolicitada,
+                    PrecioUnitario = productoDb.Precio
                 });
             }
+
             nudCantidad.Value = 1;
             ActualizarTotal();
         }
@@ -129,7 +158,6 @@ namespace VentasOnline.Forms
             {
                 _lineas.Remove(linea);
                 ActualizarTotal();
-                LimpiarImagenProducto();
             }
         }
 
@@ -195,17 +223,17 @@ namespace VentasOnline.Forms
             lblVenta.Text = $"Editando pedido #{pedido.Id}";
             btnEliminar.Enabled = true;
             ActualizarTotal();
-            LimpiarImagenProducto();
         }
 
-        private void dgvDetalle_SelectionChanged(object sender, EventArgs e)
+        // Carga la imagen y actualiza el stock al cambiar la selección en el ComboBox de productos
+        private void cboProducto_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (dgvDetalle.CurrentRow?.DataBoundItem is LineaPedido linea)
+            if (cboProducto.SelectedItem is Producto producto)
             {
-                using var ctx = new AppDbContext();
-                var producto = ctx.Productos.AsNoTracking().FirstOrDefault(p => p.Id == linea.ProductoId);
+                // Muestra el stock disponible en el Label
+                lblStock.Text = $"Stock: {producto.Stock}";
 
-                if (producto != null && !string.IsNullOrEmpty(producto.ImagenUrl))
+                if (!string.IsNullOrEmpty(producto.ImagenUrl))
                 {
                     string rutaBase = Application.StartupPath;
                     string rutaCompleta = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images", producto.ImagenUrl));
@@ -222,6 +250,8 @@ namespace VentasOnline.Forms
                     }
                 }
             }
+
+            lblStock.Text = "Stock: -";
             LimpiarImagenProducto();
         }
 

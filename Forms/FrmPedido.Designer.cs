@@ -41,6 +41,7 @@ namespace VentasOnline.Forms
             btnGuardar = new Button();
             btnNueva = new Button();
             pictureBoxProducto = new PictureBox();
+            lblStock = new Label();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvDetalle).BeginInit();
@@ -138,6 +139,7 @@ namespace VentasOnline.Forms
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(lblStock);
             groupBox2.Controls.Add(lblTotal);
             groupBox2.Controls.Add(btnQuitarLinea);
             groupBox2.Controls.Add(dgvDetalle);
@@ -175,6 +177,7 @@ namespace VentasOnline.Forms
             btnQuitarLinea.TabIndex = 10;
             btnQuitarLinea.Text = "Quitar Linea";
             btnQuitarLinea.UseVisualStyleBackColor = true;
+            btnQuitarLinea.Click += btnQuitar_Click;
             // 
             // dgvDetalle
             // 
@@ -185,7 +188,6 @@ namespace VentasOnline.Forms
             dgvDetalle.RowHeadersWidth = 51;
             dgvDetalle.Size = new Size(651, 173);
             dgvDetalle.TabIndex = 9;
-            dgvDetalle.SelectionChanged += dgvDetalle_SelectionChanged;
             // 
             // btnAgregar
             // 
@@ -200,7 +202,7 @@ namespace VentasOnline.Forms
             // 
             // nudCantidad
             // 
-            nudCantidad.Location = new Point(431, 43);
+            nudCantidad.Location = new Point(431, 28);
             nudCantidad.Margin = new Padding(3, 4, 3, 4);
             nudCantidad.Name = "nudCantidad";
             nudCantidad.Size = new Size(80, 29);
@@ -210,7 +212,7 @@ namespace VentasOnline.Forms
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label3.Location = new Point(367, 47);
+            label3.Location = new Point(367, 32);
             label3.Name = "label3";
             label3.Size = new Size(50, 23);
             label3.TabIndex = 3;
@@ -219,17 +221,18 @@ namespace VentasOnline.Forms
             // cboProducto
             // 
             cboProducto.FormattingEnabled = true;
-            cboProducto.Location = new Point(87, 43);
+            cboProducto.Location = new Point(87, 28);
             cboProducto.Margin = new Padding(3, 4, 3, 4);
             cboProducto.Name = "cboProducto";
             cboProducto.Size = new Size(267, 29);
             cboProducto.TabIndex = 2;
+            cboProducto.SelectedIndexChanged += cboProducto_SelectedIndexChanged;
             // 
             // cmbProducto
             // 
             cmbProducto.AutoSize = true;
             cmbProducto.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            cmbProducto.Location = new Point(7, 47);
+            cmbProducto.Location = new Point(7, 32);
             cmbProducto.Name = "cmbProducto";
             cmbProducto.Size = new Size(84, 23);
             cmbProducto.TabIndex = 0;
@@ -301,6 +304,15 @@ namespace VentasOnline.Forms
             pictureBoxProducto.TabIndex = 19;
             pictureBoxProducto.TabStop = false;
             // 
+            // lblStock
+            // 
+            lblStock.AutoSize = true;
+            lblStock.Location = new Point(17, 64);
+            lblStock.Name = "lblStock";
+            lblStock.Size = new Size(61, 23);
+            lblStock.TabIndex = 12;
+            lblStock.Text = "Stock:";
+            // 
             // FrmPedido
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -355,5 +367,6 @@ namespace VentasOnline.Forms
         private Button btnNueva;
         private PictureBox pictureBoxProducto;
         private Label lblVenta;
+        private Label lblStock;
     }
 }

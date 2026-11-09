@@ -23,7 +23,7 @@ namespace VentasOnline
 
             // Configurar eventos de clic y efectos de Hover para cada botón del menú
             ConfigurarBotonMenu(btnEnvios, () => SelectNavigationButton(btnEnvios));
-            ConfigurarBotonMenu(btnDetallesPedido, () => OpenForm(new FrmDetallePedido(), btnDetallesPedido));
+            //ConfigurarBotonMenu(btnDetallesPedido, () => OpenForm(new FrmDetallePedido(), btnDetallesPedido));
             ConfigurarBotonMenu(btnCategoria, () => OpenForm(new FrmCategorias(), btnCategoria));
             ConfigurarBotonMenu(btnProveedor, () => OpenForm(new FrmProveedores(), btnProveedor));
             ConfigurarBotonMenu(btnProducto, () => OpenForm(new FrmProductos(), btnProducto));
@@ -31,8 +31,6 @@ namespace VentasOnline
             ConfigurarBotonMenu(btnUsuarios, () => OpenForm(new FrmUsuario(), btnUsuarios));
             ConfigurarBotonMenu(btnPedidos, () => OpenForm(new FrmPedido(_usuarioActual), btnPedidos));
             ConfigurarBotonMenu(btnPagos, () => SelectNavigationButton(btnPagos));
-
-            detallePedidoMenuItem.Click += (_, _) => OpenForm(new FrmDetallePedido(), btnDetallesPedido);
 
             SelectNavigationButton(btnEnvios);
             ConfigurePermissions();
@@ -49,11 +47,11 @@ namespace VentasOnline
 
             boton.Click += (_, _) => accionClick();
 
-            // Al pasar el mouse (MouseEnter)
+            // Al pasar el mouses
             boton.MouseEnter += (_, _) =>
             {
                 // Si no es el botón seleccionado actualmente, cambia al color de hover
-                if (boton != _botonSeleccionadoActual)
+                if (boton != _botonSeleccionadoActual && boton.Enabled)
                 {
                     boton.BackColor = ColorHover;
                 }
@@ -91,7 +89,11 @@ namespace VentasOnline
             if (_usuarioActual == null) return;
 
             bool esAdministrador = string.Equals(_usuarioActual.Rol, "Administrador", StringComparison.OrdinalIgnoreCase);
-            btnProducto.Enabled = esAdministrador;
+
+            // Restringir módulos exclusivos para Administradores
+            btnProveedor.Enabled = esAdministrador;  // Bloqueado para Vendedores
+            btnUsuarios.Enabled = esAdministrador;   // Bloqueado para Vendedores
+
             sessionLabel.Text = $"{_usuarioActual.Nombre}\n({_usuarioActual.Rol})";
         }
 
@@ -110,7 +112,7 @@ namespace VentasOnline
                 {
                     if (button == selectedButton)
                     {
-                        // El botón activo se queda con un tono fijo (puede ser el ColorActivo o el mismo ColorAzulPorDefecto)
+                        // El botón activo se queda con un tono fijo
                         button.BackColor = ColorActivo;
                     }
                     else
@@ -124,6 +126,14 @@ namespace VentasOnline
 
         private void OpenForm(Form form, Button selectedButton)
         {
+            // Validación de seguridad por si intentan acceder mediante código
+            if (!selectedButton.Enabled)
+            {
+                MessageBox.Show("No tienes permisos para acceder a este módulo.", "Acceso Denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                form.Dispose();
+                return;
+            }
+
             SelectNavigationButton(selectedButton);
             using (form)
             {

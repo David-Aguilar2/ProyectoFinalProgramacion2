@@ -24,7 +24,20 @@ namespace VentasOnline.Forms
 
         }
         private void chkMostrar_CheckedChanged(object sender, EventArgs e)
-            => txtPassword.UseSystemPasswordChar = !chkMostrar.Checked;
+        {
+            if (chkMostrar.Checked)
+            {
+                // Si está marcado, desactivamos el ocultamiento del sistema para mostrar el texto plano
+                txtPassword.UseSystemPasswordChar = false;
+                txtPassword.PasswordChar = '\0';
+            }
+            else
+            {
+                // Si se desmarca volvemos a impedir que se muestre la contraseña en texto plano
+                txtPassword.PasswordChar = '\0';
+                txtPassword.UseSystemPasswordChar = true;
+            }
+        }
 
         private void btnIngresar_Click(object? sender, EventArgs e)
         {

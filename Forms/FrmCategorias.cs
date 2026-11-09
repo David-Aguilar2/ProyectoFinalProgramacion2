@@ -140,12 +140,10 @@ namespace VentasOnline.Forms
         private void LimpiarFormulario()
         {
             _idSeleccionado = 0;
+            dgvCategorias.ClearSelection();
+            dgvCategorias.CurrentCell = null;
             txtNombre.Clear();
             txtDescripcion.Clear();
-            if (dgvCategorias.Rows.Count > 0)
-            {
-                dgvCategorias.ClearSelection();
-            }
         }
 
         private void txtDescripcion_TextChanged(object sender, EventArgs e)

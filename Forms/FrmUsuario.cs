@@ -158,9 +158,10 @@ namespace VentasOnline.Forms
                 usuario.Telefono = telefono;
                 usuario.Rol = cmbRol.SelectedItem!.ToString()!;
 
+                // Hashear la contraseña de forma segura si se ingresó una nueva
                 if (!string.IsNullOrWhiteSpace(password))
                 {
-                    usuario.Password = password;
+                    usuario.Password = BCrypt.Net.BCrypt.HashPassword(password);
                 }
 
                 if (esNuevo)

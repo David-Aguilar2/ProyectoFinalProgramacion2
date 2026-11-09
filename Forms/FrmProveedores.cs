@@ -50,13 +50,13 @@ namespace VentasOnline.Forms
 
         private void dgvProveedores_SelectionChanged(object sender, EventArgs e)
         {
-            if (dgvProveedores.CurrentRow?.DataBoundItem is Proveedores seleccionada)
+            /*if (dgvProveedores.CurrentRow?.DataBoundItem is Proveedores seleccionada)
             {
                 _idSeleccionado = seleccionada.Id;
                 txtNombre.Text = seleccionada.Nombre;
                 txtTelefono.Text = seleccionada.Telefono;
                 txtCorreo.Text = seleccionada.Correo;
-            }
+            }*/
         }
 
         // Botón Nuevo
@@ -143,13 +143,11 @@ namespace VentasOnline.Forms
         private void LimpiarFormulario()
         {
             _idSeleccionado = 0;
+            dgvProveedores.ClearSelection();
+            dgvProveedores.CurrentCell = null;
             txtNombre.Clear();
             txtTelefono.Clear();
             txtCorreo.Clear();
-            if (dgvProveedores.Rows.Count > 0)
-            {
-                dgvProveedores.ClearSelection();
-            }
         }
     }
 }

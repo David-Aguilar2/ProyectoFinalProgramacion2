@@ -55,7 +55,6 @@ namespace VentasOnline.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Relación 1 a Muchos: Usuario (Vendedor/Admin) -> Pedidos
-            // Reemplaza la antigua relación con la tabla Vendedor
             modelBuilder.Entity<Pedido>()
                 .HasOne(p => p.Usuario)
                 .WithMany(u => u.Pedidos)

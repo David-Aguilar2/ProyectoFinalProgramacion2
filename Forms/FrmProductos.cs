@@ -332,19 +332,16 @@ namespace VentasOnline.Forms
         private void LimpiarFormulario()
         {
             _idSeleccionado = 0;
-            if (cmbCategoria.Items.Count > 0) cmbCategoria.SelectedIndex = 0;
-            if (cmbProveedor.Items.Count > 0) cmbProveedor.SelectedIndex = 0;
+            cmbCategoria.SelectedIndex = 0;
+            cmbProveedor.SelectedIndex = 0;
+            dgvProductos.ClearSelection();
+            dgvProductos.CurrentCell = null;
             txtNombre.Clear();
             txtDescripcion.Clear();
             numericPrecio.Value = 0;
             numericStock.Value = 0;
             txtImagen.Clear();
             _rutaOrigenImagen = string.Empty;
-
-            if (dgvProductos.Rows.Count > 0)
-            {
-                dgvProductos.ClearSelection();
-            }
         }
 
         // Copiar la imagen seleccionada a la carpeta /images
