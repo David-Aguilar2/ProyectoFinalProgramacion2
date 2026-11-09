@@ -13,7 +13,7 @@ namespace VentasOnline.Forms
     public partial class FrmCategorias : Form
     {
         private readonly CategoriaService _categoriaService;
-        private int _idSeleccionado = 0;
+        private int _idSeleccionado = 0; // 0 significa registro nuevo
 
         public FrmCategorias()
         {
@@ -23,12 +23,11 @@ namespace VentasOnline.Forms
 
         private void FrmCategorias_Load(object sender, EventArgs e)
         {
-            CargarGrilla();
-            //LimpiarFormulario();
+            CargarCategorias();
+            LimpiarFormulario();
         }
 
-        // Cargar datos en la grilla desde el servicio
-        private void CargarGrilla()
+        private void CargarCategorias()
         {
             try
             {
@@ -47,103 +46,104 @@ namespace VentasOnline.Forms
             }
         }
 
-        private void dgvCategorias_SelectionChanged(object sender, EventArgs e)
+        private void LimpiarFormulario()
         {
-            if (dgvCategorias.CurrentRow?.DataBoundItem is Categoria seleccionada)
-            {
-                _idSeleccionado = seleccionada.Id;
-                txtNombre.Text = seleccionada.Nombre;
-                txtDescripcion.Text = seleccionada.Descripcion;
-            }
-        }
-
-        // Botón Nuevo
-        private void btnNuevo_Click(object sender, EventArgs e)
-        {
-            LimpiarFormulario();
+            _idSeleccionado = 0;
+            txtNombre.Clear();
+            txtDescripcion.Clear();
+            if (btnEliminar != null) btnEliminar.Enabled = false;
+            dgvCategorias.ClearSelection();
+            dgvCategorias.CurrentCell = null;
             txtNombre.Focus();
         }
 
-        // Botón Guardar (Crear / Actualizar)
+        private void dgvCategorias_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var fila = dgvCategorias.Rows[e.RowIndex];
+
+            // Verificamos si la fuente de datos está enlazada directamente a objetos Categoria
+            if (fila.DataBoundItem is Categoria categoriaSeleccionada)
+            {
+                _idSeleccionado = categoriaSeleccionada.Id;
+                txtNombre.Text = categoriaSeleccionada.Nombre;
+                txtDescripcion.Text = categoriaSeleccionada.Descripcion ?? string.Empty;
+                if (btnEliminar != null) btnEliminar.Enabled = true;
+            }
+        }
+
+        private void btnNuevo_Click(object sender, EventArgs e)
+        {
+            LimpiarFormulario();
+        }
+
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             try
             {
+                string nombre = txtNombre.Text.Trim();
+                string descripcion = txtDescripcion.Text.Trim();
+
+                if (string.IsNullOrEmpty(nombre))
+                {
+                    MessageBox.Show("El nombre de la categoría es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
                 var categoria = new Categoria
                 {
-                    Nombre = txtNombre.Text.Trim(),
-                    Descripcion = txtDescripcion.Text.Trim()
+                    Id = _idSeleccionado,
+                    Nombre = nombre,
+                    Descripcion = descripcion
                 };
 
                 if (_idSeleccionado == 0)
                 {
-                    // Crear
                     _categoriaService.Crear(categoria);
-                    MessageBox.Show("Categoría creada exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LimpiarFormulario();
+                    MessageBox.Show("Categoría creada con éxito.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    // Actualizar
-                    categoria.Id = _idSeleccionado;
                     _categoriaService.Actualizar(categoria);
-                    MessageBox.Show("Categoría actualizada exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LimpiarFormulario();
+                    MessageBox.Show("Categoría actualizada con éxito.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
-                CargarGrilla();
+                CargarCategorias();
                 LimpiarFormulario();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message, "No se pudo guardar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                CargarCategorias();
             }
         }
 
-        // Botón Eliminar
         private void btnEliminar_Click(object sender, EventArgs e)
         {
-            if (_idSeleccionado == 0)
+            if (_idSeleccionado == 0) return;
+
+            var respuesta = MessageBox.Show($"¿Estás seguro de eliminar la categoría \"{txtNombre.Text}\"?", "Eliminar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (respuesta != DialogResult.Yes) return;
+
+            try
             {
-                MessageBox.Show("Seleccione una categoría de la lista para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
+                _categoriaService.Eliminar(_idSeleccionado);
+                MessageBox.Show("Categoría eliminada con éxito.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                CargarCategorias();
+                LimpiarFormulario();
             }
-
-            var confirmacion = MessageBox.Show($"¿Está seguro de eliminar la categoría '{txtNombre.Text}'?",
-                "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (confirmacion == DialogResult.Yes)
+            catch (Exception ex)
             {
-                try
-                {
-                    _categoriaService.Eliminar(_idSeleccionado);
-                    MessageBox.Show("Categoría eliminada correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    CargarGrilla();
-                    LimpiarFormulario();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Restricción de Borrado", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                }
+                MessageBox.Show(ex.Message, "No se pudo eliminar.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
-        // Botón Cancelar
         private void btnCancelar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
             Close();
-        }
-
-        // Limpiar cajas de texto y selección
-        private void LimpiarFormulario()
-        {
-            _idSeleccionado = 0;
-            dgvCategorias.ClearSelection();
-            dgvCategorias.CurrentCell = null;
-            txtNombre.Clear();
-            txtDescripcion.Clear();
         }
 
         private void txtDescripcion_TextChanged(object sender, EventArgs e)
