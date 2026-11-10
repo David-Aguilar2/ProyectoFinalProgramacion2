@@ -43,6 +43,8 @@
             btnNuevo = new Button();
             label6 = new Label();
             label5 = new Label();
+            txtBusqueda = new TextBox();
+            lblBusqueda = new Label();
             ((System.ComponentModel.ISupportInitialize)dgvProveedores).BeginInit();
             panel2.SuspendLayout();
             SuspendLayout();
@@ -219,12 +221,31 @@
             label5.TabIndex = 7;
             label5.Text = "Correo:";
             // 
+            // txtBusqueda
+            // 
+            txtBusqueda.Location = new Point(187, 123);
+            txtBusqueda.Name = "txtBusqueda";
+            txtBusqueda.Size = new Size(373, 27);
+            txtBusqueda.TabIndex = 13;
+            // 
+            // lblBusqueda
+            // 
+            lblBusqueda.AutoSize = true;
+            lblBusqueda.ForeColor = Color.Black;
+            lblBusqueda.Location = new Point(39, 126);
+            lblBusqueda.Name = "lblBusqueda";
+            lblBusqueda.Size = new Size(129, 20);
+            lblBusqueda.TabIndex = 12;
+            lblBusqueda.Text = "Buscar por correo:";
+            // 
             // FrmProveedores
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
             ClientSize = new Size(914, 600);
+            Controls.Add(txtBusqueda);
+            Controls.Add(lblBusqueda);
             Controls.Add(panel2);
             Controls.Add(dgvProveedores);
             Controls.Add(desktopLabel);
@@ -260,5 +281,7 @@
         private Button btnEliminar;
         private Button btnCancelar;
         private MaskedTextBox txtTelefono;
+        private TextBox txtBusqueda;
+        private Label lblBusqueda;
     }
 }

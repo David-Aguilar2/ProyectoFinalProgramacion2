@@ -22,7 +22,7 @@ namespace VentasOnline.Models
         public string Estado { get; set; }// Estado del pedido (por ejemplo: "Pendiente", "Enviado", "Entregado")
         [Required]
         [Column(TypeName = "decimal(10,2)")]// Tipo de dato decimal con precisión de 10 dígitos y 2 decimales
-        public decimal CostoEnvio { get; set; }
+        public decimal CostoEnvio { get; set; } = 8.00m; // Costo del envío, valor por defecto 8.00
         [Column(TypeName = "decimal(10,2)")]
         public decimal Total { get; set; }
 

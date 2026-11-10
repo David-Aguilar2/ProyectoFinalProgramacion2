@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using VentasOnline.Models;
@@ -29,15 +30,28 @@ namespace VentasOnline.Forms
         {
             CargarGrilla();
             LimpiarFormulario();
+
+            // 💡 Suscribir el evento de búsqueda en tiempo real por correo
+            if (txtBusqueda != null)
+            {
+                txtBusqueda.TextChanged += txtBusqueda_TextChanged;
+            }
         }
 
-        // Cargar todos los proveedores en el DataGridView
-        private void CargarGrilla()
+        // Cargar todos los proveedores en el DataGridView filtrando opcionalmente por correo
+        private void CargarGrilla(string filtroCorreo = "")
         {
             try
             {
                 // Obtiene la lista completa de proveedores desde la base de datos a través del servicio
                 var lista = _proveedorService.ObtenerTodas();
+
+                // Si hay texto en el buscador, filtramos por el correo (ignorando mayúsculas/minúsculas)
+                if (!string.IsNullOrWhiteSpace(filtroCorreo))
+                {
+                    lista = lista.Where(p => p.Correo != null && p.Correo.Contains(filtroCorreo, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+
                 dgvProveedores.DataSource = null;
                 dgvProveedores.DataSource = lista;
 
@@ -52,6 +66,13 @@ namespace VentasOnline.Forms
                 // Muestra un mensaje de error en caso de que falle la carga de datos
                 MessageBox.Show($"Error al cargar proveedores: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        // 💡 Evento que se ejecuta al escribir en el txtBusqueda
+        private void txtBusqueda_TextChanged(object sender, EventArgs e)
+        {
+            string textoFiltro = txtBusqueda.Text.Trim();
+            CargarGrilla(textoFiltro);
         }
 
         // Evento para capturar el clic en la grilla y rellenar el formulario para editar
@@ -119,8 +140,9 @@ namespace VentasOnline.Forms
                     MessageBox.Show("Proveedor actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
-                // Actualiza la tabla y limpia los campos tras una operación exitosa
+                // Actualiza la tabla, limpia el buscador y restablece los campos tras una operación exitosa
                 CargarGrilla();
+                if (txtBusqueda != null) txtBusqueda.Clear();
                 LimpiarFormulario();
             }
             catch (Exception ex)
@@ -152,8 +174,9 @@ namespace VentasOnline.Forms
                     _proveedorService.Eliminar(_idSeleccionado);
                     MessageBox.Show("Proveedor eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    // Refresca la grilla y limpia el formulario
+                    // Refresca la grilla, limpia el buscador y el formulario
                     CargarGrilla();
+                    if (txtBusqueda != null) txtBusqueda.Clear();
                     LimpiarFormulario();
                 }
                 catch (Exception ex)

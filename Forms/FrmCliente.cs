@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Drawing;
+using System.Linq;
 using VentasOnline.Data;
 using VentasOnline.Models;
 using VentasOnline.Services;
@@ -61,6 +64,13 @@ namespace VentasOnline.Forms
             dgvClientes.RowTemplate.Height = 34;
 
             dgvClientes.CellClick += dgvClientes_CellClick;
+
+            // Asegurar que el botón de direcciones inicie deshabilitado
+            if (btnDireccion != null)
+            {
+                btnDireccion.Enabled = false;
+                btnDireccion.Click += btnDireccion_Click;
+            }
         }
 
         // Evento que se ejecuta al cargar el formulario, inicializando los datos y limpiando campos
@@ -70,6 +80,12 @@ namespace VentasOnline.Forms
             {
                 CargarClientes();
                 LimpiarFormulario();
+
+                // 💡 Suscribir el evento de búsqueda en tiempo real por correo
+                if (txtBusqueda != null)
+                {
+                    txtBusqueda.TextChanged += txtBusqueda_TextChanged;
+                }
             }
             catch (Exception ex)
             {
@@ -77,14 +93,21 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Método para consultar la base de datos y llenar la tabla (DataGridView) con la lista de clientes ordenados
-        private void CargarClientes()
+        // Método para consultar la base de datos y llenar la tabla (DataGridView) filtrando opcionalmente por correo
+        private void CargarClientes(string filtroCorreo = "")
         {
             try
             {
                 using var db = new AppDbContext();
-                var clientes = db.Clientes
-                    .AsNoTracking()
+                var query = db.Clientes.AsNoTracking().AsQueryable();
+
+                // Si hay texto en el buscador, filtramos por correo (ignorando mayúsculas/minúsculas)
+                if (!string.IsNullOrWhiteSpace(filtroCorreo))
+                {
+                    query = query.Where(c => c.Correo != null && c.Correo.Contains(filtroCorreo));
+                }
+
+                var clientes = query
                     .OrderBy(cliente => cliente.Nombre)
                     .ThenBy(cliente => cliente.Id)
                     .ToList();
@@ -103,6 +126,13 @@ namespace VentasOnline.Forms
             }
         }
 
+        // 💡 Evento que se ejecuta al escribir en el txtBusqueda
+        private void txtBusqueda_TextChanged(object? sender, EventArgs e)
+        {
+            string textoFiltro = txtBusqueda.Text.Trim();
+            CargarClientes(textoFiltro);
+        }
+
         // Evento único para manejar la selección manual por celda y cargar los datos en los TextBox para su edición
         private void dgvClientes_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
@@ -116,6 +146,12 @@ namespace VentasOnline.Forms
                 txtNombre.Text = Convert.ToString(fila.Cells[colNombre.Name].Value) ?? string.Empty;
                 txtTelefono.Text = Convert.ToString(fila.Cells[colTelefono.Name].Value) ?? string.Empty;
                 txtCorreo.Text = Convert.ToString(fila.Cells[colCorreo.Name].Value) ?? string.Empty;
+
+                // Al hacer clic en un cliente válido, habilitamos el botón de direcciones
+                if (btnDireccion != null)
+                {
+                    btnDireccion.Enabled = true;
+                }
             }
         }
 
@@ -123,6 +159,26 @@ namespace VentasOnline.Forms
         private void btnNuevo_Click(object? sender, EventArgs e)
         {
             LimpiarFormulario();
+        }
+
+        // Evento del botón "Dirección", abre el formulario de direcciones asignando el cliente actual por defecto
+        private void btnDireccion_Click(object? sender, EventArgs e)
+        {
+            if (_idSeleccionado == 0)
+            {
+                MessageBox.Show("Por favor, seleccione un cliente primero.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                var frmDirecciones = new FrmDireccion(_idSeleccionado);
+                frmDirecciones.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo abrir el módulo de direcciones: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // Evento del botón "Guardar", valida los campos obligatorios y el formato del correo antes de crear o actualizar
@@ -160,18 +216,17 @@ namespace VentasOnline.Forms
 
                 if (_idSeleccionado == 0)
                 {
-                    // Crear un nuevo registro si no hay un ID seleccionado
                     _clienteService.Crear(cliente);
                     MessageBox.Show("Cliente creado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    // Actualizar el registro existente si el ID es diferente de cero
                     _clienteService.Actualizar(cliente);
                     MessageBox.Show("Cliente actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
                 CargarClientes();
+                if (txtBusqueda != null) txtBusqueda.Clear();
                 LimpiarFormulario();
             }
             catch (Exception ex)
@@ -200,6 +255,7 @@ namespace VentasOnline.Forms
                     MessageBox.Show("Cliente eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     CargarClientes();
+                    if (txtBusqueda != null) txtBusqueda.Clear();
                     LimpiarFormulario();
                 }
                 catch (Exception ex)
@@ -225,6 +281,12 @@ namespace VentasOnline.Forms
             txtNombre.Clear();
             txtTelefono.Clear();
             txtCorreo.Clear();
+
+            if (btnDireccion != null)
+            {
+                btnDireccion.Enabled = false;
+            }
+
             txtNombre.Focus();
         }
 

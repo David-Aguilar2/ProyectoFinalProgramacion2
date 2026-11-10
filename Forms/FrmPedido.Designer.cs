@@ -27,6 +27,7 @@ namespace VentasOnline.Forms
             cboCliente = new ComboBox();
             label1 = new Label();
             groupBox2 = new GroupBox();
+            lblStock = new Label();
             lblTotal = new Label();
             btnQuitarLinea = new Button();
             dgvDetalle = new DataGridView();
@@ -41,7 +42,7 @@ namespace VentasOnline.Forms
             btnGuardar = new Button();
             btnNueva = new Button();
             pictureBoxProducto = new PictureBox();
-            lblStock = new Label();
+            btnCerrar = new Button();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvDetalle).BeginInit();
@@ -158,6 +159,15 @@ namespace VentasOnline.Forms
             groupBox2.TabStop = false;
             groupBox2.Text = "Detalle de Productos";
             // 
+            // lblStock
+            // 
+            lblStock.AutoSize = true;
+            lblStock.Location = new Point(17, 64);
+            lblStock.Name = "lblStock";
+            lblStock.Size = new Size(61, 23);
+            lblStock.TabIndex = 12;
+            lblStock.Text = "Stock:";
+            // 
             // lblTotal
             // 
             lblTotal.AutoSize = true;
@@ -246,7 +256,7 @@ namespace VentasOnline.Forms
             groupBox3.Margin = new Padding(3, 4, 3, 4);
             groupBox3.Name = "groupBox3";
             groupBox3.Padding = new Padding(3, 4, 3, 4);
-            groupBox3.Size = new Size(362, 556);
+            groupBox3.Size = new Size(472, 556);
             groupBox3.TabIndex = 9;
             groupBox3.TabStop = false;
             groupBox3.Text = "Historial de Pedidos";
@@ -259,13 +269,13 @@ namespace VentasOnline.Forms
             dgvPedidos.Margin = new Padding(3, 4, 3, 4);
             dgvPedidos.Name = "dgvPedidos";
             dgvPedidos.RowHeadersWidth = 51;
-            dgvPedidos.Size = new Size(349, 526);
+            dgvPedidos.Size = new Size(459, 526);
             dgvPedidos.TabIndex = 10;
             dgvPedidos.CellClick += dgvPedidos_CellClick;
             // 
             // btnEliminar
             // 
-            btnEliminar.Location = new Point(491, 634);
+            btnEliminar.Location = new Point(398, 634);
             btnEliminar.Margin = new Padding(3, 4, 3, 4);
             btnEliminar.Name = "btnEliminar";
             btnEliminar.Size = new Size(134, 31);
@@ -276,7 +286,7 @@ namespace VentasOnline.Forms
             // 
             // btnGuardar
             // 
-            btnGuardar.Location = new Point(271, 634);
+            btnGuardar.Location = new Point(197, 634);
             btnGuardar.Margin = new Padding(3, 4, 3, 4);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(136, 31);
@@ -287,7 +297,7 @@ namespace VentasOnline.Forms
             // 
             // btnNueva
             // 
-            btnNueva.Location = new Point(72, 634);
+            btnNueva.Location = new Point(26, 634);
             btnNueva.Margin = new Padding(3, 4, 3, 4);
             btnNueva.Name = "btnNueva";
             btnNueva.Size = new Size(117, 31);
@@ -304,21 +314,24 @@ namespace VentasOnline.Forms
             pictureBoxProducto.TabIndex = 19;
             pictureBoxProducto.TabStop = false;
             // 
-            // lblStock
+            // btnCerrar
             // 
-            lblStock.AutoSize = true;
-            lblStock.Location = new Point(17, 64);
-            lblStock.Name = "lblStock";
-            lblStock.Size = new Size(61, 23);
-            lblStock.TabIndex = 12;
-            lblStock.Text = "Stock:";
+            btnCerrar.Location = new Point(589, 634);
+            btnCerrar.Margin = new Padding(3, 4, 3, 4);
+            btnCerrar.Name = "btnCerrar";
+            btnCerrar.Size = new Size(134, 31);
+            btnCerrar.TabIndex = 20;
+            btnCerrar.Text = "Cerrar";
+            btnCerrar.UseVisualStyleBackColor = true;
+            btnCerrar.Click += btnCerrar_Click;
             // 
             // FrmPedido
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(1121, 673);
+            ClientSize = new Size(1230, 673);
+            Controls.Add(btnCerrar);
             Controls.Add(pictureBoxProducto);
             Controls.Add(btnEliminar);
             Controls.Add(btnGuardar);
@@ -328,6 +341,7 @@ namespace VentasOnline.Forms
             Controls.Add(groupBox1);
             Controls.Add(desktopLabel);
             Controls.Add(logoLabel);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Name = "FrmPedido";
             StartPosition = FormStartPosition.CenterScreen;
@@ -368,5 +382,6 @@ namespace VentasOnline.Forms
         private PictureBox pictureBoxProducto;
         private Label lblVenta;
         private Label lblStock;
+        private Button btnCerrar;
     }
 }

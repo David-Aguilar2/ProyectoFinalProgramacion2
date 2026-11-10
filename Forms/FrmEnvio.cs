@@ -1,360 +1,203 @@
-using Microsoft.EntityFrameworkCore;
-using VentasOnline.Data;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
 using VentasOnline.Models;
+using VentasOnline.Services;
 
 namespace VentasOnline.Forms
 {
     public partial class FrmEnvio : Form
     {
-        // Variables privadas que controlan el estado de la carga de datos y el pedido actualmente cargado
-        private bool _cargandoDatos;
-        private int? _pedidoCargadoId;
-        private List<Envio> _envios = new();
+        private readonly EnvioService _envioService = new();
+        private int _envioIdSeleccionado = 0;
+        private int _idPedidoActual = 0;
 
-        // Constructor que inicializa el formulario y configura los elementos de la interfaz de usuario
         public FrmEnvio()
         {
             InitializeComponent();
-            cmbEmpresa.Items.AddRange(new object[] { "DHL Express", "FedEx", "UPS", "Correos de El Salvador", "Cargo Expreso" });
-            cmbEstado.Items.AddRange(new object[] { "Preparación", "En Tránsito", "Entregado", "Cancelado" });
-            cmbEstado.SelectedIndex = 0;
+            ConfigurarFormularioGrafico();
+            CargarFiltroEstadoInicial();
         }
 
-        private void FrmEnvio_Load(object? sender, EventArgs e)
+        private void ConfigurarFormularioGrafico()
+        {
+            // Configuración inicial de la ventana
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.Text = "Gestión de Envíos Contra Entrega - SivarPOS";
+
+            // Configurar ComboBox de Filtro de Estado (arriba)
+            if (cboFiltroEstado.Items.Count == 0)
+            {
+                cboFiltroEstado.Items.AddRange(new object[] { "Todos", "Pendiente", "En tránsito", "Entregado", "Cancelado" });
+                cboFiltroEstado.SelectedIndex = 0; // Inicia por defecto en "Todos"
+            }
+            cboFiltroEstado.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboFiltroEstado.SelectedIndexChanged += CboFiltroEstado_SelectedIndexChanged;
+
+            // Configurar ComboBox de Estado de Entrega (panel lateral)
+            if (cboEstadoEntrega.Items.Count == 0)
+            {
+                cboEstadoEntrega.Items.AddRange(new object[] { "Pendiente", "En tránsito", "Entregado", "Cancelado" });
+            }
+            cboEstadoEntrega.DropDownStyle = ComboBoxStyle.DropDownList;
+
+            // Configuración del TextBox de Empresa de Transporte (Fijo para C807 Express)
+            empresaTransporte.Text = "C807 Express";
+            empresaTransporte.ReadOnly = true; // Impide la edición manteniendo la selección de texto
+
+            // El número de guía se genera automáticamente, por lo que es de solo lectura
+            txtGuiaTracking.ReadOnly = true;
+
+            // Configurar DataGridView
+            dgvHistorial.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvHistorial.MultiSelect = false;
+            dgvHistorial.ReadOnly = true;
+            dgvHistorial.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvHistorial.CellClick += DgvHistorial_CellClick;
+
+            // Enlazar eventos de botones
+            btnGuardar.Click += BtnGuardar_Click;
+
+            // Si tienes un botón para cerrar o salir
+            var btnCerrar = this.Controls.Find("btnCerrar", true).FirstOrDefault() as Button;
+            if (btnCerrar != null)
+            {
+                btnCerrar.Click += (s, e) => Close();
+            }
+        }
+
+        private void CargarFiltroEstadoInicial()
+        {
+            CargarEnvíosSegunFiltro();
+        }
+
+        private void CboFiltroEstado_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CargarEnvíosSegunFiltro();
+        }
+
+        private void CargarEnvíosSegunFiltro()
         {
             try
             {
-                using var db = new AppDbContext();
-                int? ultimoPedido = db.Pedidos
-                    .OrderByDescending(pedido => pedido.Id)
-                    .Select(pedido => (int?)pedido.Id)
-                    .FirstOrDefault();
+                string filtroEstado = cboFiltroEstado.SelectedItem?.ToString() ?? "Todos";
+                var todosLosEnvios = _envioService.ListarTodos();
 
-                if (ultimoPedido.HasValue)
+                // Filtrar según el ComboBox superior
+                var listaFiltrada = todosLosEnvios.Where(envio =>
+                    filtroEstado == "Todos" || envio.Estado.Equals(filtroEstado, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+
+                // Calcular el contador global de envíos activos/pendientes
+                int pendientesGlobales = todosLosEnvios.Count(e =>
+                    e.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase) ||
+                    e.Estado.Equals("En tránsito", StringComparison.OrdinalIgnoreCase));
+
+                if (lblContadorPendientes != null)
                 {
-                    _cargandoDatos = true;
-                    numIdPedido.Value = ultimoPedido.Value;
-                    _cargandoDatos = false;
-                    CargarDireccionesPedido(db, ultimoPedido.Value);
-                    _pedidoCargadoId = ultimoPedido.Value;
+                    lblContadorPendientes.Text = $"Envíos Pendientes: {pendientesGlobales}";
+                }
+
+                // Cargar datos en la grilla
+                dgvHistorial.DataSource = null;
+                dgvHistorial.DataSource = listaFiltrada;
+
+                // Ocultar columnas de navegación complejas que puedan aparecer vacías
+                if (dgvHistorial.Columns["Pedido"] != null) dgvHistorial.Columns["Pedido"].Visible = false;
+                if (dgvHistorial.Columns["Direccion"] != null) dgvHistorial.Columns["Direccion"].Visible = false;
+
+                if (listaFiltrada.Count > 0)
+                {
+                    dgvHistorial.Rows[0].Selected = true;
+                    CargarDetallesEnvioDesdeFila(listaFiltrada[0]);
                 }
                 else
                 {
-                    cmbDireccion.DataSource = null;
-                }
+                    _envioIdSeleccionado = 0;
+                    _idPedidoActual = 0;
+                    if (lblTotalValor != null) lblTotalValor.Text = "$0.00";
+                    cboEstadoEntrega.SelectedIndex = 0;
+                    empresaTransporte.Text = "C807 Express";
+                    txtGuiaTracking.Clear();
 
-                CargarEnvios(db);
+                    cboEstadoEntrega.Enabled = false;
+                    btnGuardar.Enabled = false;
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"No se pudieron cargar los envíos: {ObtenerMensajeError(ex)}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error al cargar envíos: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void CargarEnvios(AppDbContext db)
+        private void DgvHistorial_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            _envios = db.Envios
-                .AsNoTracking()
-                .Include(envio => envio.Direccion)
-                .OrderByDescending(envio => envio.Id)
-                .ToList();
+            if (e.RowIndex < 0) return;
 
-            _cargandoDatos = true;
-            dgvEnvios.Rows.Clear();
-            foreach (var envio in _envios)
+            if (dgvHistorial.Rows[e.RowIndex].DataBoundItem is Envio envioSeleccionado)
             {
-                dgvEnvios.Rows.Add(envio.Id, envio.IdPedido, envio.EmpresaTransporte, envio.NumeroSeguimiento, envio.Estado);
-            }
-            _cargandoDatos = false;
-
-            if (dgvEnvios.Rows.Count > 0)
-            {
-                dgvEnvios.Rows[0].Selected = true;
-                MostrarEnvioSeleccionado();
-            }
-            else
-            {
-                LimpiarCampos(false);
+                CargarDetallesEnvioDesdeFila(envioSeleccionado);
             }
         }
 
-        private void CargarDireccionesPedido(AppDbContext db, int idPedido, int? idDireccionSeleccionada = null)
+        private void CargarDetallesEnvioDesdeFila(Envio envio)
         {
-            var idCliente = db.Pedidos
-                .Where(pedido => pedido.Id == idPedido)
-                .Select(pedido => (int?)pedido.IdCliente)
-                .FirstOrDefault();
+            _envioIdSeleccionado = envio.Id;
+            _idPedidoActual = envio.IdPedido;
 
-            _cargandoDatos = true;
-            if (idCliente.HasValue)
-            {
-                var direcciones = db.Direcciones
-                    .AsNoTracking()
-                    .Where(direccion => direccion.IdCliente == idCliente.Value)
-                    .OrderBy(direccion => direccion.Departamento)
-                    .ThenBy(direccion => direccion.Ubicacion)
-                    .Select(direccion => new
-                    {
-                        direccion.Id,
-                        Descripcion = direccion.Departamento + ", " + direccion.Ubicacion
-                    })
-                    .ToList();
+            cboEstadoEntrega.SelectedItem = envio.Estado;
+            empresaTransporte.Text = !string.IsNullOrEmpty(envio.EmpresaTransporte) ? envio.EmpresaTransporte : "C807 Express";
 
-                cmbDireccion.DataSource = direcciones;
-                cmbDireccion.DisplayMember = "Descripcion";
-                cmbDireccion.ValueMember = "Id";
-                if (idDireccionSeleccionada.HasValue)
-                {
-                    cmbDireccion.SelectedValue = idDireccionSeleccionada.Value;
-                }
-            }
-            else
+            // Muestra la guía generada automáticamente (ej: C820261110094707)
+            txtGuiaTracking.Text = envio.NumeroSeguimiento;
+
+            if (envio.Pedido != null && lblTotalValor != null)
             {
-                cmbDireccion.DataSource = null;
+                lblTotalValor.Text = $"${envio.Pedido.Total:N2}";
             }
-            _cargandoDatos = false;
+
+            // Regla de seguridad: Si el envío ya fue Entregado o Cancelado, se bloquea la edición
+            bool esEditable = !envio.Estado.Equals("Entregado", StringComparison.OrdinalIgnoreCase) &&
+                              !envio.Estado.Equals("Cancelado", StringComparison.OrdinalIgnoreCase);
+
+            cboEstadoEntrega.Enabled = esEditable;
+            btnGuardar.Enabled = esEditable;
         }
 
-        private void numIdPedido_ValueChanged(object? sender, EventArgs e)
+        private void BtnGuardar_Click(object sender, EventArgs e)
         {
-            if (!_cargandoDatos && _pedidoCargadoId != (int)numIdPedido.Value)
-            {
-                cmbDireccion.DataSource = null;
-            }
-        }
-
-        private void numIdPedido_Leave(object? sender, EventArgs e)
-        {
-            if (_pedidoCargadoId != (int)numIdPedido.Value)
-            {
-                CargarPedidoSeleccionado();
-            }
-        }
-
-        private void numIdPedido_KeyDown(object? sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                CargarPedidoSeleccionado();
-                e.SuppressKeyPress = true;
-            }
-        }
-
-        private void CargarPedidoSeleccionado(int? idDireccionSeleccionada = null)
-        {
-            int idPedido = (int)numIdPedido.Value;
             try
             {
-                using var db = new AppDbContext();
-                if (!db.Pedidos.Any(pedido => pedido.Id == idPedido))
+                if (_envioIdSeleccionado == 0)
                 {
-                    _pedidoCargadoId = null;
-                    cmbDireccion.DataSource = null;
-                    MessageBox.Show($"No existe el pedido #{idPedido}.", "Pedido no encontrado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Seleccione un envío válido de la lista.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                CargarDireccionesPedido(db, idPedido, idDireccionSeleccionada);
-                _pedidoCargadoId = idPedido;
-                if (cmbDireccion.Items.Count == 0)
-                {
-                    MessageBox.Show("El pedido seleccionado no tiene una dirección registrada para el cliente.", "Sin dirección", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+                string nuevoEstado = cboEstadoEntrega.SelectedItem?.ToString() ?? "Pendiente";
+                string empresa = empresaTransporte.Text.Trim();
+
+                // Actualizar estado mediante el servicio
+                _envioService.ActualizarEstadoEnvio(_envioIdSeleccionado, nuevoEstado, empresa);
+
+                MessageBox.Show("Envío actualizado correctamente.", "SivarPOS", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // Refrescar la grilla manteniendo el filtro actual
+                CargarEnvíosSegunFiltro();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"No se pudo cargar el pedido: {ObtenerMensajeError(ex)}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Error de validación", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void dgvEnvios_SelectionChanged(object? sender, EventArgs e)
-        {
-            if (!_cargandoDatos)
-            {
-                MostrarEnvioSeleccionado();
-            }
-        }
-
-        private void MostrarEnvioSeleccionado()
-        {
-            if (dgvEnvios.CurrentRow?.Cells[colIdEnvio.Name].Value is not int idEnvio)
-            {
-                return;
-            }
-
-            var envio = _envios.FirstOrDefault(item => item.Id == idEnvio);
-            if (envio == null)
-            {
-                return;
-            }
-
-            _cargandoDatos = true;
-            numIdEnvio.Value = envio.Id;
-            numIdPedido.Value = envio.IdPedido;
-            _cargandoDatos = false;
-            CargarPedidoSeleccionado(envio.IdDireccion);
-            cmbEmpresa.SelectedItem = envio.EmpresaTransporte;
-            if (cmbEmpresa.SelectedIndex < 0)
-            {
-                cmbEmpresa.Items.Add(envio.EmpresaTransporte);
-                cmbEmpresa.SelectedItem = envio.EmpresaTransporte;
-            }
-            txtNumeroGuia.Text = envio.NumeroSeguimiento;
-            cmbEstado.SelectedItem = envio.Estado;
-            if (cmbEstado.SelectedIndex < 0)
-            {
-                cmbEstado.Items.Add(envio.Estado);
-                cmbEstado.SelectedItem = envio.Estado;
-            }
-            dtpFechaEnvio.Value = envio.FechaEnvio;
-        }
-
-        private void btnNuevo_Click(object? sender, EventArgs e)
-        {
-            LimpiarCampos(true);
-        }
-
-        private void btnGuardar_Click(object? sender, EventArgs e)
-        {
-            int idPedido = (int)numIdPedido.Value;
-            if (idPedido <= 0 || _pedidoCargadoId != idPedido)
-            {
-                MessageBox.Show("Escribe el ID de un pedido existente y presiona Enter para cargarlo.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                numIdPedido.Focus();
-                return;
-            }
-
-            if (cmbDireccion.SelectedValue is not int idDireccion)
-            {
-                MessageBox.Show("Selecciona una dirección de envío del cliente.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                cmbDireccion.Focus();
-                return;
-            }
-
-            if (cmbEmpresa.SelectedItem is not string empresa || string.IsNullOrWhiteSpace(txtNumeroGuia.Text))
-            {
-                MessageBox.Show("Selecciona la empresa de transporte e ingresa el número de guía.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            int idEnvio = (int)numIdEnvio.Value;
-            try
-            {
-                using var db = new AppDbContext();
-                var pedido = db.Pedidos.Find(idPedido);
-                if (pedido == null)
-                {
-                    throw new InvalidOperationException($"No existe el pedido #{idPedido}.");
-                }
-
-                bool direccionPerteneceAlCliente = db.Direcciones.Any(direccion =>
-                    direccion.Id == idDireccion && direccion.IdCliente == pedido.IdCliente);
-                if (!direccionPerteneceAlCliente)
-                {
-                    throw new InvalidOperationException("La dirección seleccionada no pertenece al cliente del pedido.");
-                }
-
-                Envio? envio;
-                if (idEnvio > 0)
-                {
-                    envio = db.Envios.FirstOrDefault(item => item.Id == idEnvio);
-                    if (envio == null)
-                    {
-                        throw new InvalidOperationException("El envío seleccionado ya no existe. Actualiza la lista e intenta de nuevo.");
-                    }
-                }
-                else
-                {
-                    envio = new Envio();
-                    db.Envios.Add(envio);
-                }
-
-                envio.IdPedido = idPedido;
-                envio.IdDireccion = idDireccion;
-                envio.EmpresaTransporte = empresa;
-                envio.NumeroSeguimiento = txtNumeroGuia.Text.Trim();
-                envio.Estado = cmbEstado.SelectedItem?.ToString() ?? "Preparación";
-                envio.FechaEnvio = dtpFechaEnvio.Value;
-                db.SaveChanges();
-
-                MessageBox.Show($"Envío #{envio.Id} guardado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                CargarEnvios(db);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"No se pudo guardar el envío: {ObtenerMensajeError(ex)}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void btnEliminar_Click(object? sender, EventArgs e)
-        {
-            int idEnvio = (int)numIdEnvio.Value;
-            if (idEnvio <= 0)
-            {
-                MessageBox.Show("Selecciona un envío de la lista para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            if (MessageBox.Show($"¿Quieres eliminar el envío #{idEnvio}?", "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
-            {
-                return;
-            }
-
-            try
-            {
-                using var db = new AppDbContext();
-                var envio = db.Envios.Find(idEnvio);
-                if (envio == null)
-                {
-                    throw new InvalidOperationException("El envío seleccionado ya no existe.");
-                }
-
-                db.Envios.Remove(envio);
-                db.SaveChanges();
-                MessageBox.Show("El envío se eliminó correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                CargarEnvios(db);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"No se pudo eliminar el envío: {ObtenerMensajeError(ex)}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void btnCancelar_Click(object? sender, EventArgs e)
+        private void btnCancelar_Click(object sender, EventArgs e)
         {
             Close();
-        }
-
-        private void LimpiarCampos(bool limpiarPedido)
-        {
-            _cargandoDatos = true;
-            numIdEnvio.Value = 0;
-            if (limpiarPedido)
-            {
-                numIdPedido.Value = 0;
-                _pedidoCargadoId = null;
-                cmbDireccion.DataSource = null;
-            }
-            txtNumeroGuia.Clear();
-            if (cmbEmpresa.Items.Count > 0)
-            {
-                cmbEmpresa.SelectedIndex = -1;
-            }
-            if (cmbEstado.Items.Count > 0)
-            {
-                cmbEstado.SelectedItem = "Preparación";
-                if (cmbEstado.SelectedIndex < 0)
-                {
-                    cmbEstado.SelectedIndex = 0;
-                }
-            }
-            dtpFechaEnvio.Value = DateTime.Today;
-            _cargandoDatos = false;
-        }
-
-        private static string ObtenerMensajeError(Exception ex)
-        {
-            return ex.InnerException?.Message ?? ex.Message;
         }
     }
 }

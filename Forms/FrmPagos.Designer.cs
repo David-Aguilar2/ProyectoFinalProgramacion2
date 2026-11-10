@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             desktopLabel = new Label();
             logoLabel = new Label();
             panel1 = new Panel();
@@ -56,7 +56,7 @@
             desktopLabel.AutoSize = true;
             desktopLabel.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
             desktopLabel.ForeColor = Color.FromArgb(87, 97, 107);
-            desktopLabel.Location = new Point(245, 7);
+            desktopLabel.Location = new Point(553, 9);
             desktopLabel.Name = "desktopLabel";
             desktopLabel.Size = new Size(210, 62);
             desktopLabel.TabIndex = 7;
@@ -67,7 +67,7 @@
             logoLabel.AutoSize = true;
             logoLabel.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
             logoLabel.ForeColor = Color.FromArgb(25, 71, 132);
-            logoLabel.Location = new Point(2, 7);
+            logoLabel.Location = new Point(310, 9);
             logoLabel.Name = "logoLabel";
             logoLabel.Size = new Size(225, 62);
             logoLabel.TabIndex = 6;
@@ -86,9 +86,9 @@
             panel1.Controls.Add(lblTotalLabel);
             panel1.Controls.Add(btnCancelar);
             panel1.Controls.Add(btnGuardar);
-            panel1.Location = new Point(675, 177);
+            panel1.Location = new Point(872, 177);
             panel1.Name = "panel1";
-            panel1.Size = new Size(342, 387);
+            panel1.Size = new Size(326, 387);
             panel1.TabIndex = 5;
             // 
             // lblFechaLabel
@@ -117,7 +117,7 @@
             lblMetodoLabel.Name = "lblMetodoLabel";
             lblMetodoLabel.Size = new Size(104, 20);
             lblMetodoLabel.TabIndex = 14;
-            lblMetodoLabel.Text = "Nuevo Estado:";
+            lblMetodoLabel.Text = "Método pago:";
             // 
             // cboEstado
             // 
@@ -170,6 +170,7 @@
             btnCancelar.TabIndex = 9;
             btnCancelar.Text = "Cerrar";
             btnCancelar.UseVisualStyleBackColor = true;
+            btnCancelar.Click += btnCancelar_Click;
             // 
             // btnGuardar
             // 
@@ -190,43 +191,43 @@
             dgvHistorial.AllowUserToAddRows = false;
             dgvHistorial.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvHistorial.BackgroundColor = Color.FromArgb(222, 222, 222);
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = Color.FromArgb(55, 55, 55);
-            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle3.ForeColor = Color.White;
-            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
-            dgvHistorial.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(55, 55, 55);
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle1.ForeColor = Color.White;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvHistorial.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvHistorial.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = Color.FromArgb(38, 38, 38);
-            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle4.ForeColor = Color.White;
-            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(55, 111, 161);
-            dataGridViewCellStyle4.SelectionForeColor = Color.White;
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            dgvHistorial.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.FromArgb(38, 38, 38);
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.White;
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(55, 111, 161);
+            dataGridViewCellStyle2.SelectionForeColor = Color.White;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvHistorial.DefaultCellStyle = dataGridViewCellStyle2;
             dgvHistorial.EnableHeadersVisualStyles = false;
             dgvHistorial.GridColor = Color.FromArgb(55, 55, 55);
-            dgvHistorial.Location = new Point(22, 182);
+            dgvHistorial.Location = new Point(22, 177);
             dgvHistorial.MultiSelect = false;
             dgvHistorial.Name = "dgvHistorial";
             dgvHistorial.ReadOnly = true;
             dgvHistorial.RowHeadersWidth = 51;
             dgvHistorial.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvHistorial.Size = new Size(628, 382);
+            dgvHistorial.Size = new Size(844, 387);
             dgvHistorial.TabIndex = 4;
             // 
             // lblTitulo
             // 
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTitulo.Location = new Point(13, 74);
+            lblTitulo.Location = new Point(321, 76);
             lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(430, 31);
+            lblTitulo.Size = new Size(438, 31);
             lblTitulo.TabIndex = 8;
-            lblTitulo.Text = "Gestión de Pagos (Pago Contra Entrega";
+            lblTitulo.Text = "Gestión de Pagos (Pago Contra Entrega)";
             // 
             // lbltxtFiltro
             // 
@@ -261,7 +262,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1046, 576);
+            ClientSize = new Size(1210, 576);
             Controls.Add(lblContadorPendientes);
             Controls.Add(cboFiltroEstado);
             Controls.Add(lbltxtFiltro);

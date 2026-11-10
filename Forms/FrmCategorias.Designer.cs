@@ -42,6 +42,8 @@
             label2 = new Label();
             logoLabel = new Label();
             desktopLabel = new Label();
+            lblBusqueda = new Label();
+            txtBusqueda = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dgvCategorias).BeginInit();
             panel1.SuspendLayout();
             SuspendLayout();
@@ -70,13 +72,13 @@
             dgvCategorias.DefaultCellStyle = dataGridViewCellStyle2;
             dgvCategorias.EnableHeadersVisualStyles = false;
             dgvCategorias.GridColor = Color.FromArgb(55, 55, 55);
-            dgvCategorias.Location = new Point(55, 105);
+            dgvCategorias.Location = new Point(6, 139);
             dgvCategorias.MultiSelect = false;
             dgvCategorias.Name = "dgvCategorias";
             dgvCategorias.ReadOnly = true;
             dgvCategorias.RowHeadersWidth = 51;
             dgvCategorias.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvCategorias.Size = new Size(585, 470);
+            dgvCategorias.Size = new Size(567, 433);
             dgvCategorias.TabIndex = 0;
             dgvCategorias.CellClick += dgvCategorias_CellClick;
             // 
@@ -92,9 +94,9 @@
             panel1.Controls.Add(label3);
             panel1.Controls.Add(txtNombre);
             panel1.Controls.Add(label2);
-            panel1.Location = new Point(655, 105);
+            panel1.Location = new Point(590, 139);
             panel1.Name = "panel1";
-            panel1.Size = new Size(395, 470);
+            panel1.Size = new Size(395, 433);
             panel1.TabIndex = 1;
             // 
             // btnCancelar
@@ -104,7 +106,7 @@
             btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
             btnCancelar.ForeColor = Color.White;
-            btnCancelar.Location = new Point(212, 385);
+            btnCancelar.Location = new Point(212, 380);
             btnCancelar.Name = "btnCancelar";
             btnCancelar.Size = new Size(157, 48);
             btnCancelar.TabIndex = 9;
@@ -119,7 +121,7 @@
             btnEliminar.FlatStyle = FlatStyle.Flat;
             btnEliminar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
             btnEliminar.ForeColor = Color.White;
-            btnEliminar.Location = new Point(22, 385);
+            btnEliminar.Location = new Point(22, 380);
             btnEliminar.Name = "btnEliminar";
             btnEliminar.Size = new Size(157, 48);
             btnEliminar.TabIndex = 8;
@@ -134,7 +136,7 @@
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
             btnGuardar.ForeColor = Color.White;
-            btnGuardar.Location = new Point(212, 310);
+            btnGuardar.Location = new Point(212, 305);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(157, 48);
             btnGuardar.TabIndex = 7;
@@ -149,7 +151,7 @@
             btnNuevo.FlatStyle = FlatStyle.Flat;
             btnNuevo.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
             btnNuevo.ForeColor = Color.White;
-            btnNuevo.Location = new Point(22, 310);
+            btnNuevo.Location = new Point(22, 305);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(157, 48);
             btnNuevo.TabIndex = 6;
@@ -201,7 +203,7 @@
             logoLabel.AutoSize = true;
             logoLabel.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
             logoLabel.ForeColor = Color.FromArgb(25, 71, 132);
-            logoLabel.Location = new Point(35, 22);
+            logoLabel.Location = new Point(6, 13);
             logoLabel.Name = "logoLabel";
             logoLabel.Size = new Size(225, 62);
             logoLabel.TabIndex = 2;
@@ -212,18 +214,36 @@
             desktopLabel.AutoSize = true;
             desktopLabel.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
             desktopLabel.ForeColor = Color.FromArgb(87, 97, 107);
-            desktopLabel.Location = new Point(278, 22);
+            desktopLabel.Location = new Point(249, 13);
             desktopLabel.Name = "desktopLabel";
             desktopLabel.Size = new Size(210, 62);
             desktopLabel.TabIndex = 3;
             desktopLabel.Text = "Desktop";
+            // 
+            // lblBusqueda
+            // 
+            lblBusqueda.AutoSize = true;
+            lblBusqueda.Location = new Point(32, 97);
+            lblBusqueda.Name = "lblBusqueda";
+            lblBusqueda.Size = new Size(138, 20);
+            lblBusqueda.TabIndex = 4;
+            lblBusqueda.Text = "Buscar por nombre:";
+            // 
+            // txtBusqueda
+            // 
+            txtBusqueda.Location = new Point(176, 94);
+            txtBusqueda.Name = "txtBusqueda";
+            txtBusqueda.Size = new Size(373, 27);
+            txtBusqueda.TabIndex = 5;
             // 
             // FrmCategorias
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(1090, 650);
+            ClientSize = new Size(987, 583);
+            Controls.Add(txtBusqueda);
+            Controls.Add(lblBusqueda);
             Controls.Add(desktopLabel);
             Controls.Add(logoLabel);
             Controls.Add(panel1);
@@ -255,5 +275,7 @@
         private Label label3;
         private Label logoLabel;
         private Label desktopLabel;
+        private Label lblBusqueda;
+        private TextBox txtBusqueda;
     }
 }

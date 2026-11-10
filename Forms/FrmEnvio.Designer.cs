@@ -3,35 +3,6 @@ namespace VentasOnline.Forms
     partial class FrmEnvio
     {
         private System.ComponentModel.IContainer components = null;
-        private Panel panelEnvio;
-        private NumericUpDown numIdEnvio;
-        private NumericUpDown numIdPedido;
-        private ComboBox cmbDireccion;
-        private ComboBox cmbEmpresa;
-        private TextBox txtNumeroGuia;
-        private ComboBox cmbEstado;
-        private DateTimePicker dtpFechaEnvio;
-        private Button btnNuevo;
-        private Button btnGuardar;
-        private Button btnEliminar;
-        private Button btnCancelar;
-        private DataGridView dgvEnvios;
-        private Label lblIdEnvio;
-        private Label lblIdPedido;
-        private Label lblDireccion;
-        private Label lblEmpresa;
-        private Label lblNumeroGuia;
-        private Label lblEstado;
-        private Label lblFechaEnvio;
-        private Label lblTitulo;
-        private Label lblMarca;
-        private Label lblDesktop;
-        private Panel lineaTitulo;
-        private DataGridViewTextBoxColumn colIdEnvio;
-        private DataGridViewTextBoxColumn colIdPedido;
-        private DataGridViewTextBoxColumn colEmpresa;
-        private DataGridViewTextBoxColumn colNumeroGuia;
-        private DataGridViewTextBoxColumn colEstado;
 
         protected override void Dispose(bool disposing)
         {
@@ -45,398 +16,296 @@ namespace VentasOnline.Forms
 
         private void InitializeComponent()
         {
-            panelEnvio = new Panel();
-            numIdEnvio = new NumericUpDown();
-            numIdPedido = new NumericUpDown();
-            cmbDireccion = new ComboBox();
-            cmbEmpresa = new ComboBox();
-            txtNumeroGuia = new TextBox();
-            cmbEstado = new ComboBox();
-            dtpFechaEnvio = new DateTimePicker();
-            btnNuevo = new Button();
-            btnGuardar = new Button();
-            btnEliminar = new Button();
-            btnCancelar = new Button();
-            lblIdEnvio = new Label();
-            lblIdPedido = new Label();
-            lblDireccion = new Label();
-            lblEmpresa = new Label();
-            lblNumeroGuia = new Label();
-            lblEstado = new Label();
-            lblFechaEnvio = new Label();
-            dgvEnvios = new DataGridView();
-            colIdEnvio = new DataGridViewTextBoxColumn();
-            colIdPedido = new DataGridViewTextBoxColumn();
-            colEmpresa = new DataGridViewTextBoxColumn();
-            colNumeroGuia = new DataGridViewTextBoxColumn();
-            colEstado = new DataGridViewTextBoxColumn();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            lblContadorPendientes = new Label();
+            cboFiltroEstado = new ComboBox();
+            lbltxtFiltro = new Label();
             lblTitulo = new Label();
-            lblMarca = new Label();
-            lblDesktop = new Label();
-            lineaTitulo = new Panel();
-            panelEnvio.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)numIdEnvio).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numIdPedido).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)dgvEnvios).BeginInit();
+            desktopLabel = new Label();
+            logoLabel = new Label();
+            panel1 = new Panel();
+            empresaTransporte = new TextBox();
+            txtGuiaTracking = new TextBox();
+            lblTracking = new Label();
+            cboEstadoEntrega = new ComboBox();
+            lblEstadoEntrega = new Label();
+            lblEmpresaTransporte = new Label();
+            lblTotalValor = new Label();
+            lblTotalLabel = new Label();
+            btnCancelar = new Button();
+            btnGuardar = new Button();
+            dgvHistorial = new DataGridView();
+            panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvHistorial).BeginInit();
             SuspendLayout();
             // 
-            // panelEnvio
+            // lblContadorPendientes
             // 
-            panelEnvio.BackColor = Color.White;
-            panelEnvio.BorderStyle = BorderStyle.FixedSingle;
-            panelEnvio.Controls.Add(numIdEnvio);
-            panelEnvio.Controls.Add(numIdPedido);
-            panelEnvio.Controls.Add(cmbDireccion);
-            panelEnvio.Controls.Add(cmbEmpresa);
-            panelEnvio.Controls.Add(txtNumeroGuia);
-            panelEnvio.Controls.Add(cmbEstado);
-            panelEnvio.Controls.Add(dtpFechaEnvio);
-            panelEnvio.Controls.Add(btnNuevo);
-            panelEnvio.Controls.Add(btnGuardar);
-            panelEnvio.Controls.Add(btnEliminar);
-            panelEnvio.Controls.Add(btnCancelar);
-            panelEnvio.Controls.Add(lblIdEnvio);
-            panelEnvio.Controls.Add(lblIdPedido);
-            panelEnvio.Controls.Add(lblDireccion);
-            panelEnvio.Controls.Add(lblEmpresa);
-            panelEnvio.Controls.Add(lblNumeroGuia);
-            panelEnvio.Controls.Add(lblEstado);
-            panelEnvio.Controls.Add(lblFechaEnvio);
-            panelEnvio.Location = new Point(835, 94);
-            panelEnvio.Name = "panelEnvio";
-            panelEnvio.Size = new Size(270, 516);
-            panelEnvio.TabIndex = 0;
+            lblContadorPendientes.AutoSize = true;
+            lblContadorPendientes.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblContadorPendientes.ForeColor = Color.FromArgb(217, 83, 79);
+            lblContadorPendientes.Location = new Point(372, 136);
+            lblContadorPendientes.Name = "lblContadorPendientes";
+            lblContadorPendientes.Size = new Size(171, 23);
+            lblContadorPendientes.TabIndex = 19;
+            lblContadorPendientes.Text = "Envios Pendientes: 0";
             // 
-            // numIdEnvio
+            // cboFiltroEstado
             // 
-            numIdEnvio.Font = new Font("Segoe UI", 10F);
-            numIdEnvio.Location = new Point(14, 35);
-            numIdEnvio.Maximum = new decimal(new int[] { int.MaxValue, 0, 0, 0 });
-            numIdEnvio.Name = "numIdEnvio";
-            numIdEnvio.ReadOnly = true;
-            numIdEnvio.Size = new Size(240, 30);
-            numIdEnvio.TabIndex = 0;
+            cboFiltroEstado.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboFiltroEstado.FormattingEnabled = true;
+            cboFiltroEstado.Location = new Point(176, 132);
+            cboFiltroEstado.Name = "cboFiltroEstado";
+            cboFiltroEstado.Size = new Size(151, 28);
+            cboFiltroEstado.TabIndex = 18;
             // 
-            // numIdPedido
+            // lbltxtFiltro
             // 
-            numIdPedido.Font = new Font("Segoe UI", 10F);
-            numIdPedido.Location = new Point(14, 94);
-            numIdPedido.Maximum = new decimal(new int[] { int.MaxValue, 0, 0, 0 });
-            numIdPedido.Name = "numIdPedido";
-            numIdPedido.Size = new Size(240, 30);
-            numIdPedido.TabIndex = 1;
-            numIdPedido.ValueChanged += numIdPedido_ValueChanged;
-            numIdPedido.KeyDown += numIdPedido_KeyDown;
-            numIdPedido.Leave += numIdPedido_Leave;
+            lbltxtFiltro.AutoSize = true;
+            lbltxtFiltro.Location = new Point(39, 135);
+            lbltxtFiltro.Name = "lbltxtFiltro";
+            lbltxtFiltro.Size = new Size(116, 20);
+            lbltxtFiltro.TabIndex = 17;
+            lbltxtFiltro.Text = "Filtro de Estado:";
             // 
-            // cmbDireccion
+            // lblTitulo
             // 
-            cmbDireccion.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbDireccion.Font = new Font("Segoe UI", 9F);
-            cmbDireccion.FormattingEnabled = true;
-            cmbDireccion.Location = new Point(14, 153);
-            cmbDireccion.Name = "cmbDireccion";
-            cmbDireccion.Size = new Size(240, 28);
-            cmbDireccion.TabIndex = 2;
+            lblTitulo.AutoSize = true;
+            lblTitulo.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTitulo.Location = new Point(424, 71);
+            lblTitulo.Name = "lblTitulo";
+            lblTitulo.Size = new Size(203, 31);
+            lblTitulo.TabIndex = 16;
+            lblTitulo.Text = "Gestión de Envios";
             // 
-            // cmbEmpresa
+            // desktopLabel
             // 
-            cmbEmpresa.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbEmpresa.Font = new Font("Segoe UI", 9F);
-            cmbEmpresa.FormattingEnabled = true;
-            cmbEmpresa.Location = new Point(14, 212);
-            cmbEmpresa.Name = "cmbEmpresa";
-            cmbEmpresa.Size = new Size(240, 28);
-            cmbEmpresa.TabIndex = 3;
+            desktopLabel.AutoSize = true;
+            desktopLabel.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
+            desktopLabel.ForeColor = Color.FromArgb(87, 97, 107);
+            desktopLabel.Location = new Point(550, 9);
+            desktopLabel.Name = "desktopLabel";
+            desktopLabel.Size = new Size(210, 62);
+            desktopLabel.TabIndex = 15;
+            desktopLabel.Text = "Desktop";
             // 
-            // txtNumeroGuia
+            // logoLabel
             // 
-            txtNumeroGuia.Font = new Font("Segoe UI", 9F);
-            txtNumeroGuia.Location = new Point(14, 271);
-            txtNumeroGuia.MaxLength = 100;
-            txtNumeroGuia.Name = "txtNumeroGuia";
-            txtNumeroGuia.Size = new Size(116, 27);
-            txtNumeroGuia.TabIndex = 4;
+            logoLabel.AutoSize = true;
+            logoLabel.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
+            logoLabel.ForeColor = Color.FromArgb(25, 71, 132);
+            logoLabel.Location = new Point(307, 9);
+            logoLabel.Name = "logoLabel";
+            logoLabel.Size = new Size(225, 62);
+            logoLabel.TabIndex = 14;
+            logoLabel.Text = "SivarPOS";
             // 
-            // cmbEstado
+            // panel1
             // 
-            cmbEstado.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbEstado.Font = new Font("Segoe UI", 9F);
-            cmbEstado.FormattingEnabled = true;
-            cmbEstado.Location = new Point(138, 271);
-            cmbEstado.Name = "cmbEstado";
-            cmbEstado.Size = new Size(116, 28);
-            cmbEstado.TabIndex = 5;
+            panel1.BackColor = Color.White;
+            panel1.BorderStyle = BorderStyle.FixedSingle;
+            panel1.Controls.Add(empresaTransporte);
+            panel1.Controls.Add(txtGuiaTracking);
+            panel1.Controls.Add(lblTracking);
+            panel1.Controls.Add(cboEstadoEntrega);
+            panel1.Controls.Add(lblEstadoEntrega);
+            panel1.Controls.Add(lblEmpresaTransporte);
+            panel1.Controls.Add(lblTotalValor);
+            panel1.Controls.Add(lblTotalLabel);
+            panel1.Controls.Add(btnCancelar);
+            panel1.Controls.Add(btnGuardar);
+            panel1.Location = new Point(689, 180);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(342, 387);
+            panel1.TabIndex = 13;
             // 
-            // dtpFechaEnvio
+            // empresaTransporte
             // 
-            dtpFechaEnvio.CustomFormat = "dd/MM/yyyy";
-            dtpFechaEnvio.Font = new Font("Segoe UI", 9F);
-            dtpFechaEnvio.Format = DateTimePickerFormat.Custom;
-            dtpFechaEnvio.Location = new Point(14, 330);
-            dtpFechaEnvio.Name = "dtpFechaEnvio";
-            dtpFechaEnvio.Size = new Size(240, 27);
-            dtpFechaEnvio.TabIndex = 6;
+            empresaTransporte.Location = new Point(169, 87);
+            empresaTransporte.Name = "empresaTransporte";
+            empresaTransporte.ReadOnly = true;
+            empresaTransporte.Size = new Size(151, 27);
+            empresaTransporte.TabIndex = 18;
             // 
-            // btnNuevo
+            // txtGuiaTracking
             // 
-            btnNuevo.BackColor = Color.FromArgb(57, 148, 54);
-            btnNuevo.FlatAppearance.BorderSize = 0;
-            btnNuevo.FlatStyle = FlatStyle.Flat;
-            btnNuevo.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            btnNuevo.ForeColor = Color.White;
-            btnNuevo.Location = new Point(14, 376);
-            btnNuevo.Name = "btnNuevo";
-            btnNuevo.Size = new Size(116, 40);
-            btnNuevo.TabIndex = 7;
-            btnNuevo.Text = "Nuevo";
-            btnNuevo.UseVisualStyleBackColor = false;
-            btnNuevo.Click += btnNuevo_Click;
+            txtGuiaTracking.Location = new Point(129, 210);
+            txtGuiaTracking.Name = "txtGuiaTracking";
+            txtGuiaTracking.ReadOnly = true;
+            txtGuiaTracking.Size = new Size(191, 27);
+            txtGuiaTracking.TabIndex = 17;
             // 
-            // btnGuardar
+            // lblTracking
             // 
-            btnGuardar.BackColor = Color.FromArgb(57, 148, 54);
-            btnGuardar.FlatAppearance.BorderSize = 0;
-            btnGuardar.FlatStyle = FlatStyle.Flat;
-            btnGuardar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            btnGuardar.ForeColor = Color.White;
-            btnGuardar.Location = new Point(138, 376);
-            btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(116, 40);
-            btnGuardar.TabIndex = 8;
-            btnGuardar.Text = "Guardar";
-            btnGuardar.UseVisualStyleBackColor = false;
-            btnGuardar.Click += btnGuardar_Click;
+            lblTracking.AutoSize = true;
+            lblTracking.Location = new Point(7, 212);
+            lblTracking.Name = "lblTracking";
+            lblTracking.Size = new Size(101, 20);
+            lblTracking.TabIndex = 16;
+            lblTracking.Text = "Código envío:";
             // 
-            // btnEliminar
+            // cboEstadoEntrega
             // 
-            btnEliminar.BackColor = Color.FromArgb(55, 119, 202);
-            btnEliminar.FlatAppearance.BorderSize = 0;
-            btnEliminar.FlatStyle = FlatStyle.Flat;
-            btnEliminar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            btnEliminar.ForeColor = Color.White;
-            btnEliminar.Location = new Point(14, 427);
-            btnEliminar.Name = "btnEliminar";
-            btnEliminar.Size = new Size(116, 40);
-            btnEliminar.TabIndex = 9;
-            btnEliminar.Text = "Eliminar";
-            btnEliminar.UseVisualStyleBackColor = false;
-            btnEliminar.Click += btnEliminar_Click;
+            cboEstadoEntrega.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboEstadoEntrega.FormattingEnabled = true;
+            cboEstadoEntrega.Location = new Point(169, 145);
+            cboEstadoEntrega.Name = "cboEstadoEntrega";
+            cboEstadoEntrega.Size = new Size(151, 28);
+            cboEstadoEntrega.TabIndex = 13;
+            // 
+            // lblEstadoEntrega
+            // 
+            lblEstadoEntrega.AutoSize = true;
+            lblEstadoEntrega.Location = new Point(7, 148);
+            lblEstadoEntrega.Name = "lblEstadoEntrega";
+            lblEstadoEntrega.Size = new Size(112, 20);
+            lblEstadoEntrega.TabIndex = 14;
+            lblEstadoEntrega.Text = "Estado entrega:";
+            // 
+            // lblEmpresaTransporte
+            // 
+            lblEmpresaTransporte.AutoSize = true;
+            lblEmpresaTransporte.Location = new Point(7, 87);
+            lblEmpresaTransporte.Name = "lblEmpresaTransporte";
+            lblEmpresaTransporte.Size = new Size(156, 20);
+            lblEmpresaTransporte.TabIndex = 12;
+            lblEmpresaTransporte.Text = "Empresa transportista:";
+            // 
+            // lblTotalValor
+            // 
+            lblTotalValor.AutoSize = true;
+            lblTotalValor.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTotalValor.ForeColor = Color.FromArgb(0, 122, 204);
+            lblTotalValor.Location = new Point(169, 31);
+            lblTotalValor.Name = "lblTotalValor";
+            lblTotalValor.Size = new Size(55, 23);
+            lblTotalValor.TabIndex = 11;
+            lblTotalValor.Text = "$0.00";
+            // 
+            // lblTotalLabel
+            // 
+            lblTotalLabel.AutoSize = true;
+            lblTotalLabel.Location = new Point(7, 31);
+            lblTotalLabel.Name = "lblTotalLabel";
+            lblTotalLabel.Size = new Size(115, 20);
+            lblTotalLabel.TabIndex = 10;
+            lblTotalLabel.Text = "Monto a cobrar:";
             // 
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.FromArgb(55, 119, 202);
             btnCancelar.FlatAppearance.BorderSize = 0;
             btnCancelar.FlatStyle = FlatStyle.Flat;
-            btnCancelar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            btnCancelar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
             btnCancelar.ForeColor = Color.White;
-            btnCancelar.Location = new Point(138, 427);
+            btnCancelar.Location = new Point(193, 308);
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(116, 40);
-            btnCancelar.TabIndex = 10;
-            btnCancelar.Text = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = false;
+            btnCancelar.Size = new Size(118, 35);
+            btnCancelar.TabIndex = 9;
+            btnCancelar.Text = "Cerrar";
+            btnCancelar.UseVisualStyleBackColor = true;
             btnCancelar.Click += btnCancelar_Click;
             // 
-            // lblIdEnvio
+            // btnGuardar
             // 
-            lblIdEnvio.AutoSize = true;
-            lblIdEnvio.Font = new Font("Segoe UI", 12F);
-            lblIdEnvio.ForeColor = Color.FromArgb(35, 35, 35);
-            lblIdEnvio.Location = new Point(14, 7);
-            lblIdEnvio.Name = "lblIdEnvio";
-            lblIdEnvio.Size = new Size(88, 28);
-            lblIdEnvio.TabIndex = 11;
-            lblIdEnvio.Text = "ID Envío:";
+            btnGuardar.BackColor = Color.FromArgb(57, 148, 54);
+            btnGuardar.FlatAppearance.BorderSize = 0;
+            btnGuardar.FlatStyle = FlatStyle.Flat;
+            btnGuardar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
+            btnGuardar.ForeColor = Color.White;
+            btnGuardar.Location = new Point(20, 308);
+            btnGuardar.Name = "btnGuardar";
+            btnGuardar.Size = new Size(118, 35);
+            btnGuardar.TabIndex = 7;
+            btnGuardar.Text = "Guardar";
+            btnGuardar.UseVisualStyleBackColor = true;
             // 
-            // lblIdPedido
+            // dgvHistorial
             // 
-            lblIdPedido.AutoSize = true;
-            lblIdPedido.Font = new Font("Segoe UI", 12F);
-            lblIdPedido.ForeColor = Color.FromArgb(35, 35, 35);
-            lblIdPedido.Location = new Point(14, 66);
-            lblIdPedido.Name = "lblIdPedido";
-            lblIdPedido.Size = new Size(101, 28);
-            lblIdPedido.TabIndex = 12;
-            lblIdPedido.Text = "ID Pedido:";
-            // 
-            // lblDireccion
-            // 
-            lblDireccion.AutoSize = true;
-            lblDireccion.Font = new Font("Segoe UI", 12F);
-            lblDireccion.ForeColor = Color.FromArgb(35, 35, 35);
-            lblDireccion.Location = new Point(14, 125);
-            lblDireccion.Name = "lblDireccion";
-            lblDireccion.Size = new Size(98, 28);
-            lblDireccion.TabIndex = 13;
-            lblDireccion.Text = "Dirección:";
-            // 
-            // lblEmpresa
-            // 
-            lblEmpresa.AutoSize = true;
-            lblEmpresa.Font = new Font("Segoe UI", 12F);
-            lblEmpresa.ForeColor = Color.FromArgb(35, 35, 35);
-            lblEmpresa.Location = new Point(14, 184);
-            lblEmpresa.Name = "lblEmpresa";
-            lblEmpresa.Size = new Size(186, 28);
-            lblEmpresa.TabIndex = 14;
-            lblEmpresa.Text = "Empresa transporte:";
-            // 
-            // lblNumeroGuia
-            // 
-            lblNumeroGuia.AutoSize = true;
-            lblNumeroGuia.Font = new Font("Segoe UI", 12F);
-            lblNumeroGuia.ForeColor = Color.FromArgb(35, 35, 35);
-            lblNumeroGuia.Location = new Point(14, 243);
-            lblNumeroGuia.Name = "lblNumeroGuia";
-            lblNumeroGuia.Size = new Size(89, 28);
-            lblNumeroGuia.TabIndex = 15;
-            lblNumeroGuia.Text = "N.º Guía:";
-            // 
-            // lblEstado
-            // 
-            lblEstado.AutoSize = true;
-            lblEstado.Font = new Font("Segoe UI", 12F);
-            lblEstado.ForeColor = Color.FromArgb(35, 35, 35);
-            lblEstado.Location = new Point(138, 243);
-            lblEstado.Name = "lblEstado";
-            lblEstado.Size = new Size(75, 28);
-            lblEstado.TabIndex = 16;
-            lblEstado.Text = "Estado:";
-            // 
-            // lblFechaEnvio
-            // 
-            lblFechaEnvio.AutoSize = true;
-            lblFechaEnvio.Font = new Font("Segoe UI", 12F);
-            lblFechaEnvio.ForeColor = Color.FromArgb(35, 35, 35);
-            lblFechaEnvio.Location = new Point(14, 302);
-            lblFechaEnvio.Name = "lblFechaEnvio";
-            lblFechaEnvio.Size = new Size(119, 28);
-            lblFechaEnvio.TabIndex = 17;
-            lblFechaEnvio.Text = "Fecha envío:";
-            // 
-            // dgvEnvios
-            // 
-            dgvEnvios.AllowUserToAddRows = false;
-            dgvEnvios.AllowUserToDeleteRows = false;
-            dgvEnvios.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgvEnvios.BackgroundColor = Color.FromArgb(222, 222, 222);
-            dgvEnvios.ColumnHeadersHeight = 29;
-            dgvEnvios.Columns.AddRange(new DataGridViewColumn[] { colIdEnvio, colIdPedido, colEmpresa, colNumeroGuia, colEstado });
-            dgvEnvios.EnableHeadersVisualStyles = false;
-            dgvEnvios.Location = new Point(21, 180);
-            dgvEnvios.MultiSelect = false;
-            dgvEnvios.Name = "dgvEnvios";
-            dgvEnvios.ReadOnly = true;
-            dgvEnvios.RowHeadersVisible = false;
-            dgvEnvios.RowHeadersWidth = 51;
-            dgvEnvios.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvEnvios.Size = new Size(790, 430);
-            dgvEnvios.TabIndex = 1;
-            dgvEnvios.SelectionChanged += dgvEnvios_SelectionChanged;
-            // 
-            // colIdEnvio
-            // 
-            colIdEnvio.HeaderText = "ID Envío";
-            colIdEnvio.MinimumWidth = 6;
-            colIdEnvio.Name = "colIdEnvio";
-            colIdEnvio.ReadOnly = true;
-            // 
-            // colIdPedido
-            // 
-            colIdPedido.HeaderText = "ID Pedido";
-            colIdPedido.MinimumWidth = 6;
-            colIdPedido.Name = "colIdPedido";
-            colIdPedido.ReadOnly = true;
-            // 
-            // colEmpresa
-            // 
-            colEmpresa.HeaderText = "Empresa transporte";
-            colEmpresa.MinimumWidth = 6;
-            colEmpresa.Name = "colEmpresa";
-            colEmpresa.ReadOnly = true;
-            // 
-            // colNumeroGuia
-            // 
-            colNumeroGuia.HeaderText = "N.º guía";
-            colNumeroGuia.MinimumWidth = 6;
-            colNumeroGuia.Name = "colNumeroGuia";
-            colNumeroGuia.ReadOnly = true;
-            // 
-            // colEstado
-            // 
-            colEstado.HeaderText = "Estado";
-            colEstado.MinimumWidth = 6;
-            colEstado.Name = "colEstado";
-            colEstado.ReadOnly = true;
-            // 
-            // lblTitulo
-            // 
-            lblTitulo.AutoSize = true;
-            lblTitulo.BackColor = Color.FromArgb(222, 222, 222);
-            lblTitulo.Font = new Font("Segoe UI", 14F);
-            lblTitulo.ForeColor = Color.FromArgb(35, 35, 35);
-            lblTitulo.Location = new Point(12, 132);
-            lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(299, 32);
-            lblTitulo.TabIndex = 2;
-            lblTitulo.Text = "Lista de Envíos Registrados";
-            // 
-            // lblMarca
-            // 
-            lblMarca.AutoSize = true;
-            lblMarca.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
-            lblMarca.ForeColor = Color.FromArgb(25, 71, 132);
-            lblMarca.Location = new Point(35, 22);
-            lblMarca.Name = "lblMarca";
-            lblMarca.Size = new Size(225, 62);
-            lblMarca.TabIndex = 3;
-            lblMarca.Text = "SivarPOS";
-            // 
-            // lblDesktop
-            // 
-            lblDesktop.AutoSize = true;
-            lblDesktop.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
-            lblDesktop.ForeColor = Color.FromArgb(87, 97, 107);
-            lblDesktop.Location = new Point(266, 22);
-            lblDesktop.Name = "lblDesktop";
-            lblDesktop.Size = new Size(210, 62);
-            lblDesktop.TabIndex = 4;
-            lblDesktop.Text = "Desktop";
-            // 
-            // lineaTitulo
-            // 
-            lineaTitulo.BackColor = Color.FromArgb(190, 190, 190);
-            lineaTitulo.Location = new Point(310, 162);
-            lineaTitulo.Name = "lineaTitulo";
-            lineaTitulo.Size = new Size(500, 2);
-            lineaTitulo.TabIndex = 5;
+            dgvHistorial.AllowUserToAddRows = false;
+            dgvHistorial.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvHistorial.BackgroundColor = Color.FromArgb(222, 222, 222);
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(55, 55, 55);
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle1.ForeColor = Color.White;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvHistorial.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dgvHistorial.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.FromArgb(38, 38, 38);
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.White;
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(55, 111, 161);
+            dataGridViewCellStyle2.SelectionForeColor = Color.White;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvHistorial.DefaultCellStyle = dataGridViewCellStyle2;
+            dgvHistorial.EnableHeadersVisualStyles = false;
+            dgvHistorial.GridColor = Color.FromArgb(55, 55, 55);
+            dgvHistorial.Location = new Point(4, 180);
+            dgvHistorial.MultiSelect = false;
+            dgvHistorial.Name = "dgvHistorial";
+            dgvHistorial.ReadOnly = true;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = SystemColors.Control;
+            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle3.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
+            dgvHistorial.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dgvHistorial.RowHeadersWidth = 51;
+            dgvHistorial.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvHistorial.Size = new Size(679, 387);
+            dgvHistorial.TabIndex = 12;
             // 
             // FrmEnvio
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(1121, 627);
-            Controls.Add(lineaTitulo);
+            ClientSize = new Size(1046, 576);
+            Controls.Add(lblContadorPendientes);
+            Controls.Add(cboFiltroEstado);
+            Controls.Add(lbltxtFiltro);
             Controls.Add(lblTitulo);
-            Controls.Add(lblDesktop);
-            Controls.Add(lblMarca);
-            Controls.Add(panelEnvio);
-            Controls.Add(dgvEnvios);
+            Controls.Add(desktopLabel);
+            Controls.Add(logoLabel);
+            Controls.Add(panel1);
+            Controls.Add(dgvHistorial);
             Font = new Font("Segoe UI", 9F);
             MaximizeBox = false;
             Name = "FrmEnvio";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "FrmEnvios - SivarPOS";
-            Load += FrmEnvio_Load;
-            panelEnvio.ResumeLayout(false);
-            panelEnvio.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)numIdEnvio).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numIdPedido).EndInit();
-            ((System.ComponentModel.ISupportInitialize)dgvEnvios).EndInit();
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvHistorial).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
+
+        private Label lblContadorPendientes;
+        private ComboBox cboFiltroEstado;
+        private Label lbltxtFiltro;
+        private Label lblTitulo;
+        private Label desktopLabel;
+        private Label logoLabel;
+        private Panel panel1;
+        private ComboBox cboEstadoEntrega;
+        private Label lblEstadoEntrega;
+        private Label lblEmpresaTransporte;
+        private Label lblTotalValor;
+        private Label lblTotalLabel;
+        private Button btnCancelar;
+        private Button btnGuardar;
+        private DataGridView dgvHistorial;
+        private Label lblTracking;
+        private TextBox txtGuiaTracking;
+        private TextBox empresaTransporte;
     }
 }

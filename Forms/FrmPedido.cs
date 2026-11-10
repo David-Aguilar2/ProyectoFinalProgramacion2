@@ -35,7 +35,8 @@ namespace VentasOnline.Forms
             CargarCatalogos();
             cboProducto.SelectedIndexChanged += cboProducto_SelectedIndexChanged;
             dgvDetalle.DataSource = _lineas;
-
+            dgvDetalle.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvPedidos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             // Aqui ocultamos las columnas que no queremos mostrar en el DataGridView
             if (dgvDetalle.Columns["ProductoId"] != null)
                 dgvDetalle.Columns["ProductoId"].Visible = false;
@@ -59,9 +60,14 @@ namespace VentasOnline.Forms
         // Carga los datos de clientes, usuarios y productos en los ComboBoxes correspondientes
         private void CargarCatalogos()
         {
-            cboCliente.DisplayMember = "Nombre";
+            // Configuramos el ComboBox para que muestre el Correo en lugar del Nombre
+            cboCliente.DisplayMember = "Correo"; // O "Email" según tu modelo de Cliente
             cboCliente.ValueMember = "Id";
             cboCliente.DataSource = _servicio.ListarClientes();
+
+            // Habilitamos la búsqueda predictiva (autocompletar) por correo
+            cboCliente.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cboCliente.AutoCompleteSource = AutoCompleteSource.ListItems;
 
             cboUsuario.DisplayMember = "Nombre";
             cboUsuario.ValueMember = "Id";
@@ -100,7 +106,6 @@ namespace VentasOnline.Forms
             LimpiarImagenProducto();
 
             // Si hay un usuario autenticado se selecciona automáticamente en el ComboBox de usuarios
-
             if (_usuarioActual != null)
             {
                 cboUsuario.SelectedValue = _usuarioActual.Id;
@@ -182,7 +187,7 @@ namespace VentasOnline.Forms
         // Evento que se ejecuta al hacer clic en el botón "Guardar" para registrar o actualizar el pedido
         private void btnGuardar_Click(object sender, EventArgs e)
         {
-            // Validar que haya al menos un producto en el pedido
+            // Validar que haya al menos un cliente y usuario seleccionados
             if (cboCliente.SelectedValue is not int clienteId ||
                 cboUsuario.SelectedValue is not int usuarioId)
             {
@@ -190,14 +195,32 @@ namespace VentasOnline.Forms
                 return;
             }
 
+            if (_lineas.Count == 0)
+            {
+                MessageBox.Show("Agrega al menos un producto al pedido.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             try
             {
-                // Si el pedido es nuevo, se registra; si ya existe, se actualiza
+                // Si el pedido es nuevo, se registra con su envío automático
                 if (_pedidoId == 0)
                 {
-                    // Registrar un nuevo pedido y obtener su ID
-                    int id = _servicio.Registrar(clienteId, usuarioId, _lineas);
-                    MessageBox.Show($"Pedido #{id} registrado exitosamente.", "VentasOnline",
+                    // Buscamos la dirección del cliente directamente en la base de datos
+                    using var ctx = new AppDbContext();
+                    var direccionCliente = ctx.Direcciones.FirstOrDefault(d => d.IdCliente == clienteId);
+
+                    if (direccionCliente == null)
+                    {
+                        MessageBox.Show("El cliente seleccionado no tiene una dirección registrada. Por favor, asígnale una dirección antes de continuar.",
+                            "Dirección Requerida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    // Registrar un nuevo pedido pasando el ID de la dirección encontrada
+                    int id = _servicio.Registrar(clienteId, usuarioId, direccionCliente.Id, _lineas);
+
+                    MessageBox.Show($"Pedido #{id} registrado y guía de C807 Express generada exitosamente.", "VentasOnline",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
@@ -207,6 +230,7 @@ namespace VentasOnline.Forms
                     MessageBox.Show($"Pedido #{_pedidoId} actualizado exitosamente.", "VentasOnline",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+
                 CargarCatalogos();
                 CargarHistorial();
                 NuevoPedido();
@@ -323,6 +347,11 @@ namespace VentasOnline.Forms
                 MessageBox.Show($"No se pudo eliminar el pedido.\n\nDetalle: {ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnCerrar_Click(object sender, EventArgs e)
+        {
+            Close();
         }
     }
 }

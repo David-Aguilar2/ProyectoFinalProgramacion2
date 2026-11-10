@@ -31,6 +31,7 @@ namespace VentasOnline
             ConfigurarBotonMenu(btnUsuarios, () => OpenForm(new FrmUsuario(), btnUsuarios));
             ConfigurarBotonMenu(btnPedidos, () => OpenForm(new FrmPedido(_usuarioActual), btnPedidos));
             ConfigurarBotonMenu(btnPagos, () => OpenForm(new FrmPagos(), btnPagos));
+            ConfigurarBotonMenu(btnEnvios, () => OpenForm(new FrmEnvio(), btnEnvios));
 
             SelectNavigationButton(btnEnvios);
             ConfigurePermissions();

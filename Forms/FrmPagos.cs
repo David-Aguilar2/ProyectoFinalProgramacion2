@@ -29,6 +29,7 @@ namespace VentasOnline.Forms
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
+            this.Text = "Liquidación de Pagos Contra Entrega - SivarPOS";
 
             // Configurar ComboBox de Filtro de Estado
             if (cboFiltroEstado.Items.Count == 0)
@@ -64,6 +65,12 @@ namespace VentasOnline.Forms
 
             // Eventos de botones
             btnGuardar.Click += BtnGuardar_Click;
+
+            var btnCerrar = this.Controls.Find("btnCerrar", true).FirstOrDefault() as Button;
+            if (btnCerrar != null)
+            {
+                btnCerrar.Click += (s, e) => Close();
+            }
         }
 
         private void CargarFiltroEstadoInicial()
@@ -83,26 +90,37 @@ namespace VentasOnline.Forms
                 string filtroEstado = cboFiltroEstado.SelectedItem?.ToString() ?? "Todos";
                 var todosLosPedidos = _pedidoService.ListarPedidos();
 
-                var listaPagosFiltrados = new List<Pago>();
+                var listaPagosProyectados = new List<object>();
+                int pendientesGlobales = 0;
 
                 foreach (var pedido in todosLosPedidos)
                 {
                     var pagosDelPedido = _pagoService.ObtenerPagosPorPedido(pedido.Id);
                     foreach (var pago in pagosDelPedido)
                     {
+                        if (pago.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                        {
+                            pendientesGlobales++;
+                        }
+
                         bool cumple = filtroEstado == "Todos" || pago.Estado.Equals(filtroEstado, StringComparison.OrdinalIgnoreCase);
                         if (cumple)
                         {
-                            listaPagosFiltrados.Add(pago);
+                            // 💡 Proyectamos los datos para la tabla incluyendo el costo de envío y el total consolidado
+                            listaPagosProyectados.Add(new
+                            {
+                                pago.Id,
+                                pago.IdPedido,
+                                EstadoPago = pago.Estado,
+                                MetodoPago = pago.Metodo,
+                                SubtotalProductos = pedido.Total,
+                                CostoEnvio = pedido.CostoEnvio,
+                                Total = pedido.Total + pedido.CostoEnvio, // Total limpio con envío sumado
+                                pago.FechaPago,
+                                ObjetoPagoOriginal = pago
+                            });
                         }
                     }
-                }
-
-                // Calcular el total global de pendientes para la etiqueta de conteo
-                int pendientesGlobales = 0;
-                foreach (var pedido in todosLosPedidos)
-                {
-                    pendientesGlobales += _pagoService.ObtenerPagosPorPedido(pedido.Id).Count(p => p.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase));
                 }
 
                 if (lblContadorPendientes != null)
@@ -112,18 +130,26 @@ namespace VentasOnline.Forms
 
                 // Cargar datos en la grilla
                 dgvHistorial.DataSource = null;
-                dgvHistorial.DataSource = listaPagosFiltrados;
+                dgvHistorial.DataSource = listaPagosProyectados;
 
-                // Ocultar la columna de navegación "Pedido" que aparece vacía
-                if (dgvHistorial.Columns["Pedido"] != null)
-                {
-                    dgvHistorial.Columns["Pedido"].Visible = false;
-                }
+                // Ocultar columnas técnicas
+                if (dgvHistorial.Columns["IdPedido"] != null) dgvHistorial.Columns["IdPedido"].Visible = false;
+                if (dgvHistorial.Columns["ObjetoPagoOriginal"] != null) dgvHistorial.Columns["ObjetoPagoOriginal"].Visible = false;
 
-                if (listaPagosFiltrados.Count > 0)
+                // Dar formato de moneda a las columnas numéricas
+                if (dgvHistorial.Columns["SubtotalProductos"] != null)
+                    dgvHistorial.Columns["SubtotalProductos"].DefaultCellStyle.Format = "N2";
+                if (dgvHistorial.Columns["CostoEnvio"] != null)
+                    dgvHistorial.Columns["CostoEnvio"].DefaultCellStyle.Format = "N2";
+                if (dgvHistorial.Columns["Total"] != null)
+                    dgvHistorial.Columns["Total"].DefaultCellStyle.Format = "N2";
+
+                if (listaPagosProyectados.Count > 0)
                 {
                     dgvHistorial.Rows[0].Selected = true;
-                    CargarDetallesPagoDesdeFila(listaPagosFiltrados[0]);
+                    var primerItem = dgvHistorial.Rows[0].DataBoundItem;
+                    var pagoReal = (Pago)primerItem.GetType().GetProperty("ObjetoPagoOriginal").GetValue(primerItem);
+                    CargarDetallesPagoDesdeFila(pagoReal);
                 }
                 else
                 {
@@ -148,9 +174,14 @@ namespace VentasOnline.Forms
         {
             if (e.RowIndex < 0) return;
 
-            if (dgvHistorial.Rows[e.RowIndex].DataBoundItem is Pago pagoSeleccionado)
+            var itemSeleccionado = dgvHistorial.Rows[e.RowIndex].DataBoundItem;
+            if (itemSeleccionado != null)
             {
-                CargarDetallesPagoDesdeFila(pagoSeleccionado);
+                var pagoReal = (Pago)itemSeleccionado.GetType().GetProperty("ObjetoPagoOriginal").GetValue(itemSeleccionado);
+                if (pagoReal != null)
+                {
+                    CargarDetallesPagoDesdeFila(pagoReal);
+                }
             }
         }
 
@@ -173,11 +204,12 @@ namespace VentasOnline.Forms
                 }
             }
 
-            // Buscar el total del pedido asociado para mostrarlo fijo
+            // Buscar el pedido asociado para mostrar únicamente el total limpio con el envío sumado
             var pedido = _pedidoService.ListarPedidos().FirstOrDefault(p => p.Id == pago.IdPedido);
             if (pedido != null && lblTotalValor != null)
             {
-                lblTotalValor.Text = $"${pedido.Total:N2}";
+                decimal totalConEnvio = pedido.Total + pedido.CostoEnvio;
+                lblTotalValor.Text = $"${totalConEnvio:N2}"; // 💡 Únicamente el total sin textos adicionales
             }
 
             // Regla de seguridad: Si ya está Completado o Cancelado, bloqueamos la edición
@@ -233,11 +265,12 @@ namespace VentasOnline.Forms
                     return;
                 }
 
-                decimal montoFijo = pedidoActual.Total;
+                // El monto total a guardar incluye productos + costo de envío
+                decimal montoFinalConEnvio = pedidoActual.Total + pedidoActual.CostoEnvio;
 
-                _pagoService.ActualizarPago(_pagoIdSeleccionado, estado, metodo, montoFijo);
+                _pagoService.ActualizarPago(_pagoIdSeleccionado, estado, metodo, montoFinalConEnvio);
 
-                MessageBox.Show("Pago actualizado correctamente.", "SivarPOS", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Pago y liquidación actualizados correctamente.", "SivarPOS", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 // Refrescar grilla y contadores manteniendo el filtro actual
                 CargarPagosSegunFiltro();
@@ -246,6 +279,11 @@ namespace VentasOnline.Forms
             {
                 MessageBox.Show(ex.Message, "Error de validación", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnCancelar_Click(object sender, EventArgs e)
+        {
+            Close();
         }
     }
 }

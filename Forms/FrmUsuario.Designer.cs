@@ -42,7 +42,7 @@
 
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             panelLista = new Panel();
             lblTituloLista = new Label();
             lblCantidadUsuarios = new Label();
@@ -71,6 +71,8 @@
             btnCancelar = new Button();
             lblMarca = new Label();
             lblEncabezado = new Label();
+            txtBusqueda = new TextBox();
+            lblBusqueda = new Label();
             panelLista.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvUsuarios).BeginInit();
             panelFormulario.SuspendLayout();
@@ -83,7 +85,7 @@
             panelLista.Controls.Add(lblTituloLista);
             panelLista.Controls.Add(lblCantidadUsuarios);
             panelLista.Controls.Add(dgvUsuarios);
-            panelLista.Location = new Point(25, 100);
+            panelLista.Location = new Point(25, 132);
             panelLista.Name = "panelLista";
             panelLista.Size = new Size(645, 538);
             panelLista.TabIndex = 0;
@@ -116,7 +118,7 @@
             dgvUsuarios.AllowUserToDeleteRows = false;
             dgvUsuarios.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvUsuarios.BackgroundColor = Color.FromArgb(222, 222, 222);
-            dgvUsuarios.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dgvUsuarios.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             dgvUsuarios.ColumnHeadersHeight = 38;
             dgvUsuarios.Columns.AddRange(new DataGridViewColumn[] { colId, colNombre, colCorreo, colTelefono, colRol });
             dgvUsuarios.EnableHeadersVisualStyles = false;
@@ -193,7 +195,7 @@
             panelFormulario.Controls.Add(btnGuardar);
             panelFormulario.Controls.Add(btnEliminar);
             panelFormulario.Controls.Add(btnCancelar);
-            panelFormulario.Location = new Point(690, 100);
+            panelFormulario.Location = new Point(690, 132);
             panelFormulario.Name = "panelFormulario";
             panelFormulario.Size = new Size(405, 538);
             panelFormulario.TabIndex = 1;
@@ -390,7 +392,7 @@
             lblMarca.AutoSize = true;
             lblMarca.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
             lblMarca.ForeColor = Color.FromArgb(25, 71, 132);
-            lblMarca.Location = new Point(35, 22);
+            lblMarca.Location = new Point(35, 12);
             lblMarca.Name = "lblMarca";
             lblMarca.Size = new Size(225, 62);
             lblMarca.TabIndex = 2;
@@ -401,18 +403,37 @@
             lblEncabezado.AutoSize = true;
             lblEncabezado.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
             lblEncabezado.ForeColor = Color.FromArgb(87, 97, 107);
-            lblEncabezado.Location = new Point(278, 22);
+            lblEncabezado.Location = new Point(278, 12);
             lblEncabezado.Name = "lblEncabezado";
             lblEncabezado.Size = new Size(210, 62);
             lblEncabezado.TabIndex = 3;
             lblEncabezado.Text = "Desktop";
+            // 
+            // txtBusqueda
+            // 
+            txtBusqueda.Location = new Point(171, 99);
+            txtBusqueda.Name = "txtBusqueda";
+            txtBusqueda.Size = new Size(373, 27);
+            txtBusqueda.TabIndex = 15;
+            // 
+            // lblBusqueda
+            // 
+            lblBusqueda.AutoSize = true;
+            lblBusqueda.ForeColor = Color.Black;
+            lblBusqueda.Location = new Point(23, 102);
+            lblBusqueda.Name = "lblBusqueda";
+            lblBusqueda.Size = new Size(129, 20);
+            lblBusqueda.TabIndex = 14;
+            lblBusqueda.Text = "Buscar por correo:";
             // 
             // FrmUsuario
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(1120, 650);
+            ClientSize = new Size(1120, 671);
+            Controls.Add(txtBusqueda);
+            Controls.Add(lblBusqueda);
             Controls.Add(panelFormulario);
             Controls.Add(panelLista);
             Controls.Add(lblEncabezado);
@@ -434,5 +455,7 @@
         }
 
         private MaskedTextBox txtTelefono;
+        private TextBox txtBusqueda;
+        private Label lblBusqueda;
     }
 }

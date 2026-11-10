@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Windows.Forms;
 using VentasOnline.Models;
 using VentasOnline.Services;
 
@@ -24,6 +27,12 @@ namespace VentasOnline.Forms
             {
                 CargarUsuarios();
                 LimpiarFormulario();
+
+                // 💡 Suscribir el evento de búsqueda en tiempo real por correo
+                if (txtBusqueda != null)
+                {
+                    txtBusqueda.TextChanged += txtBusqueda_TextChanged;
+                }
             }
             catch (Exception ex)
             {
@@ -31,12 +40,19 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Método para cargar los usuarios desde el servicio y mostrarlos en el DataGridView
-        private void CargarUsuarios()
+        // Método para cargar los usuarios desde el servicio y mostrarlos en el DataGridView (filtrando opcionalmente por correo)
+        private void CargarUsuarios(string filtroCorreo = "")
         {
             try
             {
                 var usuarios = _usuarioService.ObtenerTodas();
+
+                // Si hay texto en el buscador, filtramos por correo (ignorando mayúsculas/minúsculas)
+                if (!string.IsNullOrWhiteSpace(filtroCorreo))
+                {
+                    usuarios = usuarios.Where(u => u.Correo != null && u.Correo.Contains(filtroCorreo, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+
                 dgvUsuarios.Rows.Clear();
                 foreach (var usuario in usuarios)
                 {
@@ -49,14 +65,19 @@ namespace VentasOnline.Forms
             }
         }
 
+        // 💡 Evento que se ejecuta al escribir en el txtBusqueda
+        private void txtBusqueda_TextChanged(object? sender, EventArgs e)
+        {
+            string textoFiltro = txtBusqueda.Text.Trim();
+            CargarUsuarios(textoFiltro);
+        }
+
         // Evento que se ejecuta al hacer clic en una celda del DataGridView, llenando los campos del formulario con los datos del usuario seleccionado
         private void dgvUsuarios_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
             // Evita que se ejecute si se hace clic en el encabezado de la columna
             if (e.RowIndex < 0) return;
 
-            var fila = dgvUsuarios.Rows[e.RowIndex]; // Asegúrate de que el nombre del control sea dgvUsuarios
-            // Corregido: dgvUsuarios.Rows[e.RowIndex]
             var filaReal = dgvUsuarios.Rows[e.RowIndex];
 
             // Verifica si la celda de la columna "Id" contiene un valor válido y lo asigna a _idSeleccionado
@@ -111,7 +132,7 @@ namespace VentasOnline.Forms
                     return;
                 }
 
-                // Esto asegura que el rol no esté vacío antes de crear o actualizar el usuario
+                // Asegura que el rol no esté vacío antes de crear o actualizar el usuario
                 var usuario = new Usuario
                 {
                     Id = _idSeleccionado,
@@ -120,8 +141,6 @@ namespace VentasOnline.Forms
                     Telefono = telefono,
                     Rol = rol
                 };
-
-                // Si el ID seleccionado es 0, significa que estamos creando un nuevo usuario; de lo contrario, estamos actualizando uno existente
 
                 if (_idSeleccionado == 0)
                 {
@@ -137,6 +156,7 @@ namespace VentasOnline.Forms
                 }
 
                 CargarUsuarios();
+                if (txtBusqueda != null) txtBusqueda.Clear();
                 LimpiarFormulario();
             }
             catch (Exception ex)
@@ -167,6 +187,7 @@ namespace VentasOnline.Forms
                     MessageBox.Show("Usuario eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     CargarUsuarios();
+                    if (txtBusqueda != null) txtBusqueda.Clear();
                     LimpiarFormulario();
                 }
                 catch (Exception ex)

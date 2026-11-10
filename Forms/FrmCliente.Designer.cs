@@ -5,8 +5,6 @@ namespace VentasOnline.Forms
         private System.ComponentModel.IContainer components = null;
         private Label lblMarca;
         private Label lblEncabezado;
-        private Label lblTituloLista;
-        private Label lblCantidad;
         private Label lblNombre;
         private Label lblTelefono;
         private Label lblCorreo;
@@ -16,12 +14,6 @@ namespace VentasOnline.Forms
         private Button btnGuardar;
         private Button btnEliminar;
         private Button btnCancelar;
-        private DataGridView dgvClientes;
-        private DataGridViewTextBoxColumn colIdCliente;
-        private DataGridViewTextBoxColumn colNombre;
-        private DataGridViewTextBoxColumn colTelefono;
-        private DataGridViewTextBoxColumn colCorreo;
-        private Panel panelLista;
         private Panel panelFormulario;
 
         protected override void Dispose(bool disposing)
@@ -36,15 +28,11 @@ namespace VentasOnline.Forms
 
         private void InitializeComponent()
         {
-            panelLista = new Panel();
-            lblTituloLista = new Label();
-            lblCantidad = new Label();
-            dgvClientes = new DataGridView();
-            colIdCliente = new DataGridViewTextBoxColumn();
-            colNombre = new DataGridViewTextBoxColumn();
-            colTelefono = new DataGridViewTextBoxColumn();
-            colCorreo = new DataGridViewTextBoxColumn();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
             panelFormulario = new Panel();
+            btnDireccion = new Button();
             txtTelefono = new MaskedTextBox();
             lblNombre = new Label();
             lblTelefono = new Label();
@@ -57,100 +45,26 @@ namespace VentasOnline.Forms
             btnCancelar = new Button();
             lblMarca = new Label();
             lblEncabezado = new Label();
+            lblCantidad = new Label();
+            panelLista = new Panel();
+            lblTituloLista = new Label();
+            dgvClientes = new DataGridView();
+            colIdCliente = new DataGridViewTextBoxColumn();
+            colNombre = new DataGridViewTextBoxColumn();
+            colTelefono = new DataGridViewTextBoxColumn();
+            colCorreo = new DataGridViewTextBoxColumn();
+            txtBusqueda = new TextBox();
+            lblBusqueda = new Label();
+            panelFormulario.SuspendLayout();
             panelLista.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvClientes).BeginInit();
-            panelFormulario.SuspendLayout();
             SuspendLayout();
-            // 
-            // panelLista
-            // 
-            panelLista.BackColor = Color.FromArgb(222, 222, 222);
-            panelLista.BorderStyle = BorderStyle.FixedSingle;
-            panelLista.Controls.Add(lblTituloLista);
-            panelLista.Controls.Add(lblCantidad);
-            panelLista.Controls.Add(dgvClientes);
-            panelLista.Location = new Point(25, 100);
-            panelLista.Name = "panelLista";
-            panelLista.Size = new Size(645, 520);
-            panelLista.TabIndex = 0;
-            // 
-            // lblTituloLista
-            // 
-            lblTituloLista.AutoSize = true;
-            lblTituloLista.Font = new Font("Segoe UI", 14F);
-            lblTituloLista.ForeColor = Color.FromArgb(35, 35, 35);
-            lblTituloLista.Location = new Point(17, 12);
-            lblTituloLista.Name = "lblTituloLista";
-            lblTituloLista.Size = new Size(223, 32);
-            lblTituloLista.TabIndex = 0;
-            lblTituloLista.Text = "Clientes registrados";
-            // 
-            // lblCantidad
-            // 
-            lblCantidad.AutoSize = true;
-            lblCantidad.Font = new Font("Segoe UI", 10F);
-            lblCantidad.ForeColor = Color.FromArgb(70, 80, 90);
-            lblCantidad.Location = new Point(17, 480);
-            lblCantidad.Name = "lblCantidad";
-            lblCantidad.Size = new Size(177, 23);
-            lblCantidad.TabIndex = 2;
-            lblCantidad.Text = "Clientes registrados: 0";
-            // 
-            // dgvClientes
-            // 
-            dgvClientes.AllowUserToAddRows = false;
-            dgvClientes.AllowUserToDeleteRows = false;
-            dgvClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgvClientes.BackgroundColor = Color.FromArgb(222, 222, 222);
-            dgvClientes.ColumnHeadersHeight = 38;
-            dgvClientes.Columns.AddRange(new DataGridViewColumn[] { colIdCliente, colNombre, colTelefono, colCorreo });
-            dgvClientes.Location = new Point(17, 53);
-            dgvClientes.MultiSelect = false;
-            dgvClientes.Name = "dgvClientes";
-            dgvClientes.ReadOnly = true;
-            dgvClientes.RowHeadersVisible = false;
-            dgvClientes.RowHeadersWidth = 51;
-            dgvClientes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvClientes.Size = new Size(609, 415);
-            dgvClientes.TabIndex = 1;
-            dgvClientes.CellClick += dgvClientes_CellClick;
-            // 
-            // colIdCliente
-            // 
-            colIdCliente.FillWeight = 35F;
-            colIdCliente.HeaderText = "ID";
-            colIdCliente.MinimumWidth = 6;
-            colIdCliente.Name = "colIdCliente";
-            colIdCliente.ReadOnly = true;
-            // 
-            // colNombre
-            // 
-            colNombre.FillWeight = 95F;
-            colNombre.HeaderText = "Nombre";
-            colNombre.MinimumWidth = 6;
-            colNombre.Name = "colNombre";
-            colNombre.ReadOnly = true;
-            // 
-            // colTelefono
-            // 
-            colTelefono.FillWeight = 75F;
-            colTelefono.HeaderText = "Teléfono";
-            colTelefono.MinimumWidth = 6;
-            colTelefono.Name = "colTelefono";
-            colTelefono.ReadOnly = true;
-            // 
-            // colCorreo
-            // 
-            colCorreo.FillWeight = 110F;
-            colCorreo.HeaderText = "Correo";
-            colCorreo.MinimumWidth = 6;
-            colCorreo.Name = "colCorreo";
-            colCorreo.ReadOnly = true;
             // 
             // panelFormulario
             // 
             panelFormulario.BackColor = Color.White;
             panelFormulario.BorderStyle = BorderStyle.FixedSingle;
+            panelFormulario.Controls.Add(btnDireccion);
             panelFormulario.Controls.Add(txtTelefono);
             panelFormulario.Controls.Add(lblNombre);
             panelFormulario.Controls.Add(lblTelefono);
@@ -161,10 +75,24 @@ namespace VentasOnline.Forms
             panelFormulario.Controls.Add(btnGuardar);
             panelFormulario.Controls.Add(btnEliminar);
             panelFormulario.Controls.Add(btnCancelar);
-            panelFormulario.Location = new Point(690, 100);
+            panelFormulario.Location = new Point(690, 139);
             panelFormulario.Name = "panelFormulario";
             panelFormulario.Size = new Size(405, 520);
             panelFormulario.TabIndex = 1;
+            // 
+            // btnDireccion
+            // 
+            btnDireccion.BackColor = Color.FromArgb(57, 148, 54);
+            btnDireccion.FlatAppearance.BorderSize = 0;
+            btnDireccion.FlatStyle = FlatStyle.Flat;
+            btnDireccion.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            btnDireccion.ForeColor = Color.White;
+            btnDireccion.Location = new Point(117, 444);
+            btnDireccion.Name = "btnDireccion";
+            btnDireccion.Size = new Size(175, 48);
+            btnDireccion.TabIndex = 11;
+            btnDireccion.Text = "Añadir Dirección";
+            btnDireccion.UseVisualStyleBackColor = false;
             // 
             // txtTelefono
             // 
@@ -309,12 +237,139 @@ namespace VentasOnline.Forms
             lblEncabezado.TabIndex = 3;
             lblEncabezado.Text = "Desktop";
             // 
+            // lblCantidad
+            // 
+            lblCantidad.AutoSize = true;
+            lblCantidad.Font = new Font("Segoe UI", 10F);
+            lblCantidad.ForeColor = Color.FromArgb(70, 80, 90);
+            lblCantidad.Location = new Point(17, 480);
+            lblCantidad.Name = "lblCantidad";
+            lblCantidad.Size = new Size(177, 23);
+            lblCantidad.TabIndex = 2;
+            lblCantidad.Text = "Clientes registrados: 0";
+            // 
+            // panelLista
+            // 
+            panelLista.BackColor = Color.FromArgb(222, 222, 222);
+            panelLista.BorderStyle = BorderStyle.FixedSingle;
+            panelLista.Controls.Add(lblTituloLista);
+            panelLista.Controls.Add(lblCantidad);
+            panelLista.Controls.Add(dgvClientes);
+            panelLista.Location = new Point(25, 139);
+            panelLista.Name = "panelLista";
+            panelLista.Size = new Size(645, 520);
+            panelLista.TabIndex = 0;
+            // 
+            // lblTituloLista
+            // 
+            lblTituloLista.AutoSize = true;
+            lblTituloLista.Font = new Font("Segoe UI", 14F);
+            lblTituloLista.ForeColor = Color.FromArgb(35, 35, 35);
+            lblTituloLista.Location = new Point(17, 12);
+            lblTituloLista.Name = "lblTituloLista";
+            lblTituloLista.Size = new Size(223, 32);
+            lblTituloLista.TabIndex = 0;
+            lblTituloLista.Text = "Clientes registrados";
+            // 
+            // dgvClientes
+            // 
+            dgvClientes.AllowUserToAddRows = false;
+            dgvClientes.AllowUserToDeleteRows = false;
+            dgvClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvClientes.BackgroundColor = Color.FromArgb(222, 222, 222);
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = SystemColors.Control;
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle4.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.True;
+            dgvClientes.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dgvClientes.ColumnHeadersHeight = 38;
+            dgvClientes.Columns.AddRange(new DataGridViewColumn[] { colIdCliente, colNombre, colTelefono, colCorreo });
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = SystemColors.Window;
+            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle5.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle5.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
+            dgvClientes.DefaultCellStyle = dataGridViewCellStyle5;
+            dgvClientes.Location = new Point(17, 53);
+            dgvClientes.MultiSelect = false;
+            dgvClientes.Name = "dgvClientes";
+            dgvClientes.ReadOnly = true;
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = SystemColors.Control;
+            dataGridViewCellStyle6.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle6.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle6.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.True;
+            dgvClientes.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
+            dgvClientes.RowHeadersVisible = false;
+            dgvClientes.RowHeadersWidth = 51;
+            dgvClientes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvClientes.Size = new Size(609, 415);
+            dgvClientes.TabIndex = 1;
+            dgvClientes.CellClick += dgvClientes_CellClick;
+            // 
+            // colIdCliente
+            // 
+            colIdCliente.FillWeight = 35F;
+            colIdCliente.HeaderText = "ID";
+            colIdCliente.MinimumWidth = 6;
+            colIdCliente.Name = "colIdCliente";
+            colIdCliente.ReadOnly = true;
+            // 
+            // colNombre
+            // 
+            colNombre.FillWeight = 95F;
+            colNombre.HeaderText = "Nombre";
+            colNombre.MinimumWidth = 6;
+            colNombre.Name = "colNombre";
+            colNombre.ReadOnly = true;
+            // 
+            // colTelefono
+            // 
+            colTelefono.FillWeight = 75F;
+            colTelefono.HeaderText = "Teléfono";
+            colTelefono.MinimumWidth = 6;
+            colTelefono.Name = "colTelefono";
+            colTelefono.ReadOnly = true;
+            // 
+            // colCorreo
+            // 
+            colCorreo.FillWeight = 110F;
+            colCorreo.HeaderText = "Correo";
+            colCorreo.MinimumWidth = 6;
+            colCorreo.Name = "colCorreo";
+            colCorreo.ReadOnly = true;
+            // 
+            // txtBusqueda
+            // 
+            txtBusqueda.Location = new Point(192, 92);
+            txtBusqueda.Name = "txtBusqueda";
+            txtBusqueda.Size = new Size(373, 27);
+            txtBusqueda.TabIndex = 7;
+            // 
+            // lblBusqueda
+            // 
+            lblBusqueda.AutoSize = true;
+            lblBusqueda.Location = new Point(48, 95);
+            lblBusqueda.Name = "lblBusqueda";
+            lblBusqueda.Size = new Size(129, 20);
+            lblBusqueda.TabIndex = 6;
+            lblBusqueda.Text = "Buscar por correo:";
+            // 
             // FrmCliente
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(1120, 650);
+            ClientSize = new Size(1120, 672);
+            Controls.Add(txtBusqueda);
+            Controls.Add(lblBusqueda);
             Controls.Add(panelFormulario);
             Controls.Add(panelLista);
             Controls.Add(lblEncabezado);
@@ -326,15 +381,26 @@ namespace VentasOnline.Forms
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Clientes - SivarPOS";
             Load += FrmCliente_Load;
+            panelFormulario.ResumeLayout(false);
+            panelFormulario.PerformLayout();
             panelLista.ResumeLayout(false);
             panelLista.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dgvClientes).EndInit();
-            panelFormulario.ResumeLayout(false);
-            panelFormulario.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
 
         private MaskedTextBox txtTelefono;
+        private Button btnDireccion;
+        private Label lblCantidad;
+        private Panel panelLista;
+        private Label lblTituloLista;
+        private DataGridView dgvClientes;
+        private DataGridViewTextBoxColumn colIdCliente;
+        private DataGridViewTextBoxColumn colNombre;
+        private DataGridViewTextBoxColumn colTelefono;
+        private DataGridViewTextBoxColumn colCorreo;
+        private TextBox txtBusqueda;
+        private Label lblBusqueda;
     }
 }

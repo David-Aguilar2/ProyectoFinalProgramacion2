@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using VentasOnline.Models;
@@ -28,14 +29,27 @@ namespace VentasOnline.Forms
         {
             CargarCategorias();
             LimpiarFormulario();
+
+            // Suscribir el evento de búsqueda en tiempo real
+            if (txtBusqueda != null)
+            {
+                txtBusqueda.TextChanged += txtBusqueda_TextChanged;
+            }
         }
 
-        // Método que carga las categorías desde la base de datos y las muestra en el DataGridView
-        private void CargarCategorias()
+        // Método que carga las categorías desde la base de datos y las muestra en el DataGridView (con filtro opcional)
+        private void CargarCategorias(string filtro = "")
         {
             try
             {
                 var lista = _categoriaService.ObtenerTodas();
+
+                // Filtrar por nombre si se proporciona un texto de búsqueda
+                if (!string.IsNullOrWhiteSpace(filtro))
+                {
+                    lista = lista.Where(c => c.Nombre != null && c.Nombre.Contains(filtro, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+
                 dgvCategorias.DataSource = null;
                 dgvCategorias.DataSource = lista;
 
@@ -49,6 +63,13 @@ namespace VentasOnline.Forms
             {
                 MessageBox.Show($"Error al cargar categorías: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        // Evento que se ejecuta al escribir en la caja de texto de búsqueda
+        private void txtBusqueda_TextChanged(object sender, EventArgs e)
+        {
+            string textoFiltro = txtBusqueda.Text.Trim();
+            CargarCategorias(textoFiltro);
         }
 
         // Método que limpia los campos del formulario y resetea el estado de selección
@@ -123,6 +144,7 @@ namespace VentasOnline.Forms
                 }
 
                 CargarCategorias();
+                if (txtBusqueda != null) txtBusqueda.Clear();
                 LimpiarFormulario();
             }
             catch (Exception ex)
@@ -147,6 +169,7 @@ namespace VentasOnline.Forms
                 _categoriaService.Eliminar(_idSeleccionado);
                 MessageBox.Show("Categoría eliminada con éxito.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 CargarCategorias();
+                if (txtBusqueda != null) txtBusqueda.Clear();
                 LimpiarFormulario();
             }
             catch (Exception ex)
@@ -162,6 +185,6 @@ namespace VentasOnline.Forms
             Close();
         }
 
-        private void txtDescripcion_TextChanged(object sender, EventArgs e){}
+        private void txtDescripcion_TextChanged(object sender, EventArgs e) { }
     }
 }

@@ -37,6 +37,12 @@ namespace VentasOnline.Forms
             CargarComboProveedores();
             CargarGrilla();
             LimpiarFormulario();
+
+            // 💡 Suscribir el evento de búsqueda en tiempo real por nombre de producto
+            if (txtBusqueda != null)
+            {
+                txtBusqueda.TextChanged += txtBusqueda_TextChanged;
+            }
         }
 
         // Método para cargar las categorías en el combo box
@@ -77,15 +83,23 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Método para cargar los productos en la grilla
-        private void CargarGrilla()
+        // Método para cargar los productos en la grilla filtrando opcionalmente por nombre
+        private void CargarGrilla(string filtroNombre = "")
         {
             try
             {
-                var lista = _productoService.ObtenerTodos().Select(p => new
+                var query = _productoService.ObtenerTodos().AsQueryable();
+
+                // Si hay texto en el buscador, filtramos por el nombre del producto
+                if (!string.IsNullOrWhiteSpace(filtroNombre))
+                {
+                    query = query.Where(p => p.Nombre != null && p.Nombre.Contains(filtroNombre, StringComparison.OrdinalIgnoreCase));
+                }
+
+                var lista = query.Select(p => new
                 {
                     p.Id,
-                    Categoria = p.Categoria?.Nombre ?? "Sin Categoría",
+                    Categoria = p.Categoria.Nombre ?? "Sin Categoría",
                     Proveedor = p.Proveedor != null ? p.Proveedor.Nombre : "Sin Proveedor",
                     p.Nombre,
                     p.Descripcion,
@@ -112,6 +126,13 @@ namespace VentasOnline.Forms
             {
                 MessageBox.Show($"Error al cargar productos: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        // 💡 Evento que se ejecuta al escribir en el txtBusqueda
+        private void txtBusqueda_TextChanged(object sender, EventArgs e)
+        {
+            string textoFiltro = txtBusqueda.Text.Trim();
+            CargarGrilla(textoFiltro);
         }
 
         // Evento que se ejecuta al hacer clic en una celda de la grilla, carga los datos del producto seleccionado en el formulario
@@ -288,6 +309,7 @@ namespace VentasOnline.Forms
                 }
 
                 CargarGrilla();
+                if (txtBusqueda != null) txtBusqueda.Clear();
                 LimpiarFormulario();
             }
             catch (Exception ex)
@@ -328,6 +350,7 @@ namespace VentasOnline.Forms
                     MessageBox.Show("Producto eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     CargarGrilla();
+                    if (txtBusqueda != null) txtBusqueda.Clear();
                     LimpiarFormulario();
                 }
                 catch (Exception ex)
@@ -383,5 +406,10 @@ namespace VentasOnline.Forms
         }
 
         private void desktopLabel_Click(object sender, EventArgs e) { }
+
+        private void lblBusqueda_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

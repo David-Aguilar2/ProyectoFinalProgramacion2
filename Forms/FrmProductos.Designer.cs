@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
             panel1 = new Panel();
             label1 = new Label();
             cmbProveedor = new ComboBox();
@@ -53,6 +53,8 @@
             logoLabel = new Label();
             desktopLabel = new Label();
             dgvProductos = new DataGridView();
+            txtBusqueda = new TextBox();
+            lblBusqueda = new Label();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericStock).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericPrecio).BeginInit();
@@ -322,23 +324,23 @@
             dgvProductos.AllowUserToAddRows = false;
             dgvProductos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvProductos.BackgroundColor = Color.FromArgb(222, 222, 222);
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.FromArgb(205, 205, 205);
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(35, 35, 35);
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            dgvProductos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = Color.FromArgb(205, 205, 205);
+            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle5.ForeColor = Color.FromArgb(35, 35, 35);
+            dataGridViewCellStyle5.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.True;
+            dgvProductos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
             dgvProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.FromArgb(222, 222, 222);
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(35, 35, 35);
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(55, 111, 161);
-            dataGridViewCellStyle2.SelectionForeColor = Color.White;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvProductos.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = Color.FromArgb(222, 222, 222);
+            dataGridViewCellStyle6.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle6.ForeColor = Color.FromArgb(35, 35, 35);
+            dataGridViewCellStyle6.SelectionBackColor = Color.FromArgb(55, 111, 161);
+            dataGridViewCellStyle6.SelectionForeColor = Color.White;
+            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.False;
+            dgvProductos.DefaultCellStyle = dataGridViewCellStyle6;
             dgvProductos.EnableHeadersVisualStyles = false;
             dgvProductos.Location = new Point(21, 157);
             dgvProductos.MultiSelect = false;
@@ -350,16 +352,36 @@
             dgvProductos.TabIndex = 2;
             dgvProductos.CellClick += dgvProductos_CellClick;
             // 
+            // txtBusqueda
+            // 
+            txtBusqueda.Location = new Point(181, 109);
+            txtBusqueda.Name = "txtBusqueda";
+            txtBusqueda.Size = new Size(373, 27);
+            txtBusqueda.TabIndex = 11;
+            // 
+            // lblBusqueda
+            // 
+            lblBusqueda.AutoSize = true;
+            lblBusqueda.Location = new Point(33, 112);
+            lblBusqueda.Name = "lblBusqueda";
+            lblBusqueda.Size = new Size(138, 20);
+            lblBusqueda.TabIndex = 10;
+            lblBusqueda.Text = "Buscar por nombre:";
+            lblBusqueda.Click += lblBusqueda_Click;
+            // 
             // FrmProductos
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
             ClientSize = new Size(1121, 684);
+            Controls.Add(txtBusqueda);
+            Controls.Add(lblBusqueda);
             Controls.Add(desktopLabel);
             Controls.Add(logoLabel);
             Controls.Add(panel1);
             Controls.Add(dgvProductos);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Name = "FrmProductos";
             StartPosition = FormStartPosition.CenterScreen;
@@ -399,5 +421,7 @@
         private ComboBox cmbCategoria;
         private Label label1;
         private ComboBox cmbProveedor;
+        private TextBox txtBusqueda;
+        private Label lblBusqueda;
     }
 }

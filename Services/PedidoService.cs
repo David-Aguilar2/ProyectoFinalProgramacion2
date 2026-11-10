@@ -52,37 +52,70 @@ namespace VentasOnline.Services
                       .FirstOrDefault(p => p.Id == id);
         }
 
-        // Registrar un nuevo pedido, descontar stock y generar su pago pendiente asociado
-        public int Registrar(int clienteId, int usuarioId, IEnumerable<LineaPedido> lineas)
+        // Registrar un nuevo pedido, descontar stock, generar su pago pendiente y crear automáticamente el envío contra entrega con C807 Express.
+        public int Registrar(int clienteId, int usuarioId, int direccionId, IEnumerable<LineaPedido> lineas)
         {
             var lista = lineas.ToList();
             if (lista.Count == 0)
                 throw new InvalidOperationException("El pedido no tiene productos.");
 
-            // Crear el pedido y sus detalles, descontando stock
+            if (direccionId <= 0)
+                throw new InvalidOperationException("Debe seleccionar una dirección válida para la entrega.");
+
             using var ctx = new AppDbContext();
-            var pedido = new Pedido
+            using var transaccion = ctx.Database.BeginTransaction();
+
+            try
             {
-                Fecha = DateTime.Now,
-                IdCliente = clienteId,
-                IdUsuario = usuarioId,
-                Estado = "Pendiente",
-                CostoEnvio = 0.00m
-            };
+                // 1) Crear el pedido y sus detalles, descontando stock
+                var pedido = new Pedido
+                {
+                    Fecha = DateTime.Now,
+                    IdCliente = clienteId,
+                    IdUsuario = usuarioId,
+                    Estado = "Pendiente",
+                    CostoEnvio = 0.00m
+                };
 
-            // Se asignan los detalles una sola vez de forma correcta
-            pedido.DetallesPedidos.AddRange(CrearDetalles(ctx, lista));
-            pedido.Total = pedido.DetallesPedidos.Sum(d => d.SubTotal);
+                pedido.DetallesPedidos.AddRange(CrearDetalles(ctx, lista));
+                pedido.Total = pedido.DetallesPedidos.Sum(d => d.SubTotal);
 
-            ctx.Pedidos.Add(pedido);
-            ctx.SaveChanges(); // Se guarda el pedido para que genere su ID
+                ctx.Pedidos.Add(pedido);
+                ctx.SaveChanges(); // Genera pedido.Id
 
-            // Generamos automáticamente el pago pendiente usando el contexto actual
-            var pagoService = new PagoService();
-            pagoService.RegistrarPagoPendiente(ctx, pedido.Id, pedido.Total);
-            ctx.SaveChanges(); // Guardamos el registro de pago vinculado
+                // 2) Generar automáticamente el registro de Pago Pendiente
+                var pagoService = new PagoService();
+                pagoService.RegistrarPagoPendiente(ctx, pedido.Id, pedido.Total);
 
-            return pedido.Id;
+                // 3) Generar el Envío automático para C807 Express (Prefijo: C8)
+                string transportista = "C807 Express";
+                string prefijoGuia = "C8";
+                // Generar un número de guía único basado en la fecha y hora actual
+                string numeroGuia = $"{prefijoGuia}{DateTime.Now:yyyyMMddHHmmss}";
+
+                var envio = new Envio
+                {
+                    IdPedido = pedido.Id,
+                    IdDireccion = direccionId,
+                    NumeroSeguimiento = numeroGuia,
+                    EmpresaTransporte = transportista,
+                    Estado = "Pendiente",
+                    FechaEnvio = DateTime.Now
+                };
+
+                ctx.Envios.Add(envio);
+                ctx.SaveChanges();
+
+                // Confirmar todas las operaciones de forma atómica
+                transaccion.Commit();
+
+                return pedido.Id;
+            }
+            catch (Exception)
+            {
+                transaccion.Rollback();
+                throw;
+            }
         }
 
         // Actualizar un pedido existente (devuelve stock anterior y aplica el nuevo)
@@ -115,8 +148,6 @@ namespace VentasOnline.Services
             pedido.Total = nuevos.Sum(d => d.SubTotal);
 
             ctx.SaveChanges();
-
-            // Opcional: Si el total del pedido cambia al editarlo, podrías actualizar también el monto del pago pendiente asociado si lo deseas.
         }
 
         // Eliminar pedido y reponer inventario
@@ -133,8 +164,6 @@ namespace VentasOnline.Services
                 if (producto != null) producto.Stock += d.Cantidad;
             }
 
-            // Nota: Si tienes configurada eliminación en cascada en la base de datos (Cascade Delete) 
-            // para la relación Pedido-Pago, se borrará solo. Si no, recuerda eliminar el pago asociado aquí antes de borrar el pedido.
             ctx.DetallesPedidos.RemoveRange(pedido.DetallesPedidos);
             ctx.Pedidos.Remove(pedido);
             ctx.SaveChanges();
@@ -143,7 +172,6 @@ namespace VentasOnline.Services
         // Método auxiliar para crear detalles de pedido y actualizar stock
         private static List<DetallePedido> CrearDetalles(AppDbContext ctx, List<LineaPedido> lineas)
         {
-            // Validar stock y crear detalles
             var detalles = new List<DetallePedido>();
             foreach (var linea in lineas)
             {
