@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using VentasOnline.Data;
 using VentasOnline.Models;
 using VentasOnline.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace VentasOnline.Forms
 {
@@ -258,6 +260,24 @@ namespace VentasOnline.Forms
                     return;
                 }
 
+                // VALIDACIÓN REGLA CONTRA ENTREGA: Verificar el estado del envío antes de permitir cobrar/pagar
+                using var ctx = new AppDbContext();
+                var envioAsociado = ctx.Envios.FirstOrDefault(e => e.IdPedido == _idPedidoActual);
+
+                if (envioAsociado == null)
+                {
+                    MessageBox.Show("Este pedido aún no cuenta con un envío registrado (C807 Express). Debe generarlo y despacharlo primero.",
+                        "Restricción de Pago", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (envioAsociado.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("No se puede procesar el pago. El envío asociado se encuentra en estado 'Pendiente'; debe pasar al menos a 'En tránsito' en el módulo de envíos.",
+                        "Restricción de Pagos - Contra Entrega", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    return;
+                }
+
                 var pedidoActual = _pedidoService.ListarPedidos().FirstOrDefault(p => p.Id == _idPedidoActual);
                 if (pedidoActual == null)
                 {
@@ -268,9 +288,18 @@ namespace VentasOnline.Forms
                 // El monto total a guardar incluye productos + costo de envío
                 decimal montoFinalConEnvio = pedidoActual.Total + pedidoActual.CostoEnvio;
 
+                // 1. Guardar o actualizar el pago
                 _pagoService.ActualizarPago(_pagoIdSeleccionado, estado, metodo, montoFinalConEnvio);
 
-                MessageBox.Show("Pago y liquidación actualizados correctamente.", "SivarPOS", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //  2. AUTOMATIZACIÓN CONTRA ENTREGA: Si el pago se marca como "Completado", 
+                // actualizamos el envío automáticamente a "Entregado".
+                if (estado.Equals("Completado", StringComparison.OrdinalIgnoreCase))
+                {
+                    envioAsociado.Estado = "Entregado";
+                    ctx.SaveChanges(); // Guardamos el cambio de estado del envío en la base de datos
+                }
+
+                MessageBox.Show("Pago registrado con éxito y envío marcado como 'Entregado' automáticamente.", "SivarPOS", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 // Refrescar grilla y contadores manteniendo el filtro actual
                 CargarPagosSegunFiltro();

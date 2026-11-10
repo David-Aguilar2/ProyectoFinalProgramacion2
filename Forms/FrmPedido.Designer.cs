@@ -38,7 +38,6 @@ namespace VentasOnline.Forms
             cmbProducto = new Label();
             groupBox3 = new GroupBox();
             dgvPedidos = new DataGridView();
-            btnEliminar = new Button();
             btnGuardar = new Button();
             btnNueva = new Button();
             pictureBoxProducto = new PictureBox();
@@ -273,20 +272,9 @@ namespace VentasOnline.Forms
             dgvPedidos.TabIndex = 10;
             dgvPedidos.CellClick += dgvPedidos_CellClick;
             // 
-            // btnEliminar
-            // 
-            btnEliminar.Location = new Point(398, 634);
-            btnEliminar.Margin = new Padding(3, 4, 3, 4);
-            btnEliminar.Name = "btnEliminar";
-            btnEliminar.Size = new Size(134, 31);
-            btnEliminar.TabIndex = 18;
-            btnEliminar.Text = "Eliminar Pedido";
-            btnEliminar.UseVisualStyleBackColor = true;
-            btnEliminar.Click += btnEliminar_Click;
-            // 
             // btnGuardar
             // 
-            btnGuardar.Location = new Point(197, 634);
+            btnGuardar.Location = new Point(228, 634);
             btnGuardar.Margin = new Padding(3, 4, 3, 4);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(136, 31);
@@ -316,7 +304,7 @@ namespace VentasOnline.Forms
             // 
             // btnCerrar
             // 
-            btnCerrar.Location = new Point(589, 634);
+            btnCerrar.Location = new Point(474, 634);
             btnCerrar.Margin = new Padding(3, 4, 3, 4);
             btnCerrar.Name = "btnCerrar";
             btnCerrar.Size = new Size(134, 31);
@@ -333,7 +321,6 @@ namespace VentasOnline.Forms
             ClientSize = new Size(1230, 673);
             Controls.Add(btnCerrar);
             Controls.Add(pictureBoxProducto);
-            Controls.Add(btnEliminar);
             Controls.Add(btnGuardar);
             Controls.Add(btnNueva);
             Controls.Add(groupBox3);
@@ -376,7 +363,6 @@ namespace VentasOnline.Forms
         private Button btnQuitarLinea;
         private GroupBox groupBox3;
         private DataGridView dgvPedidos;
-        private Button btnEliminar;
         private Button btnGuardar;
         private Button btnNueva;
         private PictureBox pictureBoxProducto;

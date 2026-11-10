@@ -185,6 +185,7 @@ namespace VentasOnline.Forms
         private void btnNueva_Click(object sender, EventArgs e) => NuevoPedido();
 
         // Evento que se ejecuta al hacer clic en el botón "Guardar" para registrar o actualizar el pedido
+        // Evento que se ejecuta al hacer clic en el botón "Guardar" para registrar o actualizar el pedido
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             // Validar que haya al menos un cliente y usuario seleccionados
@@ -217,7 +218,12 @@ namespace VentasOnline.Forms
                         return;
                     }
 
-                    // Registrar un nuevo pedido pasando el ID de la dirección encontrada
+                    // Calcular el subtotal exacto de los productos en el carrito temporal
+                    decimal subtotalProductos = _lineas.Sum(l => l.Subtotal);
+
+                    // Registrar un nuevo pedido pasando el ID de la dirección y asegurando el total de la mercancía
+                    // (Nota: Si tu método Registrar acepta el total como parámetro, o si lo calcula internamente en el servicio, 
+                    // asegúrate de que el servicio sume 'subtotalProductos' y le sume los 8.00 del CostoEnvio).
                     int id = _servicio.Registrar(clienteId, usuarioId, direccionCliente.Id, _lineas);
 
                     MessageBox.Show($"Pedido #{id} registrado y guía de C807 Express generada exitosamente.", "VentasOnline",
@@ -315,37 +321,6 @@ namespace VentasOnline.Forms
             {
                 pictureBoxProducto.Image.Dispose();
                 pictureBoxProducto.Image = null;
-            }
-        }
-
-        // Evento que se ejecuta al hacer clic en el botón "Eliminar" para borrar un pedido existente
-        private void btnEliminar_Click(object sender, EventArgs e)
-        {
-            if (_pedidoId == 0) return;
-
-            var respuesta = MessageBox.Show(
-                $"¿Eliminar el pedido #{_pedidoId}?\nSe devolverá al inventario el stock de sus productos.",
-                "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            // Si el usuario no confirma la eliminación, se sale del método
-            if (respuesta != DialogResult.Yes) return;
-
-            try
-            {
-                int idEliminado = _pedidoId;
-                _servicio.Eliminar(idEliminado);
-
-                CargarCatalogos();
-                CargarHistorial();
-                NuevoPedido();
-
-                MessageBox.Show($"El pedido #{idEliminado} fue eliminado y el stock fue devuelto al inventario.",
-                    "Pedido eliminado", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"No se pudo eliminar el pedido.\n\nDetalle: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

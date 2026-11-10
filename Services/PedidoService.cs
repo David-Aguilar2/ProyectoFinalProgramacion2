@@ -74,7 +74,8 @@ namespace VentasOnline.Services
                     IdCliente = clienteId,
                     IdUsuario = usuarioId,
                     Estado = "Pendiente",
-                    CostoEnvio = 0.00m
+                    Total = lineas.Sum(l => l.Subtotal),
+                    CostoEnvio = 8.00m
                 };
 
                 pedido.DetallesPedidos.AddRange(CrearDetalles(ctx, lista));
