@@ -113,6 +113,7 @@ namespace VentasOnline.Forms
             dgvClientes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvClientes.Size = new Size(609, 415);
             dgvClientes.TabIndex = 1;
+            dgvClientes.CellClick += dgvClientes_CellClick;
             // 
             // colIdCliente
             // 

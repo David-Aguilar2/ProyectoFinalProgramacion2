@@ -36,13 +36,13 @@
             desktopLabel = new Label();
             dgvProveedores = new DataGridView();
             panel2 = new Panel();
+            txtTelefono = new MaskedTextBox();
             btnEliminar = new Button();
             btnCancelar = new Button();
             btnGuardar = new Button();
             btnNuevo = new Button();
             label6 = new Label();
             label5 = new Label();
-            txtTelefono = new MaskedTextBox();
             ((System.ComponentModel.ISupportInitialize)dgvProveedores).BeginInit();
             panel2.SuspendLayout();
             SuspendLayout();
@@ -115,6 +115,7 @@
             dgvProveedores.RowHeadersWidth = 51;
             dgvProveedores.Size = new Size(518, 419);
             dgvProveedores.TabIndex = 9;
+            dgvProveedores.CellClick += dgvProveedores_CellClick;
             // 
             // panel2
             // 
@@ -135,6 +136,14 @@
             panel2.Name = "panel2";
             panel2.Size = new Size(309, 547);
             panel2.TabIndex = 11;
+            // 
+            // txtTelefono
+            // 
+            txtTelefono.Location = new Point(23, 183);
+            txtTelefono.Mask = "0000-0000";
+            txtTelefono.Name = "txtTelefono";
+            txtTelefono.Size = new Size(88, 27);
+            txtTelefono.TabIndex = 12;
             // 
             // btnEliminar
             // 
@@ -209,14 +218,6 @@
             label5.Size = new Size(86, 30);
             label5.TabIndex = 7;
             label5.Text = "Correo:";
-            // 
-            // txtTelefono
-            // 
-            txtTelefono.Location = new Point(23, 183);
-            txtTelefono.Mask = "0000-0000";
-            txtTelefono.Name = "txtTelefono";
-            txtTelefono.Size = new Size(88, 27);
-            txtTelefono.TabIndex = 12;
             // 
             // FrmProveedores
             // 
