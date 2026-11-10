@@ -27,6 +27,7 @@ namespace VentasOnline.Forms
         // Método para configurar el diseño visual y las propiedades iniciales de la ventana y sus controles
         private void ConfigureVisualLayout()
         {
+            if (btnEliminar != null) btnEliminar.Enabled = false;
             Text = "Clientes - SivarPOS";
             BackColor = Color.FromArgb(245, 247, 250);
             ClientSize = new Size(1120, 650);
@@ -146,6 +147,7 @@ namespace VentasOnline.Forms
                 txtNombre.Text = Convert.ToString(fila.Cells[colNombre.Name].Value) ?? string.Empty;
                 txtTelefono.Text = Convert.ToString(fila.Cells[colTelefono.Name].Value) ?? string.Empty;
                 txtCorreo.Text = Convert.ToString(fila.Cells[colCorreo.Name].Value) ?? string.Empty;
+                if (btnEliminar != null) btnEliminar.Enabled = true;
 
                 // Al hacer clic en un cliente válido, habilitamos el botón de direcciones
                 if (btnDireccion != null)
@@ -172,6 +174,17 @@ namespace VentasOnline.Forms
 
             try
             {
+                // Validar que el cliente exista realmente en la base de datos antes de abrir el módulo
+                using var db = new AppDbContext();
+                bool clienteExiste = db.Clientes.Any(c => c.Id == _idSeleccionado);
+                if (!clienteExiste)
+                {
+                    MessageBox.Show("El cliente seleccionado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    CargarClientes();
+                    LimpiarFormulario();
+                    return;
+                }
+
                 var frmDirecciones = new FrmDireccion(_idSeleccionado);
                 frmDirecciones.ShowDialog();
             }
@@ -188,13 +201,53 @@ namespace VentasOnline.Forms
             {
                 string nombre = txtNombre.Text.Trim();
                 string telefono = txtTelefono.Text.Trim();
-                string correo = txtCorreo.Text.Trim();
+                string correo = txtCorreo.Text.Trim().ToLowerInvariant(); // Normalización a minúsculas
 
-                // Validación: El nombre no puede estar vacío
-                if (string.IsNullOrEmpty(nombre))
+                // Validación: El nombre no puede estar vacío ni contener únicamente espacios
+                if (string.IsNullOrWhiteSpace(nombre))
                 {
-                    MessageBox.Show("El nombre del cliente es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("El nombre del cliente es obligatorio y no puede contener únicamente espacios.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtNombre.Focus();
+                    return;
+                }
+
+                // Validación: Longitud máxima del nombre (100 caracteres)
+                if (nombre.Length > 100)
+                {
+                    MessageBox.Show("El nombre del cliente no puede superar los 100 caracteres.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // Validación: El teléfono es obligatorio
+                if (string.IsNullOrWhiteSpace(telefono))
+                {
+                    MessageBox.Show("El teléfono del cliente es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtTelefono.Focus();
+                    return;
+                }
+
+                // Validación: El teléfono debe contener únicamente números y exactamente 8 dígitos
+                if (!System.Text.RegularExpressions.Regex.IsMatch(telefono, @"^\d{8}$"))
+                {
+                    MessageBox.Show("El teléfono debe contener únicamente números y tener una longitud exacta de 8 dígitos.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtTelefono.Focus();
+                    return;
+                }
+
+                // Validación: El correo electrónico no puede estar vacío
+                if (string.IsNullOrWhiteSpace(correo))
+                {
+                    MessageBox.Show("El correo electrónico es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
+                    return;
+                }
+
+                // Validación: Longitud máxima del correo (150 caracteres)
+                if (correo.Length > 150)
+                {
+                    MessageBox.Show("El correo electrónico no puede superar los 150 caracteres.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
                     return;
                 }
 
@@ -202,6 +255,16 @@ namespace VentasOnline.Forms
                 if (!new EmailAddressAttribute().IsValid(correo))
                 {
                     MessageBox.Show("Escribe un correo electrónico válido.", "Correo no válido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
+                    return;
+                }
+
+                // Validación: Comprobar que no exista otro cliente con el mismo correo
+                using var dbCheck = new AppDbContext();
+                bool correoDuplicado = dbCheck.Clientes.Any(c => c.Correo != null && c.Correo.ToLower() == correo && c.Id != _idSeleccionado);
+                if (correoDuplicado)
+                {
+                    MessageBox.Show("Ya existe otro cliente registrado con este mismo correo electrónico.", "Correo duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtCorreo.Focus();
                     return;
                 }
@@ -221,6 +284,16 @@ namespace VentasOnline.Forms
                 }
                 else
                 {
+                    // Validar que el cliente todavía exista antes de actualizarlo
+                    var clienteExistente = dbCheck.Clientes.Find(_idSeleccionado);
+                    if (clienteExistente == null)
+                    {
+                        MessageBox.Show("El cliente seleccionado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        CargarClientes();
+                        LimpiarFormulario();
+                        return;
+                    }
+
                     _clienteService.Actualizar(cliente);
                     MessageBox.Show("Cliente actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -281,6 +354,7 @@ namespace VentasOnline.Forms
             txtNombre.Clear();
             txtTelefono.Clear();
             txtCorreo.Clear();
+            if (btnEliminar != null) btnEliminar.Enabled = false;
 
             if (btnDireccion != null)
             {

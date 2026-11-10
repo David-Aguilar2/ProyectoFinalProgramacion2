@@ -100,7 +100,6 @@ namespace VentasOnline.Forms
             _lineas.Clear();
             nudCantidad.Value = 1;
             lblVenta.Text = "Pedido nuevo";
-            btnEliminar.Enabled = false;
             dgvPedidos.ClearSelection();
             ActualizarTotal();
             LimpiarImagenProducto();
@@ -123,6 +122,13 @@ namespace VentasOnline.Forms
         {
             if (cboProducto.SelectedItem is not Producto productoSeleccionado) return;
             int cantidadSolicitada = (int)nudCantidad.Value;
+
+            // Validación: La cantidad debe ser mayor que cero
+            if (cantidadSolicitada <= 0)
+            {
+                MessageBox.Show("La cantidad a agregar debe ser mayor a cero.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             // Consultar el stock real y actualizado desde la base de datos
             using var ctx = new AppDbContext();
@@ -185,30 +191,74 @@ namespace VentasOnline.Forms
         private void btnNueva_Click(object sender, EventArgs e) => NuevoPedido();
 
         // Evento que se ejecuta al hacer clic en el botón "Guardar" para registrar o actualizar el pedido
-        // Evento que se ejecuta al hacer clic en el botón "Guardar" para registrar o actualizar el pedido
         private void btnGuardar_Click(object sender, EventArgs e)
         {
-            // Validar que haya al menos un cliente y usuario seleccionados
-            if (cboCliente.SelectedValue is not int clienteId ||
-                cboUsuario.SelectedValue is not int usuarioId)
+            // Validar que haya al menos un cliente y usuario seleccionados con identificadores válidos
+            if (cboCliente.SelectedValue is not int clienteId || clienteId <= 0 ||
+                cboUsuario.SelectedValue is not int usuarioId || usuarioId <= 0)
             {
-                MessageBox.Show("Selecciona el cliente y el usuario.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Debe seleccionar un cliente y un usuario válidos.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
+            // Validación: Mostrar mensaje explícito si no hay productos en el carrito
             if (_lineas.Count == 0)
             {
-                MessageBox.Show("Agrega al menos un producto al pedido.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Agrega al menos un producto al pedido para continuar.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
+            }
+
+            // Validar que todas las líneas tengan cantidades y precios válidos
+            foreach (var linea in _lineas)
+            {
+                if (linea.Cantidad <= 0 || linea.PrecioUnitario <= 0)
+                {
+                    MessageBox.Show("Todas las líneas del pedido deben tener cantidades y precios mayores a cero.", "Validación de líneas", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
             }
 
             try
             {
+                using var ctx = new AppDbContext();
+
+                // Validar que el cliente exista
+                bool clienteExiste = ctx.Clientes.Any(c => c.Id == clienteId);
+                if (!clienteExiste)
+                {
+                    MessageBox.Show("El cliente seleccionado ya no existe en el sistema.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Validar que el usuario exista y esté activo
+                var usuarioDb = ctx.Usuarios.Find(usuarioId);
+                if (usuarioDb == null)
+                {
+                    MessageBox.Show("El usuario seleccionado no existe o no es válido.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Volver a comprobar el stock y la existencia de cada producto justo antes de confirmar el pedido (concurrencia)
+                foreach (var linea in _lineas)
+                {
+                    var prodDb = ctx.Productos.AsNoTracking().FirstOrDefault(p => p.Id == linea.ProductoId);
+                    if (prodDb == null)
+                    {
+                        MessageBox.Show($"El producto '{linea.Producto}' ya no se encuentra disponible.", "Producto no encontrado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    if (linea.Cantidad > prodDb.Stock)
+                    {
+                        MessageBox.Show($"Stock insuficiente para el producto '{prodDb.Nombre}'. Stock actual en BD: {prodDb.Stock}.", "Stock superado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+
                 // Si el pedido es nuevo, se registra con su envío automático
                 if (_pedidoId == 0)
                 {
                     // Buscamos la dirección del cliente directamente en la base de datos
-                    using var ctx = new AppDbContext();
                     var direccionCliente = ctx.Direcciones.FirstOrDefault(d => d.IdCliente == clienteId);
 
                     if (direccionCliente == null)
@@ -218,12 +268,7 @@ namespace VentasOnline.Forms
                         return;
                     }
 
-                    // Calcular el subtotal exacto de los productos en el carrito temporal
-                    decimal subtotalProductos = _lineas.Sum(l => l.Subtotal);
-
-                    // Registrar un nuevo pedido pasando el ID de la dirección y asegurando el total de la mercancía
-                    // (Nota: Si tu método Registrar acepta el total como parámetro, o si lo calcula internamente en el servicio, 
-                    // asegúrate de que el servicio sume 'subtotalProductos' y le sume los 8.00 del CostoEnvio).
+                    // Registrar un nuevo pedido pasando el ID de la dirección encontrada
                     int id = _servicio.Registrar(clienteId, usuarioId, direccionCliente.Id, _lineas);
 
                     MessageBox.Show($"Pedido #{id} registrado y guía de C807 Express generada exitosamente.", "VentasOnline",
@@ -231,6 +276,26 @@ namespace VentasOnline.Forms
                 }
                 else
                 {
+                    // Validar que el pedido exista antes de actualizarlo
+                    var pedidoExistente = ctx.Pedidos.Include(p => p.Pagos).Include(p => p.Envios).FirstOrDefault(p => p.Id == _pedidoId);
+                    if (pedidoExistente == null)
+                    {
+                        MessageBox.Show("El pedido seleccionado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        CargarHistorial();
+                        NuevoPedido();
+                        return;
+                    }
+
+                    // Validar que el pedido no se modifique si ya está entregado o pagado
+                    bool estaEntregado = pedidoExistente.Envios.Any(e => e.Estado.Equals("Entregado", StringComparison.OrdinalIgnoreCase));
+                    bool estaPagado = pedidoExistente.Pagos.Any(p => p.Estado.Equals("Completado", StringComparison.OrdinalIgnoreCase));
+
+                    if (estaEntregado || estaPagado)
+                    {
+                        MessageBox.Show("No se puede modificar el pedido porque ya se encuentra pagado o entregado.", "Restricción de seguridad", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                        return;
+                    }
+
                     // Actualizar un pedido existente
                     _servicio.Actualizar(_pedidoId, clienteId, usuarioId, _lineas);
                     MessageBox.Show($"Pedido #{_pedidoId} actualizado exitosamente.", "VentasOnline",
@@ -277,7 +342,6 @@ namespace VentasOnline.Forms
             }
             // Actualizar la interfaz para reflejar que se está editando un pedido existente
             lblVenta.Text = $"Editando pedido #{pedido.Id}";
-            btnEliminar.Enabled = true;
             ActualizarTotal();
         }
 

@@ -179,6 +179,7 @@ namespace VentasOnline.Forms
             // 
             // btnQuitarLinea
             // 
+            btnQuitarLinea.Cursor = Cursors.Hand;
             btnQuitarLinea.Location = new Point(7, 291);
             btnQuitarLinea.Margin = new Padding(3, 4, 3, 4);
             btnQuitarLinea.Name = "btnQuitarLinea";
@@ -200,6 +201,7 @@ namespace VentasOnline.Forms
             // 
             // btnAgregar
             // 
+            btnAgregar.Cursor = Cursors.Hand;
             btnAgregar.Location = new Point(563, 43);
             btnAgregar.Margin = new Padding(3, 4, 3, 4);
             btnAgregar.Name = "btnAgregar";
@@ -274,6 +276,7 @@ namespace VentasOnline.Forms
             // 
             // btnGuardar
             // 
+            btnGuardar.Cursor = Cursors.Hand;
             btnGuardar.Location = new Point(228, 634);
             btnGuardar.Margin = new Padding(3, 4, 3, 4);
             btnGuardar.Name = "btnGuardar";
@@ -285,6 +288,7 @@ namespace VentasOnline.Forms
             // 
             // btnNueva
             // 
+            btnNueva.Cursor = Cursors.Hand;
             btnNueva.Location = new Point(26, 634);
             btnNueva.Margin = new Padding(3, 4, 3, 4);
             btnNueva.Name = "btnNueva";
@@ -304,6 +308,7 @@ namespace VentasOnline.Forms
             // 
             // btnCerrar
             // 
+            btnCerrar.Cursor = Cursors.Hand;
             btnCerrar.Location = new Point(474, 634);
             btnCerrar.Margin = new Padding(3, 4, 3, 4);
             btnCerrar.Name = "btnCerrar";

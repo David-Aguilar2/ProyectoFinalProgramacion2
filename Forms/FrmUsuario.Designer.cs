@@ -42,7 +42,7 @@
 
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panelLista = new Panel();
             lblTituloLista = new Label();
             lblCantidadUsuarios = new Label();
@@ -118,7 +118,7 @@
             dgvUsuarios.AllowUserToDeleteRows = false;
             dgvUsuarios.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvUsuarios.BackgroundColor = Color.FromArgb(222, 222, 222);
-            dgvUsuarios.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dgvUsuarios.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvUsuarios.ColumnHeadersHeight = 38;
             dgvUsuarios.Columns.AddRange(new DataGridViewColumn[] { colId, colNombre, colCorreo, colTelefono, colRol });
             dgvUsuarios.EnableHeadersVisualStyles = false;
@@ -330,6 +330,7 @@
             // btnNuevo
             // 
             btnNuevo.BackColor = Color.FromArgb(57, 148, 54);
+            btnNuevo.Cursor = Cursors.Hand;
             btnNuevo.FlatAppearance.BorderSize = 0;
             btnNuevo.FlatStyle = FlatStyle.Flat;
             btnNuevo.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
@@ -345,6 +346,7 @@
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.FromArgb(57, 148, 54);
+            btnGuardar.Cursor = Cursors.Hand;
             btnGuardar.FlatAppearance.BorderSize = 0;
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
@@ -360,6 +362,7 @@
             // btnEliminar
             // 
             btnEliminar.BackColor = Color.FromArgb(55, 119, 202);
+            btnEliminar.Cursor = Cursors.Hand;
             btnEliminar.FlatAppearance.BorderSize = 0;
             btnEliminar.FlatStyle = FlatStyle.Flat;
             btnEliminar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
@@ -375,6 +378,7 @@
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.FromArgb(55, 119, 202);
+            btnCancelar.Cursor = Cursors.Hand;
             btnCancelar.FlatAppearance.BorderSize = 0;
             btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 11F, FontStyle.Bold);

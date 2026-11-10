@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using QuestPDF.Fluent;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -5,7 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using QuestPDF.Fluent;
+using VentasOnline.Data;
 using VentasOnline.Dtos;
 using VentasOnline.Models;
 using VentasOnline.Reportes;
@@ -203,6 +205,88 @@ namespace VentasOnline.Forms
 
                 string nuevoEstado = cboEstadoEntrega.SelectedItem?.ToString() ?? "Pendiente";
                 string empresa = empresaTransporte.Text.Trim();
+                string numeroGuia = txtGuiaTracking.Text.Trim();
+
+                // Validación: El estado debe pertenecer estrictamente a la lista permitida
+                if (nuevoEstado != "Pendiente" && nuevoEstado != "En tránsito" && nuevoEstado != "Entregado" && nuevoEstado != "Cancelado")
+                {
+                    MessageBox.Show("El estado de envío seleccionado no es válido.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Validación: La empresa de transporte no puede estar vacía
+                if (string.IsNullOrWhiteSpace(empresa))
+                {
+                    MessageBox.Show("La empresa de transporte es obligatoria.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Validación: Longitud máxima de la empresa de transporte (100 caracteres)
+                if (empresa.Length > 100)
+                {
+                    MessageBox.Show("La empresa de transporte no puede superar los 100 caracteres.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Validación: El número de seguimiento/guía no puede estar vacío
+                if (string.IsNullOrWhiteSpace(numeroGuia))
+                {
+                    MessageBox.Show("El número de seguimiento (guía) es obligatorio.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Validación: Longitud máxima del número de seguimiento (50 caracteres)
+                if (numeroGuia.Length > 50)
+                {
+                    MessageBox.Show("El número de seguimiento no puede superar los 50 caracteres.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                using var ctxDb = new AppDbContext();
+
+                // Validación: Verificar que el envío seleccionado siga existiendo en la base de datos
+                var envioActualEnDb = ctxDb.Envios.Include(e => e.Pedido).ThenInclude(p => p.Pagos).FirstOrDefault(e => e.Id == _envioIdSeleccionado);
+                if (envioActualEnDb == null)
+                {
+                    MessageBox.Show("El envío seleccionado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    CargarEnvíosSegunFiltro();
+                    return;
+                }
+
+                // Validación: Verificar transiciones de estado permitidas
+                string estadoActual = envioActualEnDb.Estado;
+
+                // Evitar Entregado → Pendiente
+                if (estadoActual.Equals("Entregado", StringComparison.OrdinalIgnoreCase) && nuevoEstado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("No se puede cambiar un envío entregado a estado pendiente.", "Restricción de transición", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    return;
+                }
+
+                // Evitar Cancelado → Entregado
+                if (estadoActual.Equals("Cancelado", StringComparison.OrdinalIgnoreCase) && nuevoEstado.Equals("Entregado", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("No se puede entregar un envío que ha sido cancelado.", "Restricción de transición", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    return;
+                }
+
+                // Validación: Verificar que el pedido asociado exista
+                if (envioActualEnDb.Pedido == null)
+                {
+                    MessageBox.Show("El pedido asociado a este envío no existe.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Validación: Verificar unicidad del número de seguimiento si fue modificado
+                if (!envioActualEnDb.NumeroSeguimiento.Equals(numeroGuia, StringComparison.OrdinalIgnoreCase))
+                {
+                    bool guiaDuplicada = ctxDb.Envios.Any(e => e.NumeroSeguimiento.ToLower() == numeroGuia.ToLower() && e.Id != _envioIdSeleccionado);
+                    if (guiaDuplicada)
+                    {
+                        MessageBox.Show("Ya existe otro envío registrado con este mismo número de seguimiento (guía).", "Guía duplicada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
 
                 // Actualizar estado mediante el servicio
                 _envioService.ActualizarEstadoEnvio(_envioIdSeleccionado, nuevoEstado, empresa);

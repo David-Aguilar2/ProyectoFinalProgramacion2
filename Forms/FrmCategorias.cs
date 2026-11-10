@@ -115,10 +115,35 @@ namespace VentasOnline.Forms
                 string nombre = txtNombre.Text.Trim();
                 string descripcion = txtDescripcion.Text.Trim();
 
-                // Validación básica: el nombre de la categoría no puede estar vacío
-                if (string.IsNullOrEmpty(nombre))
+                // Validación: el nombre de la categoría no puede estar vacío ni contener únicamente espacios
+                if (string.IsNullOrWhiteSpace(nombre))
                 {
-                    MessageBox.Show("El nombre de la categoría es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("El nombre de la categoría es obligatorio y no puede contener únicamente espacios.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // Validación: Longitud máxima del nombre (50 caracteres según el modelo)
+                if (nombre.Length > 50)
+                {
+                    MessageBox.Show("El nombre de la categoría no puede superar los 50 caracteres.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // Validación: Longitud máxima de la descripción (300 caracteres según el modelo)
+                if (descripcion.Length > 300)
+                {
+                    MessageBox.Show("La descripción no puede superar los 300 caracteres.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtDescripcion.Focus();
+                    return;
+                }
+
+                // Validación: Evitar nombres de categoría duplicados
+                var listaExistente = _categoriaService.ObtenerTodas();
+                if (listaExistente.Any(c => c.Nombre.Equals(nombre, StringComparison.OrdinalIgnoreCase) && c.Id != _idSeleccionado))
+                {
+                    MessageBox.Show("Ya existe otra categoría registrada con este mismo nombre.", "Nombre duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtNombre.Focus();
                     return;
                 }
@@ -139,6 +164,15 @@ namespace VentasOnline.Forms
                 }
                 else
                 {
+                    // Validar que la categoría todavía exista antes de actualizarla
+                    if (!listaExistente.Any(c => c.Id == _idSeleccionado))
+                    {
+                        MessageBox.Show("La categoría seleccionada ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        CargarCategorias();
+                        LimpiarFormulario();
+                        return;
+                    }
+
                     _categoriaService.Actualizar(categoria);
                     MessageBox.Show("Categoría actualizada con éxito.", "VentasOnline", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -159,6 +193,16 @@ namespace VentasOnline.Forms
         {
             // Validación: si no hay una categoría seleccionada no se hace nada
             if (_idSeleccionado == 0) return;
+
+            // Validar que la categoría exista antes de intentar eliminarla
+            var listaExistente = _categoriaService.ObtenerTodas();
+            if (!listaExistente.Any(c => c.Id == _idSeleccionado))
+            {
+                MessageBox.Show("La categoría seleccionada ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CargarCategorias();
+                LimpiarFormulario();
+                return;
+            }
 
             var respuesta = MessageBox.Show($"¿Estás seguro de eliminar la categoría \"{txtNombre.Text}\"?", "Eliminar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (respuesta != DialogResult.Yes) return;

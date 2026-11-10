@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Drawing;
 using System.Linq;
-using System.Windows.Forms;
+using VentasOnline.Data;
 using VentasOnline.Models;
 using VentasOnline.Services;
 
@@ -12,12 +14,17 @@ namespace VentasOnline.Forms
         // Servicio para manejar operaciones relacionadas con usuarios
         private readonly UsuarioService _usuarioService;
         private int _idSeleccionado = 0;
+        private readonly Usuario? _usuarioActual; // Usuario autenticado actualmente en la sesión
 
-        // Constructor que inicializa el formulario y el servicio de usuario
-        public FrmUsuario()
+        // Constructor por defecto que llama al constructor principal con null
+        public FrmUsuario() : this(null) { }
+
+        // Constructor que inicializa el formulario, el servicio de usuario y recibe la sesión actual
+        public FrmUsuario(Usuario? usuarioActual)
         {
             InitializeComponent();
             _usuarioService = new UsuarioService();
+            _usuarioActual = usuarioActual ?? Sesion.UsuarioActual;
         }
 
         // Evento que se ejecuta al cargar el formulario, cargando los usuarios y limpiando el formulario
@@ -27,6 +34,12 @@ namespace VentasOnline.Forms
             {
                 CargarUsuarios();
                 LimpiarFormulario();
+
+                // Asegurar que el botón de eliminar inicie deshabilitado al cargar
+                if (btnEliminar != null)
+                {
+                    btnEliminar.Enabled = false;
+                }
 
                 // 💡 Suscribir el evento de búsqueda en tiempo real por correo
                 if (txtBusqueda != null)
@@ -99,6 +112,12 @@ namespace VentasOnline.Forms
                 {
                     cmbRol.SelectedIndex = 0;
                 }
+
+                // Habilitar el botón de eliminar al seleccionar un usuario válido de la grilla
+                if (btnEliminar != null)
+                {
+                    btnEliminar.Enabled = true;
+                }
             }
         }
 
@@ -115,19 +134,112 @@ namespace VentasOnline.Forms
             {
                 // Validación de campos obligatorios
                 string nombre = txtNombre.Text.Trim();
-                string correo = txtCorreo.Text.Trim();
+                string correo = txtCorreo.Text.Trim().ToLowerInvariant(); // Normalización a minúsculas
                 string password = txtPassword.Text;
                 string telefono = txtTelefono.Text.Trim();
 
-                // Si el ComboBox tiene un índice 0 o el texto es el placeholder, enviamos vacío para que valide el servicio
-                string rol = (cmbRol.SelectedIndex > 0 && cmbRol.SelectedItem != null)
-                    ? cmbRol.SelectedItem.ToString()!
-                    : string.Empty;
+                // Validación: El nombre no puede estar vacío ni contener únicamente espacios
+                if (string.IsNullOrWhiteSpace(nombre))
+                {
+                    MessageBox.Show("El nombre del usuario es obligatorio y no puede contener únicamente espacios.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // Validación: Longitud máxima del nombre (100 caracteres)
+                if (nombre.Length > 100)
+                {
+                    MessageBox.Show("El nombre del usuario no puede superar los 100 caracteres.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // Validación: El correo electrónico no puede estar vacío
+                if (string.IsNullOrWhiteSpace(correo))
+                {
+                    MessageBox.Show("El correo electrónico del usuario es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
+                    return;
+                }
+
+                // Validación: Longitud máxima del correo (150 caracteres)
+                if (correo.Length > 150)
+                {
+                    MessageBox.Show("El correo electrónico no puede superar los 150 caracteres.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
+                    return;
+                }
 
                 // Validamos que el Email sea válido
                 if (!new EmailAddressAttribute().IsValid(correo))
                 {
                     MessageBox.Show("Escribe un correo electrónico válido.", "Correo no válido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
+                    return;
+                }
+
+                // Validación: El teléfono es obligatorio
+                if (string.IsNullOrWhiteSpace(telefono))
+                {
+                    MessageBox.Show("El teléfono del usuario es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtTelefono.Focus();
+                    return;
+                }
+
+                // Validación: El teléfono debe contener únicamente números y exactamente 8 dígitos
+                if (!System.Text.RegularExpressions.Regex.IsMatch(telefono, @"^\d{8}$"))
+                {
+                    MessageBox.Show("El teléfono debe contener únicamente números y tener una longitud exacta de 8 dígitos.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtTelefono.Focus();
+                    return;
+                }
+
+                // Validación de Rol explícito (asumiendo que el índice 0 es un texto de selección o vacío)
+                if (cmbRol.SelectedIndex <= 0 || cmbRol.SelectedItem == null)
+                {
+                    MessageBox.Show("Debe seleccionar un rol válido para el usuario.", "Rol requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    cmbRol.Focus();
+                    return;
+                }
+
+                string rol = cmbRol.SelectedItem.ToString()!;
+
+                // Validación de Contraseña
+                if (_idSeleccionado == 0)
+                {
+                    if (string.IsNullOrEmpty(password))
+                    {
+                        MessageBox.Show("La contraseña es obligatoria para un nuevo usuario.", "Contraseña requerida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtPassword.Focus();
+                        return;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(password))
+                {
+                    if (password.Length < 6)
+                    {
+                        MessageBox.Show("La contraseña debe tener al menos 6 caracteres.", "Seguridad de contraseña", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtPassword.Focus();
+                        return;
+                    }
+
+                    // Validar complejidad básica (letras y números)
+                    bool tieneLetras = password.Any(char.IsLetter);
+                    bool tieneDigitos = password.Any(char.IsDigit);
+                    if (!tieneLetras || !tieneDigitos)
+                    {
+                        MessageBox.Show("La contraseña debe contener al menos una letra y un número.", "Seguridad de contraseña", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtPassword.Focus();
+                        return;
+                    }
+                }
+
+                // Validación de unicidad de correo en base de datos
+                var listaUsuarios = _usuarioService.ObtenerTodas();
+                if (listaUsuarios.Any(u => u.Correo != null && u.Correo.Equals(correo, StringComparison.OrdinalIgnoreCase) && u.Id != _idSeleccionado))
+                {
+                    MessageBox.Show("Ya existe otro usuario registrado con este mismo correo electrónico.", "Correo duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtCorreo.Focus();
                     return;
                 }
@@ -142,6 +254,8 @@ namespace VentasOnline.Forms
                     Rol = rol
                 };
 
+                using var dbCheck = new AppDbContext();
+
                 if (_idSeleccionado == 0)
                 {
                     // Guardamos el nuevo usuario
@@ -150,6 +264,16 @@ namespace VentasOnline.Forms
                 }
                 else
                 {
+                    // Validar que el usuario todavía exista antes de actualizarlo
+                    var usuarioExistente = dbCheck.Usuarios.Find(_idSeleccionado);
+                    if (usuarioExistente == null)
+                    {
+                        MessageBox.Show("El usuario seleccionado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        CargarUsuarios();
+                        LimpiarFormulario();
+                        return;
+                    }
+
                     // Actualizamos el usuario existente
                     _usuarioService.Actualizar(usuario, password);
                     MessageBox.Show("Usuario actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -172,6 +296,35 @@ namespace VentasOnline.Forms
             {
                 MessageBox.Show("Seleccione un usuario de la lista para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
+            }
+
+            // Evitar que un usuario pueda eliminarse a sí mismo
+            if (_usuarioActual != null && _usuarioActual.Id == _idSeleccionado)
+            {
+                MessageBox.Show("No puedes eliminar tu propia cuenta de usuario activa.", "Acción no permitida", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                return;
+            }
+
+            // Validar que el usuario a eliminar exista en la base de datos
+            using var db = new AppDbContext();
+            var usuarioAEliminar = db.Usuarios.Find(_idSeleccionado);
+            if (usuarioAEliminar == null)
+            {
+                MessageBox.Show("El usuario seleccionado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CargarUsuarios();
+                LimpiarFormulario();
+                return;
+            }
+
+            // Evitar eliminar el último administrador del sistema
+            if (usuarioAEliminar.Rol.Equals("Administrador", StringComparison.OrdinalIgnoreCase))
+            {
+                int totalAdministradores = db.Usuarios.Count(u => u.Rol.Equals("Administrador", StringComparison.OrdinalIgnoreCase));
+                if (totalAdministradores <= 1)
+                {
+                    MessageBox.Show("No se puede eliminar el último administrador registrado en el sistema.", "Restricción de seguridad", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    return;
+                }
             }
 
             // Confirmación antes de eliminar
@@ -215,6 +368,13 @@ namespace VentasOnline.Forms
             txtPassword.Clear();
             txtTelefono.Clear();
             if (cmbRol.Items.Count > 0) cmbRol.SelectedIndex = 0;
+
+            // Deshabilitar el botón de eliminar al limpiar el formulario
+            if (btnEliminar != null)
+            {
+                btnEliminar.Enabled = false;
+            }
+
             txtNombre.Focus();
         }
     }

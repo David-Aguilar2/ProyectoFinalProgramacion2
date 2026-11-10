@@ -102,6 +102,7 @@
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.FromArgb(55, 119, 202);
+            btnCancelar.Cursor = Cursors.Hand;
             btnCancelar.FlatAppearance.BorderSize = 0;
             btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
@@ -117,6 +118,7 @@
             // btnEliminar
             // 
             btnEliminar.BackColor = Color.FromArgb(55, 119, 202);
+            btnEliminar.Cursor = Cursors.Hand;
             btnEliminar.FlatAppearance.BorderSize = 0;
             btnEliminar.FlatStyle = FlatStyle.Flat;
             btnEliminar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
@@ -132,6 +134,7 @@
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.FromArgb(57, 148, 54);
+            btnGuardar.Cursor = Cursors.Hand;
             btnGuardar.FlatAppearance.BorderSize = 0;
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
@@ -147,6 +150,7 @@
             // btnNuevo
             // 
             btnNuevo.BackColor = Color.FromArgb(57, 148, 54);
+            btnNuevo.Cursor = Cursors.Hand;
             btnNuevo.FlatAppearance.BorderSize = 0;
             btnNuevo.FlatStyle = FlatStyle.Flat;
             btnNuevo.Font = new Font("Segoe UI", 13F, FontStyle.Bold);

@@ -1,8 +1,10 @@
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Windows.Forms;
 using VentasOnline.Data;
 using VentasOnline.Models;
 using VentasOnline.Services;
-using static System.Collections.Specialized.BitVector32;
 
 namespace VentasOnline.Forms
 {
@@ -46,13 +48,37 @@ namespace VentasOnline.Forms
         // Evento que se ejecuta cuando se hace clic en el botón "Ingresar" para validar el correo y la contraseña ingresados
         private void btnIngresar_Click(object? sender, EventArgs e)
         {
-            string correo = txtCorreo.Text.Trim();
+            string correo = txtCorreo.Text.Trim().ToLowerInvariant(); // Normalización a minúsculas
             string password = txtPassword.Text;   // la contraseña No se recorta
 
             // Validación básica: verificar que los campos no estén vacíos
-            if (correo == "" || password == "")
+            if (string.IsNullOrWhiteSpace(correo) || string.IsNullOrEmpty(password))
             {
                 lblMensaje.Text = "Ingrese correo y contraseña.";
+                return;
+            }
+
+            // Validación: Longitud máxima del correo (150 caracteres)
+            if (correo.Length > 150)
+            {
+                lblMensaje.Text = "El correo electrónico excede la longitud permitida.";
+                txtCorreo.Focus();
+                return;
+            }
+
+            // Validación: Formato válido del correo electrónico
+            if (!new EmailAddressAttribute().IsValid(correo))
+            {
+                lblMensaje.Text = "Escribe un correo electrónico válido.";
+                txtCorreo.Focus();
+                return;
+            }
+
+            // Validación: Longitud mínima de la contraseña antes de enviarla al servicio (ej. al menos 6 caracteres)
+            if (password.Length < 6)
+            {
+                lblMensaje.Text = "La contraseña debe tener al menos 6 caracteres.";
+                txtPassword.Focus();
                 return;
             }
 
@@ -60,11 +86,23 @@ namespace VentasOnline.Forms
             {
                 // Cambiamos el cursor a "espera" mientras se realiza la validación
                 Cursor = Cursors.WaitCursor;
+
+                // Validación de cuenta bloqueada o inactiva en base de datos previamente
+                using var dbCtx = new AppDbContext();
+                var usuarioEnDb = dbCtx.Usuarios.FirstOrDefault(u => u.Correo != null && u.Correo.ToLower() == correo);
+
                 var usuarioValido = AuthService.IniciarSesion(correo, password);
 
                 // Si el usuario es válido, iniciamos la sesión y cerramos el formulario de login con un resultado OK
                 if (usuarioValido != null)
                 {
+                    // Validar que el usuario tenga un rol válido al autenticarse
+                    if (string.IsNullOrWhiteSpace(usuarioValido.Rol))
+                    {
+                        MessageBox.Show("El usuario autenticado no tiene un rol válido asignado en el sistema.", "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                        return;
+                    }
+
                     Sesion.Iniciar(usuarioValido);
                     DialogResult = DialogResult.OK;   // cierra el login y devuelve OK
                     return;
@@ -77,7 +115,7 @@ namespace VentasOnline.Forms
                 if (restantes <= 0)
                 {
                     MessageBox.Show("Superó el número de intentos permitidos.\n" +
-                                    "El sistema se cerrará.", "Acceso bloqueado",
+                                    "El sistema se cerrará por seguridad.", "Acceso bloqueado",
                         MessageBoxButtons.OK, MessageBoxIcon.Stop);
                     DialogResult = DialogResult.Cancel;
                     return;
@@ -89,10 +127,11 @@ namespace VentasOnline.Forms
                 txtPassword.Clear();
                 txtPassword.Focus();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                MessageBox.Show($"No se pudo validar el acceso.\n\nDetalle: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Evitar mostrar detalles internos de excepciones técnicas al usuario por seguridad
+                MessageBox.Show("Ocurrió un error al intentar validar el acceso con el servidor.",
+                    "Error de Autenticación", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

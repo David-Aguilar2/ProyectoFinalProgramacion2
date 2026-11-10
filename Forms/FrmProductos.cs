@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using VentasOnline.Data;
 using VentasOnline.Models;
 using VentasOnline.Services;
 
@@ -37,6 +38,12 @@ namespace VentasOnline.Forms
             CargarComboProveedores();
             CargarGrilla();
             LimpiarFormulario();
+
+            // Asegurar que el botón de eliminar inicie deshabilitado al cargar el formulario
+            if (btnEliminar != null)
+            {
+                btnEliminar.Enabled = false;
+            }
 
             // 💡 Suscribir el evento de búsqueda en tiempo real por nombre de producto
             if (txtBusqueda != null)
@@ -99,7 +106,7 @@ namespace VentasOnline.Forms
                 var lista = query.Select(p => new
                 {
                     p.Id,
-                    Categoria = p.Categoria.Nombre ?? "Sin Categoría",
+                    Categoria = p.Categoria != null ? p.Categoria.Nombre : "Sin Categoría",
                     Proveedor = p.Proveedor != null ? p.Proveedor.Nombre : "Sin Proveedor",
                     p.Nombre,
                     p.Descripcion,
@@ -159,6 +166,12 @@ namespace VentasOnline.Forms
                     numericStock.Value = seleccionado.Stock;
                     txtImagen.Text = seleccionado.ImagenUrl ?? string.Empty;
                     _rutaOrigenImagen = string.Empty;
+
+                    // Habilitar el botón de eliminar al seleccionar un producto válido de la grilla
+                    if (btnEliminar != null)
+                    {
+                        btnEliminar.Enabled = true;
+                    }
                 }
             }
         }
@@ -172,7 +185,41 @@ namespace VentasOnline.Forms
                 dialog.Filter = "Archivos de Imagen|*.jpg;*.jpeg;*.png;*.bmp;*.webp";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    _rutaOrigenImagen = dialog.FileName;// Almacena la ruta completa de la imagen seleccionada
+                    string rutaSeleccionada = dialog.FileName;
+
+                    // Validar existencia física del archivo
+                    if (!File.Exists(rutaSeleccionada))
+                    {
+                        MessageBox.Show("El archivo de imagen seleccionado no existe.", "Error de archivo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    // Validar tamaño máximo (Ej. máximo 5 MB)
+                    FileInfo fi = new FileInfo(rutaSeleccionada);
+                    if (fi.Length > 5 * 1024 * 1024)
+                    {
+                        MessageBox.Show("El tamaño de la imagen no puede superar los 5 MB.", "Archivo muy pesado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    // Validar que realmente sea una imagen válida cargándola en memoria
+                    try
+                    {
+                        using (var imgTemp = Image.FromFile(rutaSeleccionada))
+                        {
+                            if (imgTemp.Width == 0 || imgTemp.Height == 0)
+                            {
+                                throw new Exception();
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        MessageBox.Show("El archivo seleccionado no es una imagen válida o está dañado.", "Imagen inválida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    _rutaOrigenImagen = rutaSeleccionada;// Almacena la ruta completa de la imagen validada
                     txtImagen.Text = Path.GetFileName(_rutaOrigenImagen);// Muestra solo el nombre del archivo en el campo de texto
                 }
             }
@@ -198,6 +245,16 @@ namespace VentasOnline.Forms
                     return;
                 }
 
+                // Verificar que la categoría todavía exista en la base de datos
+                using var dbCtx = new AppDbContext();
+                bool categoriaExiste = dbCtx.Categorias.Any(c => c.Id == idCategoriaSeleccionada);
+                if (!categoriaExiste)
+                {
+                    MessageBox.Show("La categoría seleccionada ya no existe en la base de datos.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    CargarComboCategorias();
+                    return;
+                }
+
                 // 2. Validar Proveedor
                 int idProveedorSeleccionado = Convert.ToInt32(cmbProveedor.SelectedValue);
                 if (idProveedorSeleccionado <= 0)
@@ -207,26 +264,80 @@ namespace VentasOnline.Forms
                     return;
                 }
 
-                // 3. Validar Nombre
-                if (string.IsNullOrWhiteSpace(txtNombre.Text))
+                // Verificar que el proveedor todavía exista en la base de datos
+                bool proveedorExiste = dbCtx.Proveedores.Any(p => p.Id == idProveedorSeleccionado);
+                if (!proveedorExiste)
                 {
-                    MessageBox.Show("El nombre del producto es obligatorio.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("El proveedor seleccionado ya no existe en la base de datos.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    CargarComboProveedores();
+                    return;
+                }
+
+                // 3. Validar Nombre
+                string nombreProducto = txtNombre.Text.Trim();
+                if (string.IsNullOrWhiteSpace(nombreProducto))
+                {
+                    MessageBox.Show("El nombre del producto es obligatorio y no puede contener únicamente espacios.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtNombre.Focus();
                     return;
                 }
 
-                // 4. Validar Precio
-                if (numericPrecio.Value <= 0)
+                // Longitud máxima del nombre (100 caracteres)
+                if (nombreProducto.Length > 100)
+                {
+                    MessageBox.Show("El nombre del producto no puede superar los 100 caracteres.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // Validar longitud de la descripción (máximo 255 caracteres)
+                string descripcionProducto = txtDescripcion.Text.Trim();
+                if (descripcionProducto.Length > 255)
+                {
+                    MessageBox.Show("La descripción del producto no puede superar los 255 caracteres.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtDescripcion.Focus();
+                    return;
+                }
+
+                // Verificar que el nombre del producto no esté duplicado
+                bool nombreDuplicado = dbCtx.Productos.Any(p => p.Nombre != null && p.Nombre.ToLower() == nombreProducto.ToLower() && p.Id != _idSeleccionado);
+                if (nombreDuplicado)
+                {
+                    MessageBox.Show("Ya existe otro producto registrado con este mismo nombre.", "Nombre duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // 4. Validar Precio (Mayor a cero, límite decimal(10,2) y máximo 2 decimales)
+                decimal precio = numericPrecio.Value;
+                if (precio <= 0)
                 {
                     MessageBox.Show("El precio debe ser mayor a cero.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     numericPrecio.Focus();
                     return;
                 }
 
-                // 5. Validar Stock (Entero y no negativo)
-                if (numericStock.Value < 0 || numericStock.Value % 1 != 0)
+                if (precio > 99999999.99m)
                 {
-                    MessageBox.Show("El stock debe ser un número entero válido (no se permiten negativos ni decimales).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("El precio supera el límite máximo permitido por el sistema.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    numericPrecio.Focus();
+                    return;
+                }
+
+                // Comprobar máximo 2 decimales
+                decimal decimalesVerificacion = (precio * 100) % 1;
+                if (decimalesVerificacion != 0)
+                {
+                    MessageBox.Show("El precio debe tener como máximo dos decimales.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    numericPrecio.Focus();
+                    return;
+                }
+
+                // 5. Validar Stock (Entero, no negativo y con un límite máximo razonable de 1,000,000)
+                int stock = (int)numericStock.Value;
+                if (numericStock.Value < 0 || numericStock.Value % 1 != 0 || stock > 1000000)
+                {
+                    MessageBox.Show("El stock debe ser un número entero válido entre 0 y 1,000,000.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     numericStock.Focus();
                     return;
                 }
@@ -246,29 +357,33 @@ namespace VentasOnline.Forms
 
                 if (esActualizacion)
                 {
-                    var productoActual = _productoService.ObtenerPorId(_idSeleccionado);
-                    // Si el producto existe, se mantiene la fecha de publicación original
-                    if (productoActual != null)
+                    // Validar que el producto todavía exista antes de actualizarlo
+                    var productoActual = dbCtx.Productos.Find(_idSeleccionado);
+                    if (productoActual == null)
                     {
-                        fechaFinalPublicacion = productoActual.FechaPublicacion;
-                        // Si se seleccionó una nueva imagen, se copia a la carpeta local y se elimina la anterior
-                        if (!string.IsNullOrEmpty(_rutaOrigenImagen))
-                        {
-                            rutaRelativaImagenBD = CopiarImagenACarpetaLocal(_rutaOrigenImagen);
+                        MessageBox.Show("El producto seleccionado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        CargarGrilla();
+                        LimpiarFormulario();
+                        return;
+                    }
 
-                            // Eliminar la imagen anterior si existe
-                            if (!string.IsNullOrEmpty(productoActual.ImagenUrl))
-                            {
-                                string rutaBase = Application.StartupPath;
-                                string rutaImagenAnterior = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images", productoActual.ImagenUrl));
-                                // Eliminar la imagen anterior si existe
-                                if (File.Exists(rutaImagenAnterior)) File.Delete(rutaImagenAnterior);
-                            }
-                        }
-                        else
+                    fechaFinalPublicacion = productoActual.FechaPublicacion;
+                    // Si se seleccionó una nueva imagen, se copia a la carpeta local y se elimina la anterior
+                    if (!string.IsNullOrEmpty(_rutaOrigenImagen))
+                    {
+                        rutaRelativaImagenBD = CopiarImagenACarpetaLocal(_rutaOrigenImagen);
+
+                        // Eliminar la imagen anterior si existe
+                        if (!string.IsNullOrEmpty(productoActual.ImagenUrl))
                         {
-                            rutaRelativaImagenBD = productoActual.ImagenUrl;// Mantener la imagen anterior si no se seleccionó una nueva
+                            string rutaBase = Application.StartupPath;
+                            string rutaImagenAnterior = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images", productoActual.ImagenUrl));
+                            if (File.Exists(rutaImagenAnterior)) File.Delete(rutaImagenAnterior);
                         }
+                    }
+                    else
+                    {
+                        rutaRelativaImagenBD = productoActual.ImagenUrl;// Mantener la imagen anterior si no se seleccionó una nueva
                     }
                 }
                 else
@@ -286,10 +401,10 @@ namespace VentasOnline.Forms
                     Id = _idSeleccionado,
                     IdCategoria = idCategoriaSeleccionada,
                     IdProveedor = idProveedorSeleccionado,
-                    Nombre = txtNombre.Text.Trim(),
-                    Descripcion = txtDescripcion.Text.Trim(),
-                    Precio = numericPrecio.Value,
-                    Stock = (int)numericStock.Value,
+                    Nombre = nombreProducto,
+                    Descripcion = descripcionProducto,
+                    Precio = precio,
+                    Stock = stock,
                     ImagenUrl = rutaRelativaImagenBD,
                     FechaPublicacion = fechaFinalPublicacion
                 };
@@ -328,6 +443,24 @@ namespace VentasOnline.Forms
                 return;
             }
 
+            // Validar que el producto exista antes de eliminarlo y comprobar que no tenga pedidos asociados
+            using var dbCtx = new AppDbContext();
+            var productoAEliminar = dbCtx.Productos.Find(_idSeleccionado);
+            if (productoAEliminar == null)
+            {
+                MessageBox.Show("El producto seleccionado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CargarGrilla();
+                LimpiarFormulario();
+                return;
+            }
+
+            bool tienePedidosAsociados = dbCtx.DetallesPedidos.Any(dp => dp.IdProducto == _idSeleccionado);
+            if (tienePedidosAsociados)
+            {
+                MessageBox.Show("No se puede eliminar el producto porque tiene pedidos o ventas asociadas en el historial.", "Restricción de integridad", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                return;
+            }
+
             var confirmacion = MessageBox.Show($"¿Está seguro de eliminar el producto '{txtNombre.Text}'?",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -336,9 +469,8 @@ namespace VentasOnline.Forms
             {
                 try
                 {
-                    var productoAEliminar = _productoService.ObtenerPorId(_idSeleccionado);
                     // Eliminar la imagen asociada al producto si existe
-                    if (productoAEliminar != null && !string.IsNullOrEmpty(productoAEliminar.ImagenUrl))
+                    if (!string.IsNullOrEmpty(productoAEliminar.ImagenUrl))
                     {
                         string rutaBase = Application.StartupPath;
                         string rutaImagenFisica = Path.GetFullPath(Path.Combine(rutaBase, @"..\..\..\Images", productoAEliminar.ImagenUrl));
@@ -381,6 +513,13 @@ namespace VentasOnline.Forms
             numericStock.Value = 0;
             txtImagen.Clear();
             _rutaOrigenImagen = string.Empty;
+
+            // Deshabilitar el botón de eliminar al limpiar el formulario
+            if (btnEliminar != null)
+            {
+                btnEliminar.Enabled = false;
+            }
+
             cmbCategoria.Focus();
         }
 

@@ -150,6 +150,7 @@
             // btnEliminar
             // 
             btnEliminar.BackColor = Color.FromArgb(55, 119, 202);
+            btnEliminar.Cursor = Cursors.Hand;
             btnEliminar.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEliminar.ForeColor = Color.White;
             btnEliminar.Location = new Point(23, 476);
@@ -163,6 +164,7 @@
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.FromArgb(55, 119, 202);
+            btnCancelar.Cursor = Cursors.Hand;
             btnCancelar.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelar.ForeColor = Color.White;
             btnCancelar.Location = new Point(171, 476);
@@ -176,6 +178,7 @@
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.ForestGreen;
+            btnGuardar.Cursor = Cursors.Hand;
             btnGuardar.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardar.ForeColor = Color.White;
             btnGuardar.Location = new Point(171, 385);
@@ -189,6 +192,7 @@
             // btnNuevo
             // 
             btnNuevo.BackColor = Color.ForestGreen;
+            btnNuevo.Cursor = Cursors.Hand;
             btnNuevo.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnNuevo.ForeColor = Color.White;
             btnNuevo.Location = new Point(23, 385);

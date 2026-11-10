@@ -25,7 +25,27 @@ namespace VentasOnline.Forms
         public FrmDireccion(int idCliente)
         {
             InitializeComponent();
+
+            // Validación: El identificador del cliente debe ser mayor que cero
+            if (idCliente <= 0)
+            {
+                MessageBox.Show("El identificador del cliente no es válido.", "Error de inicialización", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new MethodInvoker(Close));
+                return;
+            }
+
             _idClienteRecibido = idCliente;
+
+            // Validación: Verificar que el cliente recibido exista realmente en la base de datos
+            using var ctxCheck = new AppDbContext();
+            bool clienteExiste = ctxCheck.Clientes.Any(c => c.Id == _idClienteRecibido);
+            if (!clienteExiste)
+            {
+                MessageBox.Show("El cliente especificado no existe en la base de datos.", "Error de inicialización", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new MethodInvoker(Close));
+                return;
+            }
+
             CargarInformacionClienteInicial();
             ConfigurarFormulario();
         }
@@ -225,22 +245,67 @@ namespace VentasOnline.Forms
                 string departamento = cboDepartamento.SelectedItem?.ToString()?.Trim() ?? string.Empty;
                 string ubicacion = txtUbicacion.Text.Trim();
 
-                if (string.IsNullOrEmpty(departamento))
+                // Validación: Departamento seleccionado obligatorio y válido dentro de la lista permitida
+                if (string.IsNullOrEmpty(departamento) || !cboDepartamento.Items.Contains(departamento))
                 {
-                    MessageBox.Show("Debe seleccionar un departamento.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Debe seleccionar un departamento válido de la lista.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     cboDepartamento.Focus();
                     return;
                 }
 
-                if (string.IsNullOrEmpty(ubicacion))
+                // Validación: Longitud máxima del departamento (100 caracteres según el modelo)
+                if (departamento.Length > 100)
                 {
-                    MessageBox.Show("La ubicación exacta es obligatoria.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("El departamento seleccionado supera la longitud permitida.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Validación: La ubicación exacta no puede estar vacía ni contener únicamente espacios
+                if (string.IsNullOrWhiteSpace(ubicacion))
+                {
+                    MessageBox.Show("La ubicación exacta es obligatoria y no puede contener únicamente espacios.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtUbicacion.Focus();
+                    return;
+                }
+
+                // Validación: Longitud mínima razonable de la ubicación (al menos 5 caracteres)
+                if (ubicacion.Length < 5)
+                {
+                    MessageBox.Show("La ubicación exacta es demasiado corta. Debe tener al menos 5 caracteres.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtUbicacion.Focus();
+                    return;
+                }
+
+                // Validación: Longitud máxima de la ubicación (255 caracteres según el modelo)
+                if (ubicacion.Length > 255)
+                {
+                    MessageBox.Show("La ubicación exacta no puede superar los 255 caracteres.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtUbicacion.Focus();
+                    return;
+                }
+
+                using var ctxDb = new AppDbContext();
+
+                // Validar que el cliente receptor todavía exista
+                bool clienteAunExiste = ctxDb.Clientes.Any(c => c.Id == _idClienteRecibido);
+                if (!clienteAunExiste)
+                {
+                    MessageBox.Show("El cliente asociado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Close();
                     return;
                 }
 
                 if (_idDireccionSeleccionada == 0)
                 {
+                    // Control de condición de carrera: Verificar que el cliente no haya registrado una dirección simultáneamente (Regla 1:1)
+                    bool yaTieneDireccion = ctxDb.Direcciones.Any(d => d.IdCliente == _idClienteRecibido);
+                    if (yaTieneDireccion)
+                    {
+                        MessageBox.Show("El cliente ya cuenta con una dirección registrada. Solo se permite una dirección por cliente.", "Restricción 1:1", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        CargarDireccionExistenteDelCliente();
+                        return;
+                    }
+
                     var nuevaDireccion = new Direccion
                     {
                         IdCliente = _idClienteRecibido,
@@ -253,6 +318,30 @@ namespace VentasOnline.Forms
                 }
                 else
                 {
+                    // Validar que la dirección pertenezca realmente al cliente seleccionado antes de actualizarla
+                    var direccionEnDb = ctxDb.Direcciones.Find(_idDireccionSeleccionada);
+                    if (direccionEnDb == null)
+                    {
+                        MessageBox.Show("La dirección seleccionada ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        CargarGrillaDirecciones();
+                        RestablecerModoCreacion();
+                        return;
+                    }
+
+                    if (direccionEnDb.IdCliente != _idClienteRecibido)
+                    {
+                        MessageBox.Show("La dirección seleccionada no pertenece al cliente actual.", "Restricción de seguridad", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                        return;
+                    }
+
+                    // Evitar modificar una dirección utilizada por envíos ya entregados
+                    bool enviosEntregadosAsociados = ctxDb.Envios.Any(e => e.IdDireccion == _idDireccionSeleccionada && e.Estado.Equals("Entregado", StringComparison.OrdinalIgnoreCase));
+                    if (enviosEntregadosAsociados)
+                    {
+                        MessageBox.Show("No se puede modificar la dirección porque está asociada a un envío que ya ha sido entregado.", "Restricción de seguridad", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                        return;
+                    }
+
                     var direccionActualizada = new Direccion
                     {
                         Id = _idDireccionSeleccionada,
@@ -280,6 +369,33 @@ namespace VentasOnline.Forms
             if (_idDireccionSeleccionada == 0)
             {
                 MessageBox.Show("Seleccione de la grilla la dirección que desea eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var ctxDb = new AppDbContext();
+
+            // Validar que la dirección exista
+            var direccionAEliminar = ctxDb.Direcciones.Find(_idDireccionSeleccionada);
+            if (direccionAEliminar == null)
+            {
+                MessageBox.Show("La dirección seleccionada ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CargarGrillaDirecciones();
+                RestablecerModoCreacion();
+                return;
+            }
+
+            // Validar que la dirección pertenezca al cliente correcto
+            if (direccionAEliminar.IdCliente != _idClienteRecibido)
+            {
+                MessageBox.Show("La dirección seleccionada no pertenece al cliente actual.", "Restricción de seguridad", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                return;
+            }
+
+            // Validar que una dirección no tenga envíos asociados antes de eliminarla
+            bool tieneEnviosAsociados = ctxDb.Envios.Any(e => e.IdDireccion == _idDireccionSeleccionada);
+            if (tieneEnviosAsociados)
+            {
+                MessageBox.Show("No se puede eliminar la dirección porque tiene envíos registrados en el sistema.", "Restricción de integridad", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 return;
             }
 

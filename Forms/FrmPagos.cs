@@ -253,6 +253,20 @@ namespace VentasOnline.Forms
                 string estado = cboEstado.SelectedItem?.ToString() ?? "Pendiente";
                 string metodo = cboMetodo.SelectedItem?.ToString() ?? "Por definir";
 
+                // Validación: El estado debe pertenecer exclusivamente a los valores permitidos
+                if (estado != "Pendiente" && estado != "Completado" && estado != "Cancelado")
+                {
+                    MessageBox.Show("El estado de pago seleccionado no es válido.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Validación: El método de pago debe pertenecer exclusivamente a los valores permitidos
+                if (metodo != "Por definir" && metodo != "Efectivo" && metodo != "Tarjeta" && metodo != "Transferencia")
+                {
+                    MessageBox.Show("El método de pago seleccionado no es válido.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 // Validación: No permitir guardar "Por definir" si el estado es Completado
                 if (estado == "Completado" && (string.IsNullOrWhiteSpace(metodo) || metodo == "Por definir"))
                 {
@@ -260,8 +274,47 @@ namespace VentasOnline.Forms
                     return;
                 }
 
-                // VALIDACIÓN REGLA CONTRA ENTREGA: Verificar el estado del envío antes de permitir cobrar/pagar
                 using var ctx = new AppDbContext();
+
+                // Validación: Comprobar que el pago y el pedido todavía existan en la base de datos
+                var pagoActualEnDb = ctx.Pagos.Find(_pagoIdSeleccionado);
+                if (pagoActualEnDb == null)
+                {
+                    MessageBox.Show("El registro de pago seleccionado ya no existe en la base de datos.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    CargarPagosSegunFiltro();
+                    return;
+                }
+
+                var pedidoActual = ctx.Pedidos.Include(p => p.Envios).FirstOrDefault(p => p.Id == _idPedidoActual);
+                if (pedidoActual == null)
+                {
+                    MessageBox.Show("No se encontró el pedido asociado al pago.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Validación: Impedir cambios de estado no autorizados (ej. de Completado a Pendiente)
+                if (pagoActualEnDb.Estado.Equals("Completado", StringComparison.OrdinalIgnoreCase) && estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("No se permite cambiar un pago que ya se encuentra 'Completado' a estado 'Pendiente'.", "Restricción de seguridad", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    return;
+                }
+
+                // Validación: Impedir cambios de Cancelado a Completado sin autorización
+                if (pagoActualEnDb.Estado.Equals("Cancelado", StringComparison.OrdinalIgnoreCase) && estado.Equals("Completado", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("No se puede completar un pago que ha sido cancelado previamente.", "Restricción de seguridad", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    return;
+                }
+
+                // Validación: El monto total debe ser mayor que cero y coincidir exactamente con el total del pedido más el envío
+                decimal montoFinalConEnvio = pedidoActual.Total + pedidoActual.CostoEnvio;
+                if (montoFinalConEnvio <= 0)
+                {
+                    MessageBox.Show("El monto total del pago y envío debe ser mayor a cero.", "Validación de monto", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // VALIDACIÓN REGLA CONTRA ENTREGA: Verificar el estado del envío antes de permitir cobrar/pagar
                 var envioAsociado = ctx.Envios.FirstOrDefault(e => e.IdPedido == _idPedidoActual);
 
                 if (envioAsociado == null)
@@ -271,22 +324,12 @@ namespace VentasOnline.Forms
                     return;
                 }
 
-                if (envioAsociado.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                if (envioAsociado.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase) && estado.Equals("Completado", StringComparison.OrdinalIgnoreCase))
                 {
                     MessageBox.Show("No se puede procesar el pago. El envío asociado se encuentra en estado 'Pendiente'; debe pasar al menos a 'En tránsito' en el módulo de envíos.",
                         "Restricción de Pagos - Contra Entrega", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                     return;
                 }
-
-                var pedidoActual = _pedidoService.ListarPedidos().FirstOrDefault(p => p.Id == _idPedidoActual);
-                if (pedidoActual == null)
-                {
-                    MessageBox.Show("No se encontró el pedido asociado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                // El monto total a guardar incluye productos + costo de envío
-                decimal montoFinalConEnvio = pedidoActual.Total + pedidoActual.CostoEnvio;
 
                 // 1. Guardar o actualizar el pago
                 _pagoService.ActualizarPago(_pagoIdSeleccionado, estado, metodo, montoFinalConEnvio);

@@ -26,6 +26,7 @@ namespace VentasOnline.Forms
             desktopLabel = new Label();
             logoLabel = new Label();
             panel1 = new Panel();
+            btnGenerarReporte = new Button();
             empresaTransporte = new TextBox();
             txtGuiaTracking = new TextBox();
             lblTracking = new Label();
@@ -37,7 +38,6 @@ namespace VentasOnline.Forms
             btnCancelar = new Button();
             btnGuardar = new Button();
             dgvHistorial = new DataGridView();
-            btnGenerarReporte = new Button();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvHistorial).BeginInit();
             SuspendLayout();
@@ -123,6 +123,21 @@ namespace VentasOnline.Forms
             panel1.Size = new Size(342, 387);
             panel1.TabIndex = 13;
             // 
+            // btnGenerarReporte
+            // 
+            btnGenerarReporte.BackColor = Color.FromArgb(57, 148, 54);
+            btnGenerarReporte.Cursor = Cursors.Hand;
+            btnGenerarReporte.FlatAppearance.BorderSize = 0;
+            btnGenerarReporte.FlatStyle = FlatStyle.Flat;
+            btnGenerarReporte.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
+            btnGenerarReporte.ForeColor = Color.White;
+            btnGenerarReporte.Location = new Point(69, 342);
+            btnGenerarReporte.Name = "btnGenerarReporte";
+            btnGenerarReporte.Size = new Size(202, 35);
+            btnGenerarReporte.TabIndex = 19;
+            btnGenerarReporte.Text = "Generar reporte";
+            btnGenerarReporte.UseVisualStyleBackColor = true;
+            // 
             // empresaTransporte
             // 
             empresaTransporte.Location = new Point(169, 87);
@@ -198,6 +213,7 @@ namespace VentasOnline.Forms
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.FromArgb(55, 119, 202);
+            btnCancelar.Cursor = Cursors.Hand;
             btnCancelar.FlatAppearance.BorderSize = 0;
             btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
@@ -213,6 +229,7 @@ namespace VentasOnline.Forms
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.FromArgb(57, 148, 54);
+            btnGuardar.Cursor = Cursors.Hand;
             btnGuardar.FlatAppearance.BorderSize = 0;
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
@@ -264,20 +281,6 @@ namespace VentasOnline.Forms
             dgvHistorial.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvHistorial.Size = new Size(679, 387);
             dgvHistorial.TabIndex = 12;
-            // 
-            // btnGenerarReporte
-            // 
-            btnGenerarReporte.BackColor = Color.FromArgb(57, 148, 54);
-            btnGenerarReporte.FlatAppearance.BorderSize = 0;
-            btnGenerarReporte.FlatStyle = FlatStyle.Flat;
-            btnGenerarReporte.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
-            btnGenerarReporte.ForeColor = Color.White;
-            btnGenerarReporte.Location = new Point(69, 342);
-            btnGenerarReporte.Name = "btnGenerarReporte";
-            btnGenerarReporte.Size = new Size(202, 35);
-            btnGenerarReporte.TabIndex = 19;
-            btnGenerarReporte.Text = "Generar reporte";
-            btnGenerarReporte.UseVisualStyleBackColor = true;
             // 
             // FrmEnvio
             // 

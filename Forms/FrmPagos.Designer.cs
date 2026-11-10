@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             desktopLabel = new Label();
             logoLabel = new Label();
             panel1 = new Panel();
@@ -95,7 +95,7 @@
             // 
             lblFechaLabel.AutoSize = true;
             lblFechaLabel.ForeColor = Color.DimGray;
-            lblFechaLabel.Location = new Point(20, 188);
+            lblFechaLabel.Location = new Point(20, 228);
             lblFechaLabel.Name = "lblFechaLabel";
             lblFechaLabel.Size = new Size(245, 20);
             lblFechaLabel.TabIndex = 15;
@@ -105,7 +105,7 @@
             // 
             cboMetodo.DropDownStyle = ComboBoxStyle.DropDownList;
             cboMetodo.FormattingEnabled = true;
-            cboMetodo.Location = new Point(130, 132);
+            cboMetodo.Location = new Point(130, 166);
             cboMetodo.Name = "cboMetodo";
             cboMetodo.Size = new Size(151, 28);
             cboMetodo.TabIndex = 13;
@@ -113,7 +113,7 @@
             // lblMetodoLabel
             // 
             lblMetodoLabel.AutoSize = true;
-            lblMetodoLabel.Location = new Point(20, 135);
+            lblMetodoLabel.Location = new Point(20, 169);
             lblMetodoLabel.Name = "lblMetodoLabel";
             lblMetodoLabel.Size = new Size(104, 20);
             lblMetodoLabel.TabIndex = 14;
@@ -123,7 +123,7 @@
             // 
             cboEstado.DropDownStyle = ComboBoxStyle.DropDownList;
             cboEstado.FormattingEnabled = true;
-            cboEstado.Location = new Point(130, 84);
+            cboEstado.Location = new Point(130, 109);
             cboEstado.Name = "cboEstado";
             cboEstado.Size = new Size(151, 28);
             cboEstado.TabIndex = 12;
@@ -131,7 +131,7 @@
             // lblEstadoLabel
             // 
             lblEstadoLabel.AutoSize = true;
-            lblEstadoLabel.Location = new Point(20, 87);
+            lblEstadoLabel.Location = new Point(20, 112);
             lblEstadoLabel.Name = "lblEstadoLabel";
             lblEstadoLabel.Size = new Size(104, 20);
             lblEstadoLabel.TabIndex = 12;
@@ -160,6 +160,7 @@
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.FromArgb(55, 119, 202);
+            btnCancelar.Cursor = Cursors.Hand;
             btnCancelar.FlatAppearance.BorderSize = 0;
             btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
@@ -175,6 +176,7 @@
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.FromArgb(57, 148, 54);
+            btnGuardar.Cursor = Cursors.Hand;
             btnGuardar.FlatAppearance.BorderSize = 0;
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
@@ -191,23 +193,23 @@
             dgvHistorial.AllowUserToAddRows = false;
             dgvHistorial.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvHistorial.BackgroundColor = Color.FromArgb(222, 222, 222);
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.FromArgb(55, 55, 55);
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.White;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            dgvHistorial.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.FromArgb(55, 55, 55);
+            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle3.ForeColor = Color.White;
+            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
+            dgvHistorial.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dgvHistorial.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.FromArgb(38, 38, 38);
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.White;
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(55, 111, 161);
-            dataGridViewCellStyle2.SelectionForeColor = Color.White;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvHistorial.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.FromArgb(38, 38, 38);
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle4.ForeColor = Color.White;
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(55, 111, 161);
+            dataGridViewCellStyle4.SelectionForeColor = Color.White;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dgvHistorial.DefaultCellStyle = dataGridViewCellStyle4;
             dgvHistorial.EnableHeadersVisualStyles = false;
             dgvHistorial.GridColor = Color.FromArgb(55, 55, 55);
             dgvHistorial.Location = new Point(22, 177);

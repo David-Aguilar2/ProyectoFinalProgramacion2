@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -30,6 +31,12 @@ namespace VentasOnline.Forms
         {
             CargarGrilla();
             LimpiarFormulario();
+
+            // Asegurar que el botón de eliminar inicie deshabilitado
+            if (btnEliminar != null)
+            {
+                btnEliminar.Enabled = false;
+            }
 
             // 💡 Suscribir el evento de búsqueda en tiempo real por correo
             if (txtBusqueda != null)
@@ -90,6 +97,12 @@ namespace VentasOnline.Forms
                 txtNombre.Text = proveedorSeleccionado.Nombre;
                 txtTelefono.Text = proveedorSeleccionado.Telefono ?? string.Empty;
                 txtCorreo.Text = proveedorSeleccionado.Correo ?? string.Empty;
+
+                // Habilitar el botón de eliminar al seleccionar un proveedor válido
+                if (btnEliminar != null)
+                {
+                    btnEliminar.Enabled = true;
+                }
             }
         }
 
@@ -108,13 +121,78 @@ namespace VentasOnline.Forms
                 // Captura y limpia los espacios en blanco de los campos de texto
                 string nombre = txtNombre.Text.Trim();
                 string telefono = txtTelefono.Text.Trim();
-                string correo = txtCorreo.Text.Trim();
+                string correo = txtCorreo.Text.Trim().ToLowerInvariant(); // Normalización a minúsculas
 
-                // Validación obligatoria: El nombre del proveedor no puede estar vacío
-                if (string.IsNullOrEmpty(nombre))
+                // Validación obligatoria: El nombre del proveedor no puede estar vacío ni contener únicamente espacios
+                if (string.IsNullOrWhiteSpace(nombre))
                 {
-                    MessageBox.Show("El nombre del proveedor es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("El nombre del proveedor es obligatorio y no puede contener únicamente espacios.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtNombre.Focus();
+                    return;
+                }
+
+                // Validación: Longitud máxima del nombre (100 caracteres)
+                if (nombre.Length > 100)
+                {
+                    MessageBox.Show("El nombre del proveedor no puede superar los 100 caracteres.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // Validación: El teléfono es obligatorio
+                if (string.IsNullOrWhiteSpace(telefono))
+                {
+                    MessageBox.Show("El teléfono del proveedor es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtTelefono.Focus();
+                    return;
+                }
+
+                // Validación: El teléfono debe contener únicamente números y exactamente 8 dígitos
+                if (!System.Text.RegularExpressions.Regex.IsMatch(telefono, @"^\d{8}$"))
+                {
+                    MessageBox.Show("El teléfono debe contener únicamente números y tener una longitud exacta de 8 dígitos.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtTelefono.Focus();
+                    return;
+                }
+
+                // Validación: El correo electrónico es obligatorio
+                if (string.IsNullOrWhiteSpace(correo))
+                {
+                    MessageBox.Show("El correo electrónico del proveedor es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
+                    return;
+                }
+
+                // Validación: Longitud máxima del correo (150 caracteres)
+                if (correo.Length > 150)
+                {
+                    MessageBox.Show("El correo electrónico no puede superar los 150 caracteres.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
+                    return;
+                }
+
+                // Validación: El correo electrónico debe tener un formato válido
+                if (!new EmailAddressAttribute().IsValid(correo))
+                {
+                    MessageBox.Show("Escribe un correo electrónico válido para el proveedor.", "Correo no válido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
+                    return;
+                }
+
+                // Validaciones de duplicados en la base de datos
+                var listaExistente = _proveedorService.ObtenerTodas();
+
+                if (listaExistente.Any(p => p.Nombre.Equals(nombre, StringComparison.OrdinalIgnoreCase) && p.Id != _idSeleccionado))
+                {
+                    MessageBox.Show("Ya existe otro proveedor registrado con este mismo nombre.", "Nombre duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                if (listaExistente.Any(p => p.Correo != null && p.Correo.Equals(correo, StringComparison.OrdinalIgnoreCase) && p.Id != _idSeleccionado))
+                {
+                    MessageBox.Show("Ya existe otro proveedor registrado con este mismo correo electrónico.", "Correo duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtCorreo.Focus();
                     return;
                 }
 
@@ -205,6 +283,13 @@ namespace VentasOnline.Forms
             txtNombre.Clear();
             txtTelefono.Clear();
             txtCorreo.Clear();
+
+            // Deshabilitar el botón de eliminar al limpiar el formulario
+            if (btnEliminar != null)
+            {
+                btnEliminar.Enabled = false;
+            }
+
             txtNombre.Focus();
         }
     }
