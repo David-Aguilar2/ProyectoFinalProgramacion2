@@ -87,11 +87,11 @@ namespace VentasOnline.Forms
             btnDireccion.FlatStyle = FlatStyle.Flat;
             btnDireccion.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
             btnDireccion.ForeColor = Color.White;
-            btnDireccion.Location = new Point(117, 444);
+            btnDireccion.Location = new Point(91, 444);
             btnDireccion.Name = "btnDireccion";
-            btnDireccion.Size = new Size(175, 48);
+            btnDireccion.Size = new Size(245, 48);
             btnDireccion.TabIndex = 11;
-            btnDireccion.Text = "Añadir Dirección";
+            btnDireccion.Text = "Añadir o editar dirección";
             btnDireccion.UseVisualStyleBackColor = false;
             // 
             // txtTelefono

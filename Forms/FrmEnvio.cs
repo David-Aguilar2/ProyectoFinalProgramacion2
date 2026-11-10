@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using QuestPDF.Fluent;
+using VentasOnline.Dtos;
 using VentasOnline.Models;
+using VentasOnline.Reportes;
 using VentasOnline.Services;
 
 namespace VentasOnline.Forms
@@ -11,6 +16,8 @@ namespace VentasOnline.Forms
     public partial class FrmEnvio : Form
     {
         private readonly EnvioService _envioService = new();
+        // Servicio para consultar la información completa del envío/pedido para el reporte PDF
+        private readonly EnvioReporteService _envioReporteService = new();
         private int _envioIdSeleccionado = 0;
         private int _idPedidoActual = 0;
 
@@ -61,6 +68,13 @@ namespace VentasOnline.Forms
 
             // Enlazar eventos de botones
             btnGuardar.Click += BtnGuardar_Click;
+
+            // 💡 Enlazar evento para la generación del reporte PDF
+            if (btnGenerarReporte != null)
+            {
+                btnGenerarReporte.Click += BtnGenerarReporte_Click;
+                btnGenerarReporte.Enabled = false; // Deshabilitado por defecto hasta que se seleccione un envío
+            }
 
             // Si tienes un botón para cerrar o salir
             var btnCerrar = this.Controls.Find("btnCerrar", true).FirstOrDefault() as Button;
@@ -126,6 +140,9 @@ namespace VentasOnline.Forms
 
                     cboEstadoEntrega.Enabled = false;
                     btnGuardar.Enabled = false;
+
+                    // Deshabilitar botón de reporte si no hay envíos en el filtro actual
+                    if (btnGenerarReporte != null) btnGenerarReporte.Enabled = false;
                 }
             }
             catch (Exception ex)
@@ -166,6 +183,12 @@ namespace VentasOnline.Forms
 
             cboEstadoEntrega.Enabled = esEditable;
             btnGuardar.Enabled = esEditable;
+
+            // Habilitar el botón de reporte al seleccionar válidamente un envío de la grilla
+            if (btnGenerarReporte != null)
+            {
+                btnGenerarReporte.Enabled = _envioIdSeleccionado > 0;
+            }
         }
 
         private void BtnGuardar_Click(object sender, EventArgs e)
@@ -192,6 +215,55 @@ namespace VentasOnline.Forms
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error de validación", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Genera y exporta el comprobante de envío y detalle del pedido en formato PDF utilizando QuestPDF.
+        private void BtnGenerarReporte_Click(object? sender, EventArgs e)
+        {
+            if (_envioIdSeleccionado == 0)
+            {
+                MessageBox.Show("Por favor, seleccione un envío de la lista.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 1. Obtener los detalles completos del envío, cliente, dirección y productos mediante el servicio de reportes
+            EnvioDetalleReporteDto? dto = _envioReporteService.ObtenerDetalleEnvioParaReporte(_envioIdSeleccionado);
+
+            if (dto == null)
+            {
+                MessageBox.Show("No se encontraron los detalles completos del envío o del pedido asociado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // 2. Mostrar diálogo para seleccionar la ubicación de guardado del PDF
+            using var dialogo = new SaveFileDialog
+            {
+                Filter = "Archivo PDF (*.pdf)|*.pdf",
+                FileName = $"ComprobanteEnvio_{dto.IdEnvio}_Pedido_{dto.IdPedido}.pdf"
+            };
+
+            if (dialogo.ShowDialog() != DialogResult.OK) return;
+
+            try
+            {
+                // 3. Obtener el nombre del usuario logueado en la sesión activa si está disponible
+                string usuarioActual = Sesion.UsuarioActual != null ? Sesion.UsuarioActual.Nombre : "Administrador";
+
+                // 4. Instanciar y generar el documento PDF con QuestPDF
+                var documento = new EnvioComprobanteDocument(dto, usuarioActual);
+                documento.GeneratePdf(dialogo.FileName);
+
+                // 5. Abrir el archivo PDF automáticamente con el visor predeterminado del sistema operativo
+                Process.Start(new ProcessStartInfo(dialogo.FileName) { UseShellExecute = true });
+            }
+            catch (IOException)
+            {
+                MessageBox.Show("No se pudo guardar el archivo. Verifique si el PDF está abierto en otro programa.", "SivarPOS", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al generar el comprobante PDF:\n{ex.Message}", "SivarPOS", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

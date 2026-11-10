@@ -20,8 +20,8 @@ namespace VentasOnline.Models
         public string Correo { get; set; }
 
         // Propiedades de navegación
-        // Un cliente puede tener varias direcciones y pedidos
-        public List<Direccion> Direcciones { get; set; } = new();
+        // Un cliente puede tener solo una dirección y varios pedidos
+        public Direccion? Direccion { get; set; }
         public List<Pedido> Pedidos { get; set; } = new();
     }
 }

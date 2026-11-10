@@ -126,7 +126,8 @@ namespace VentasOnline.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IdCliente");
+                    b.HasIndex("IdCliente")
+                        .IsUnique();
 
                     b.ToTable("Direcciones");
                 });
@@ -356,18 +357,6 @@ namespace VentasOnline.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Usuarios");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Correo = "admin@tiendaOnline.sv",
-                            FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Nombre = "Administrador Principal",
-                            Password = "Admin123!",
-                            Rol = "Administrador",
-                            Telefono = "70000000"
-                        });
                 });
 
             modelBuilder.Entity("VentasOnline.Models.DetallePedido", b =>
@@ -392,8 +381,8 @@ namespace VentasOnline.Migrations
             modelBuilder.Entity("VentasOnline.Models.Direccion", b =>
                 {
                     b.HasOne("VentasOnline.Models.Cliente", "Cliente")
-                        .WithMany("Direcciones")
-                        .HasForeignKey("IdCliente")
+                        .WithOne("Direccion")
+                        .HasForeignKey("VentasOnline.Models.Direccion", "IdCliente")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -475,7 +464,7 @@ namespace VentasOnline.Migrations
 
             modelBuilder.Entity("VentasOnline.Models.Cliente", b =>
                 {
-                    b.Navigation("Direcciones");
+                    b.Navigation("Direccion");
 
                     b.Navigation("Pedidos");
                 });

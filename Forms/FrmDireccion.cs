@@ -15,11 +15,13 @@ namespace VentasOnline.Forms
 {
     public partial class FrmDireccion : Form
     {
+        // Servicios y variables para manejar operaciones de direcciones
         private readonly DireccionService _direccionService = new();
         private int _idClienteRecibido;
         private int _idDireccionSeleccionada = 0;
         private bool _cargandoDatos = true;
 
+        // Constructor que recibe el ID del cliente para gestionar sus direcciones
         public FrmDireccion(int idCliente)
         {
             InitializeComponent();
@@ -28,16 +30,20 @@ namespace VentasOnline.Forms
             ConfigurarFormulario();
         }
 
+        // Método para cargar la información del cliente en el formulario al iniciar
         private void CargarInformacionClienteInicial()
         {
             try
             {
+                // Usamos AsNoTracking para mejorar el rendimiento al solo leer datos
                 using var ctx = new AppDbContext();
                 var cliente = ctx.Clientes.AsNoTracking().FirstOrDefault(c => c.Id == _idClienteRecibido);
+                // Si encontramos el cliente, mostramos su nombre en el TextBox correspondiente
                 if (cliente != null && txtCliente != null)
                 {
                     txtCliente.Text = cliente.Nombre;
                 }
+                // Si no encontramos el cliente, aseguramos que el TextBox esté vacío
                 else if (txtCliente != null)
                 {
                     txtCliente.Text = string.Empty;
@@ -49,6 +55,7 @@ namespace VentasOnline.Forms
             }
         }
 
+        // Método para configurar las propiedades y eventos del formulario y sus controles
         private void ConfigurarFormulario()
         {
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -58,6 +65,7 @@ namespace VentasOnline.Forms
 
             if (txtCliente != null) txtCliente.ReadOnly = true;
 
+            // Configuración del ComboBox de departamentos con los valores predefinidos
             if (cboDepartamento.Items.Count == 0)
             {
                 cboDepartamento.Items.AddRange(new object[] {
@@ -68,6 +76,7 @@ namespace VentasOnline.Forms
             }
             cboDepartamento.DropDownStyle = ComboBoxStyle.DropDownList;
 
+            // Configuración del DataGridView para mostrar las direcciones
             dgvDirecciones.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvDirecciones.MultiSelect = false;
             dgvDirecciones.ReadOnly = true;
@@ -77,7 +86,7 @@ namespace VentasOnline.Forms
             btnGuardar.Click += BtnGuardar_Click;
             btnEliminar.Click += BtnEliminar_Click;
 
-            // 💡 Suscribir el evento de búsqueda en tiempo real por nombre de cliente
+            // Suscribir el evento de búsqueda en tiempo real por nombre de cliente
             if (txtBusqueda != null)
             {
                 txtBusqueda.TextChanged += txtBusqueda_TextChanged;
@@ -93,8 +102,41 @@ namespace VentasOnline.Forms
         private void FrmDireccion_Load(object? sender, EventArgs e)
         {
             CargarGrillaDirecciones();
-            RestablecerModoCreacion();
+
+            // Validar si el cliente ya tiene una dirección registrada al entrar
+            CargarDireccionExistenteDelCliente();
+
             _cargandoDatos = false;
+        }
+
+        // Método para verificar y cargar la dirección previa del cliente (Relación 1:1)
+        private void CargarDireccionExistenteDelCliente()
+        {
+            try
+            {
+                using var ctx = new AppDbContext();
+                var direccionExistente = ctx.Direcciones
+                    .AsNoTracking()
+                    .FirstOrDefault(d => d.IdCliente == _idClienteRecibido);
+
+                if (direccionExistente != null)
+                {
+                    // Si ya tiene dirección, cargamos sus datos para edición directa
+                    _idDireccionSeleccionada = direccionExistente.Id;
+                    cboDepartamento.SelectedItem = direccionExistente.Departamento;
+                    txtUbicacion.Text = direccionExistente.Ubicacion ?? string.Empty;
+                    btnGuardar.Text = "Actualizar";
+                }
+                else
+                {
+                    // Si no tiene, flujo normal de creación
+                    RestablecerModoCreacion();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al verificar la dirección del cliente: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // Método para cargar la grilla filtrando opcionalmente por el nombre del cliente
@@ -142,7 +184,7 @@ namespace VentasOnline.Forms
             }
         }
 
-        // 💡 Evento que se ejecuta al escribir en el txtBusqueda
+        // Evento que se ejecuta al escribir en el txtBusqueda
         private void txtBusqueda_TextChanged(object? sender, EventArgs e)
         {
             if (_cargandoDatos) return;
@@ -225,9 +267,7 @@ namespace VentasOnline.Forms
 
                 CargarGrillaDirecciones();
                 if (txtBusqueda != null) txtBusqueda.Clear();
-                RestablecerModoCreacion();
-
-                if (txtCliente != null) txtCliente.Clear();
+                CargarDireccionExistenteDelCliente(); // Refrescar estado actual
             }
             catch (Exception ex)
             {

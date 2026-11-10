@@ -45,6 +45,11 @@ namespace VentasOnline.Services
             if (!clienteExiste)
                 throw new InvalidOperationException("El cliente especificado no existe.");
 
+            // La relación es estricta 1:1, validamos que no tenga dirección previa
+            bool yaTieneDireccion = ctx.Direcciones.Any(d => d.IdCliente == direccion.IdCliente);
+            if (yaTieneDireccion)
+                throw new InvalidOperationException("Este cliente ya cuenta con una dirección registrada. Debe actualizar la existente.");
+
             ctx.Direcciones.Add(direccion);
             ctx.SaveChanges();
 

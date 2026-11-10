@@ -96,7 +96,6 @@ namespace VentasOnline
             // Restringir módulos exclusivos para Administradores
             btnProveedor.Enabled = esAdministrador;  // Bloqueado para Vendedores
             btnUsuarios.Enabled = esAdministrador;   // Bloqueado para Vendedores
-            //admin@localhost.com Test123!
         }
 
         // Evento que se ejecuta al hacer clic en el botón de cerrar sesión

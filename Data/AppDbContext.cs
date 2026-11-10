@@ -41,12 +41,12 @@ namespace VentasOnline.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Relación 1 a Muchos: Cliente -> Direcciones
-            // Un cliente puede tener múltiples direcciones de envío registradas
-            modelBuilder.Entity<Direccion>()
-                .HasOne(d => d.Cliente)
-                .WithMany(c => c.Direcciones)
-                .HasForeignKey(d => d.IdCliente)
+            // Relación 1 a 1: Cliente -> Direccion
+            // Un cliente tiene única y exclusivamente una dirección registrada
+            modelBuilder.Entity<Cliente>()
+                .HasOne(c => c.Direccion)
+                .WithOne(d => d.Cliente)
+                .HasForeignKey<Direccion>(d => d.IdCliente)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Relación 1 a Muchos: Cliente -> Pedidos

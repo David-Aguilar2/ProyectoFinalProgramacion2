@@ -69,8 +69,8 @@
             navigationPanel.Controls.Add(btnCliente);
             navigationPanel.Controls.Add(btnUsuarios);
             navigationPanel.Controls.Add(btnPedidos);
-            navigationPanel.Controls.Add(btnPagos);
             navigationPanel.Controls.Add(btnEnvios);
+            navigationPanel.Controls.Add(btnPagos);
             navigationPanel.FlowDirection = FlowDirection.TopDown;
             navigationPanel.Location = new Point(12, 108);
             navigationPanel.Name = "navigationPanel";
@@ -143,7 +143,7 @@
             // 
             btnPagos.Cursor = Cursors.Hand;
             btnPagos.ForeColor = SystemColors.ButtonHighlight;
-            btnPagos.Location = new Point(3, 348);
+            btnPagos.Location = new Point(3, 406);
             btnPagos.Name = "btnPagos";
             btnPagos.Size = new Size(228, 54);
             btnPagos.TabIndex = 8;
@@ -153,7 +153,7 @@
             // 
             btnEnvios.Cursor = Cursors.Hand;
             btnEnvios.ForeColor = SystemColors.ButtonHighlight;
-            btnEnvios.Location = new Point(3, 408);
+            btnEnvios.Location = new Point(3, 348);
             btnEnvios.Name = "btnEnvios";
             btnEnvios.Size = new Size(228, 52);
             btnEnvios.TabIndex = 0;
