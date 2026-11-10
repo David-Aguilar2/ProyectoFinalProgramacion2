@@ -12,18 +12,19 @@ namespace VentasOnline.Forms
 {
     public partial class FrmProveedores : Form
     {
-        // Servicio para manejar operaciones de proveedores
+        // Instancia del servicio encargado de la lógica de negocio y comunicación con la base de datos para los proveedores
         private readonly ProveedoresService _proveedorService;
-        private int _idSeleccionado = 0;
 
-        // Constructor que inicializa el formulario y el servicio de proveedores
+        // Variable de control para saber si se va a registrar un nuevo proveedor (0) o si se está editando uno existente
+        private int _idSeleccionado = 0; // 0 significa registro nuevo
+
         public FrmProveedores()
         {
             InitializeComponent();
             _proveedorService = new ProveedoresService();
         }
 
-        // Evento Load del formulario que carga la grilla de proveedores y limpia el formulario al iniciar
+        // Evento que se ejecuta al cargar la ventana, inicializando la grilla de datos y limpiando los campos de texto
         private void FormProveedores_Load(object sender, EventArgs e)
         {
             CargarGrilla();
@@ -35,7 +36,7 @@ namespace VentasOnline.Forms
         {
             try
             {
-                // Obtener la lista de proveedores desde el servicio
+                // Obtiene la lista completa de proveedores desde la base de datos a través del servicio
                 var lista = _proveedorService.ObtenerTodas();
                 dgvProveedores.DataSource = null;
                 dgvProveedores.DataSource = lista;
@@ -48,28 +49,61 @@ namespace VentasOnline.Forms
             }
             catch (Exception ex)
             {
+                // Muestra un mensaje de error en caso de que falle la carga de datos
                 MessageBox.Show($"Error al cargar proveedores: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        // Botón Nuevo que limpia el formulario para ingresar un nuevo proveedor
-        private void btnNuevo_Click(object sender, EventArgs e)
+        // Evento para capturar el clic en la grilla y rellenar el formulario para editar
+        private void dgvProveedores_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            LimpiarFormulario();
-            txtNombre.Focus();
+            // Evita errores si se hace clic en los encabezados de la tabla (índice menor a 0)
+            if (e.RowIndex < 0) return;
+
+            var fila = dgvProveedores.Rows[e.RowIndex];
+
+            // Extrae el objeto Proveedores vinculado a la fila seleccionada y carga sus valores en los TextBox correspondientes
+            if (fila.DataBoundItem is Proveedores proveedorSeleccionado)
+            {
+                _idSeleccionado = proveedorSeleccionado.Id;
+                txtNombre.Text = proveedorSeleccionado.Nombre;
+                txtTelefono.Text = proveedorSeleccionado.Telefono ?? string.Empty;
+                txtCorreo.Text = proveedorSeleccionado.Correo ?? string.Empty;
+            }
         }
 
-        // Botón Guardar que crea o actualiza un proveedor según el estado del formulario
+        // Botón Nuevo
+        private void btnNuevo_Click(object sender, EventArgs e)
+        {
+            // Restablece el formulario para permitir el registro de un proveedor completamente nuevo
+            LimpiarFormulario();
+        }
+
+        // Botón Guardar
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             try
             {
-                // Validar campos obligatorios
+                // Captura y limpia los espacios en blanco de los campos de texto
+                string nombre = txtNombre.Text.Trim();
+                string telefono = txtTelefono.Text.Trim();
+                string correo = txtCorreo.Text.Trim();
+
+                // Validación obligatoria: El nombre del proveedor no puede estar vacío
+                if (string.IsNullOrEmpty(nombre))
+                {
+                    MessageBox.Show("El nombre del proveedor es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // Crea una instancia del modelo con los datos ingresados
                 var proveedor = new Proveedores
                 {
-                    Nombre = txtNombre.Text.Trim(),
-                    Telefono = txtTelefono.Text.Trim(),
-                    Correo = txtCorreo.Text.Trim()
+                    Id = _idSeleccionado,
+                    Nombre = nombre,
+                    Telefono = telefono,
+                    Correo = correo
                 };
 
                 if (_idSeleccionado == 0)
@@ -77,36 +111,36 @@ namespace VentasOnline.Forms
                     // Crear nuevo
                     _proveedorService.Crear(proveedor);
                     MessageBox.Show("Proveedor creado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LimpiarFormulario();
                 }
                 else
                 {
                     // Actualizar existente
-                    proveedor.Id = _idSeleccionado;
                     _proveedorService.Actualizar(proveedor);
                     MessageBox.Show("Proveedor actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LimpiarFormulario();
                 }
 
+                // Actualiza la tabla y limpia los campos tras una operación exitosa
                 CargarGrilla();
                 LimpiarFormulario();
             }
             catch (Exception ex)
             {
+                // Muestra advertencias si ocurre algún error controlado durante el guardado
                 MessageBox.Show(ex.Message, "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
-        // Botón Eliminar que elimina el proveedor seleccionado después de confirmar la acción
+        // Botón Eliminar
         private void btnEliminar_Click(object sender, EventArgs e)
         {
+            // Valida que se haya seleccionado un proveedor previamente antes de intentar borrar
             if (_idSeleccionado == 0)
             {
                 MessageBox.Show("Seleccione un proveedor de la lista para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            // Confirmar eliminación
+            // Pide confirmación al usuario antes de proceder con la eliminación
             var confirmacion = MessageBox.Show($"¿Está seguro de eliminar el proveedor '{txtNombre.Text}'?",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -114,22 +148,26 @@ namespace VentasOnline.Forms
             {
                 try
                 {
+                    // Ejecuta el método de eliminación en el servicio usando el ID seleccionado
                     _proveedorService.Eliminar(_idSeleccionado);
                     MessageBox.Show("Proveedor eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
+                    // Refresca la grilla y limpia el formulario
                     CargarGrilla();
                     LimpiarFormulario();
                 }
                 catch (Exception ex)
                 {
+                    // Maneja excepciones específicas (como restricciones de claves foráneas al borrar)
                     MessageBox.Show(ex.Message, "Restricción de Borrado", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 }
             }
         }
 
-        // Botón Cancelar que limpia el formulario y cierra la ventana
+        // Botón Cancelar
         private void btnCancelar_Click(object sender, EventArgs e)
         {
+            // Limpia los campos y cierra la ventana actual
             LimpiarFormulario();
             Close();
         }
@@ -137,12 +175,14 @@ namespace VentasOnline.Forms
         // Limpiar controles
         private void LimpiarFormulario()
         {
+            // Restablece el ID a 0, quita la selección del DataGridView y limpia las cajas de texto enfocando nuevamente el nombre
             _idSeleccionado = 0;
             dgvProveedores.ClearSelection();
             dgvProveedores.CurrentCell = null;
             txtNombre.Clear();
             txtTelefono.Clear();
             txtCorreo.Clear();
+            txtNombre.Focus();
         }
     }
 }

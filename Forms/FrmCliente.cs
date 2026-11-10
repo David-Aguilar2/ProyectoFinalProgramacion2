@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client.NativeInterop;
 using System.ComponentModel.DataAnnotations;
 using VentasOnline.Data;
 using VentasOnline.Models;
@@ -9,13 +8,12 @@ namespace VentasOnline.Forms
 {
     public partial class FrmCliente : Form
     {
-        // Variables para controlar la carga de datos y el cliente seleccionado
-        private bool _cargandoDatos;
-        private int? _clienteSeleccionadoId;
+        // Instancia del servicio para manejar la lógica de negocio de los clientes
         private ClienteService _clienteService;
+
+        // Variable para controlar si se está creando un registro nuevo (0) o editando uno existente
         private int _idSeleccionado = 0; // 0 significa nuevo, otro valor indica edición
 
-        // Constructor que inicializa los componentes, configura el diseño visual y crea una instancia del servicio de clientes
         public FrmCliente()
         {
             InitializeComponent();
@@ -23,7 +21,7 @@ namespace VentasOnline.Forms
             _clienteService = new ClienteService();
         }
 
-        // Método que configura el diseño visual del formulario, incluyendo colores, fuentes y estilos de los controles
+        // Método para configurar el diseño visual y las propiedades iniciales de la ventana y sus controles
         private void ConfigureVisualLayout()
         {
             Text = "Clientes - SivarPOS";
@@ -61,15 +59,17 @@ namespace VentasOnline.Forms
                 SelectionForeColor = Color.White
             };
             dgvClientes.RowTemplate.Height = 34;
-            dgvClientes.SelectionChanged += dgvClientes_SelectionChanged;
+
+            dgvClientes.CellClick += dgvClientes_CellClick;
         }
 
-        // Evento que se ejecuta al cargar el formulario, intenta cargar los clientes y maneja cualquier excepción que pueda ocurrir
+        // Evento que se ejecuta al cargar el formulario, inicializando los datos y limpiando campos
         private void FrmCliente_Load(object? sender, EventArgs e)
         {
             try
             {
                 CargarClientes();
+                LimpiarFormulario();
             }
             catch (Exception ex)
             {
@@ -77,13 +77,11 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Método que carga los clientes desde la base de datos y los muestra en el DataGridView
-        // opcionalmente seleccionando un cliente específico
-        private void CargarClientes(int? clienteSeleccionadoId = null)
+        // Método para consultar la base de datos y llenar la tabla (DataGridView) con la lista de clientes ordenados
+        private void CargarClientes()
         {
             try
             {
-                // Cargar clientes desde la base de datos y ordenarlos por nombre y luego por ID
                 using var db = new AppDbContext();
                 var clientes = db.Clientes
                     .AsNoTracking()
@@ -91,108 +89,84 @@ namespace VentasOnline.Forms
                     .ThenBy(cliente => cliente.Id)
                     .ToList();
 
-                _cargandoDatos = true;
                 dgvClientes.Rows.Clear();
                 foreach (var cliente in clientes)
                 {
                     dgvClientes.Rows.Add(cliente.Id, cliente.Nombre, cliente.Telefono, cliente.Correo);
                 }
 
-                dgvClientes.ClearSelection();
-                // Si se proporcionó un ID de cliente para seleccionar, buscarlo y seleccionarlo
-                if (clienteSeleccionadoId.HasValue)
-                {
-                    foreach (DataGridViewRow fila in dgvClientes.Rows)
-                    {
-                        if (Convert.ToInt32(fila.Cells[colIdCliente.Name].Value) == clienteSeleccionadoId.Value)
-                        {
-                            fila.Selected = true;
-                            dgvClientes.CurrentCell = fila.Cells[colNombre.Name];
-                            break;
-                        }
-                    }
-                }
-
-                // Si no hay un cliente seleccionado y hay clientes en la lista, seleccionar el primero
-                if (dgvClientes.CurrentRow == null && dgvClientes.Rows.Count > 0)
-                {
-                    dgvClientes.CurrentCell = dgvClientes.Rows[0].Cells[colNombre.Name];
-                }
-
                 lblCantidad.Text = $"Clientes registrados: {clientes.Count}";
-                _cargandoDatos = false;
-                MostrarClienteSeleccionado();
             }
             catch (Exception ex)
             {
-                _cargandoDatos = false;
                 MessageBox.Show($"No se pudieron cargar los clientes: {ObtenerMensajeError(ex)}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        // Este método se ejecuta cuando cambia la selección en el DataGridView de clientes
-        // Si no se están cargando datos, llama al método MostrarClienteSeleccionado para actualizar los campos del formulario con la información del cliente seleccionado.
-        private void dgvClientes_SelectionChanged(object? sender, EventArgs e)
+
+        // Evento único para manejar la selección manual por celda y cargar los datos en los TextBox para su edición
+        private void dgvClientes_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
-            if (!_cargandoDatos)
+            if (e.RowIndex < 0) return;
+
+            var fila = dgvClientes.Rows[e.RowIndex];
+
+            if (fila.Cells[colIdCliente.Name].Value is int idCliente)
             {
-                MostrarClienteSeleccionado();
+                _idSeleccionado = idCliente;
+                txtNombre.Text = Convert.ToString(fila.Cells[colNombre.Name].Value) ?? string.Empty;
+                txtTelefono.Text = Convert.ToString(fila.Cells[colTelefono.Name].Value) ?? string.Empty;
+                txtCorreo.Text = Convert.ToString(fila.Cells[colCorreo.Name].Value) ?? string.Empty;
             }
         }
 
-        // Este método muestra la información del cliente seleccionado en los campos de texto del formulario.
-        private void MostrarClienteSeleccionado()
-        {
-            if (dgvClientes.CurrentRow == null || dgvClientes.CurrentRow.Cells[colIdCliente.Name].Value is not int idCliente)
-            {
-                return;
-            }
-
-            // Guardamos el ID del cliente seleccionado en la variable _idSeleccionado para usarlo en operaciones de actualización o eliminación
-            _idSeleccionado = Convert.ToInt32(dgvClientes.CurrentRow.Cells[colIdCliente.Name].Value);
-            txtNombre.Text = Convert.ToString(dgvClientes.CurrentRow.Cells[colNombre.Name].Value) ?? string.Empty;
-            txtTelefono.Text = Convert.ToString(dgvClientes.CurrentRow.Cells[colTelefono.Name].Value) ?? string.Empty;
-            txtCorreo.Text = Convert.ToString(dgvClientes.CurrentRow.Cells[colCorreo.Name].Value) ?? string.Empty;
-        }
-
-        // Este método se ejecuta cuando se hace clic en el botón "Nuevo". Limpia el formulario y establece el foco en el campo de nombre.
+        // Evento del botón "Nuevo", limpia el formulario para permitir el registro de un cliente nuevo
         private void btnNuevo_Click(object? sender, EventArgs e)
         {
             LimpiarFormulario();
-            txtNombre.Focus();
         }
 
-        // Este método se ejecuta cuando se hace clic en el botón "Guardar". Valida los datos del cliente y llama al servicio para crear o actualizar el cliente según corresponda.
+        // Evento del botón "Guardar", valida los campos obligatorios y el formato del correo antes de crear o actualizar
         private void btnGuardar_Click(object? sender, EventArgs e)
         {
             try
             {
-                // Validar que el nombre no esté vacío
-                var cliente = new Cliente
-                {
-                    Nombre = txtNombre.Text.Trim(),
-                    Telefono = txtTelefono.Text.Trim(),
-                    Correo = txtCorreo.Text.Trim()
-                };
+                string nombre = txtNombre.Text.Trim();
+                string telefono = txtTelefono.Text.Trim();
+                string correo = txtCorreo.Text.Trim();
 
-                //Validamos que el email sea válido usando la clase EmailAddressAttribute
-                if (!new EmailAddressAttribute().IsValid(cliente.Correo))
+                // Validación: El nombre no puede estar vacío
+                if (string.IsNullOrEmpty(nombre))
+                {
+                    MessageBox.Show("El nombre del cliente es obligatorio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+
+                // Validación: El correo electrónico debe tener un formato válido
+                if (!new EmailAddressAttribute().IsValid(correo))
                 {
                     MessageBox.Show("Escribe un correo electrónico válido.", "Correo no válido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtCorreo.Focus();
                     return;
                 }
 
-                // Comprobamos si estamos creando un nuevo cliente o actualizando uno existente
+                var cliente = new Cliente
+                {
+                    Id = _idSeleccionado,
+                    Nombre = nombre,
+                    Telefono = telefono,
+                    Correo = correo
+                };
+
                 if (_idSeleccionado == 0)
                 {
-                    // Crear
+                    // Crear un nuevo registro si no hay un ID seleccionado
                     _clienteService.Crear(cliente);
                     MessageBox.Show("Cliente creado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    // Actualizar
-                    cliente.Id = _idSeleccionado; // Asignamos directamente el ID guardado en la variable
+                    // Actualizar el registro existente si el ID es diferente de cero
                     _clienteService.Actualizar(cliente);
                     MessageBox.Show("Cliente actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -206,7 +180,7 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Este método se ejecuta cuando se hace clic en el botón "Eliminar". Verifica si hay un cliente seleccionado, solicita confirmación al usuario y llama al servicio para eliminar el cliente.
+        // Evento del botón "Eliminar", solicita confirmación y procede a borrar el cliente seleccionado de la base de datos
         private void btnEliminar_Click(object? sender, EventArgs e)
         {
             if (_idSeleccionado == 0)
@@ -214,7 +188,7 @@ namespace VentasOnline.Forms
                 MessageBox.Show("Seleccione un cliente de la lista para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            // Confirmación de eliminación
+
             var confirmacion = MessageBox.Show($"¿Está seguro de eliminar el cliente '{txtNombre.Text}'?",
                 "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -223,7 +197,7 @@ namespace VentasOnline.Forms
                 try
                 {
                     _clienteService.Eliminar(_idSeleccionado);
-                    MessageBox.Show("Cliente eliminado  correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Cliente eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     CargarClientes();
                     LimpiarFormulario();
@@ -235,13 +209,14 @@ namespace VentasOnline.Forms
             }
         }
 
-        // Este método se ejecuta cuando se hace clic en el botón "Cancelar". Limpia el formulario y cierra la ventana.
+        // Evento del botón "Cancelar", limpia el formulario y cierra la ventana actual
         private void btnCancelar_Click(object? sender, EventArgs e)
         {
             LimpiarFormulario();
             Close();
         }
-        // Este método limpia los campos del formulario y restablece el ID seleccionado a 0, indicando que no hay un cliente seleccionado.
+
+        // Método auxiliar para restablecer los controles de entrada y deseleccionar la tabla
         private void LimpiarFormulario()
         {
             _idSeleccionado = 0;
@@ -250,9 +225,10 @@ namespace VentasOnline.Forms
             txtNombre.Clear();
             txtTelefono.Clear();
             txtCorreo.Clear();
+            txtNombre.Focus();
         }
 
-        // Este método obtiene un mensaje de error a partir de una excepción, devolviendo el mensaje de la excepción interna si está disponible, o el mensaje de la excepción principal en caso contrario.
+        // Método auxiliar para extraer el mensaje de error principal o interno de una excepción
         private static string ObtenerMensajeError(Exception ex)
         {
             return ex.InnerException?.Message ?? ex.Message;
