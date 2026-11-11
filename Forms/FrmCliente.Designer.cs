@@ -33,7 +33,6 @@ namespace VentasOnline.Forms
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
             panelFormulario = new Panel();
             btnDireccion = new Button();
-            txtTelefono = new MaskedTextBox();
             lblNombre = new Label();
             lblTelefono = new Label();
             lblCorreo = new Label();
@@ -55,6 +54,7 @@ namespace VentasOnline.Forms
             colCorreo = new DataGridViewTextBoxColumn();
             txtBusqueda = new TextBox();
             lblBusqueda = new Label();
+            txtTelefono = new TextBox();
             panelFormulario.SuspendLayout();
             panelLista.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvClientes).BeginInit();
@@ -64,8 +64,8 @@ namespace VentasOnline.Forms
             // 
             panelFormulario.BackColor = Color.White;
             panelFormulario.BorderStyle = BorderStyle.FixedSingle;
-            panelFormulario.Controls.Add(btnDireccion);
             panelFormulario.Controls.Add(txtTelefono);
+            panelFormulario.Controls.Add(btnDireccion);
             panelFormulario.Controls.Add(lblNombre);
             panelFormulario.Controls.Add(lblTelefono);
             panelFormulario.Controls.Add(lblCorreo);
@@ -94,14 +94,6 @@ namespace VentasOnline.Forms
             btnDireccion.TabIndex = 11;
             btnDireccion.Text = "Añadir o editar dirección";
             btnDireccion.UseVisualStyleBackColor = false;
-            // 
-            // txtTelefono
-            // 
-            txtTelefono.Location = new Point(18, 165);
-            txtTelefono.Mask = "0000-0000";
-            txtTelefono.Name = "txtTelefono";
-            txtTelefono.Size = new Size(88, 27);
-            txtTelefono.TabIndex = 10;
             // 
             // lblNombre
             // 
@@ -367,6 +359,13 @@ namespace VentasOnline.Forms
             lblBusqueda.TabIndex = 6;
             lblBusqueda.Text = "Buscar por correo:";
             // 
+            // txtTelefono
+            // 
+            txtTelefono.Location = new Point(18, 165);
+            txtTelefono.Name = "txtTelefono";
+            txtTelefono.Size = new Size(125, 27);
+            txtTelefono.TabIndex = 12;
+            // 
             // FrmCliente
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -394,8 +393,6 @@ namespace VentasOnline.Forms
             ResumeLayout(false);
             PerformLayout();
         }
-
-        private MaskedTextBox txtTelefono;
         private Button btnDireccion;
         private Label lblCantidad;
         private Panel panelLista;
@@ -407,5 +404,6 @@ namespace VentasOnline.Forms
         private DataGridViewTextBoxColumn colCorreo;
         private TextBox txtBusqueda;
         private Label lblBusqueda;
+        private TextBox txtTelefono;
     }
 }

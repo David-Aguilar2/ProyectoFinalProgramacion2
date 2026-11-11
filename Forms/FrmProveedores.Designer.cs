@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             label1 = new Label();
             label2 = new Label();
             txtNombre = new TextBox();
@@ -36,7 +36,6 @@
             desktopLabel = new Label();
             dgvProveedores = new DataGridView();
             panel2 = new Panel();
-            txtTelefono = new MaskedTextBox();
             btnEliminar = new Button();
             btnCancelar = new Button();
             btnGuardar = new Button();
@@ -45,6 +44,7 @@
             label5 = new Label();
             txtBusqueda = new TextBox();
             lblBusqueda = new Label();
+            txtTelefono = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dgvProveedores).BeginInit();
             panel2.SuspendLayout();
             SuspendLayout();
@@ -103,14 +103,14 @@
             // 
             dgvProveedores.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvProveedores.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = SystemColors.Window;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.CornflowerBlue;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
-            dgvProveedores.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Window;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.CornflowerBlue;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvProveedores.DefaultCellStyle = dataGridViewCellStyle2;
             dgvProveedores.Location = new Point(42, 166);
             dgvProveedores.Margin = new Padding(3, 4, 3, 4);
             dgvProveedores.Name = "dgvProveedores";
@@ -138,14 +138,6 @@
             panel2.Name = "panel2";
             panel2.Size = new Size(309, 547);
             panel2.TabIndex = 11;
-            // 
-            // txtTelefono
-            // 
-            txtTelefono.Location = new Point(23, 183);
-            txtTelefono.Mask = "0000-0000";
-            txtTelefono.Name = "txtTelefono";
-            txtTelefono.Size = new Size(88, 27);
-            txtTelefono.TabIndex = 12;
             // 
             // btnEliminar
             // 
@@ -242,6 +234,13 @@
             lblBusqueda.TabIndex = 12;
             lblBusqueda.Text = "Buscar por correo:";
             // 
+            // txtTelefono
+            // 
+            txtTelefono.Location = new Point(23, 183);
+            txtTelefono.Name = "txtTelefono";
+            txtTelefono.Size = new Size(125, 27);
+            txtTelefono.TabIndex = 13;
+            // 
             // FrmProveedores
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -284,8 +283,8 @@
         private Button btnGuardar;
         private Button btnEliminar;
         private Button btnCancelar;
-        private MaskedTextBox txtTelefono;
         private TextBox txtBusqueda;
         private Label lblBusqueda;
+        private TextBox txtTelefono;
     }
 }

@@ -42,7 +42,7 @@
 
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             panelLista = new Panel();
             lblTituloLista = new Label();
             lblCantidadUsuarios = new Label();
@@ -53,7 +53,6 @@
             colTelefono = new DataGridViewTextBoxColumn();
             colRol = new DataGridViewTextBoxColumn();
             panelFormulario = new Panel();
-            txtTelefono = new MaskedTextBox();
             lblDetalleUsuario = new Label();
             label1 = new Label();
             txtNombre = new TextBox();
@@ -73,6 +72,7 @@
             lblEncabezado = new Label();
             txtBusqueda = new TextBox();
             lblBusqueda = new Label();
+            txtTelefono = new TextBox();
             panelLista.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvUsuarios).BeginInit();
             panelFormulario.SuspendLayout();
@@ -118,7 +118,7 @@
             dgvUsuarios.AllowUserToDeleteRows = false;
             dgvUsuarios.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvUsuarios.BackgroundColor = Color.FromArgb(222, 222, 222);
-            dgvUsuarios.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dgvUsuarios.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             dgvUsuarios.ColumnHeadersHeight = 38;
             dgvUsuarios.Columns.AddRange(new DataGridViewColumn[] { colId, colNombre, colCorreo, colTelefono, colRol });
             dgvUsuarios.EnableHeadersVisualStyles = false;
@@ -199,14 +199,6 @@
             panelFormulario.Name = "panelFormulario";
             panelFormulario.Size = new Size(405, 538);
             panelFormulario.TabIndex = 1;
-            // 
-            // txtTelefono
-            // 
-            txtTelefono.Location = new Point(112, 283);
-            txtTelefono.Mask = "0000-0000";
-            txtTelefono.Name = "txtTelefono";
-            txtTelefono.Size = new Size(88, 27);
-            txtTelefono.TabIndex = 14;
             // 
             // lblDetalleUsuario
             // 
@@ -430,6 +422,13 @@
             lblBusqueda.TabIndex = 14;
             lblBusqueda.Text = "Buscar por correo:";
             // 
+            // txtTelefono
+            // 
+            txtTelefono.Location = new Point(124, 283);
+            txtTelefono.Name = "txtTelefono";
+            txtTelefono.Size = new Size(125, 27);
+            txtTelefono.TabIndex = 14;
+            // 
             // FrmUsuario
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -457,9 +456,8 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
-        private MaskedTextBox txtTelefono;
         private TextBox txtBusqueda;
         private Label lblBusqueda;
+        private TextBox txtTelefono;
     }
 }
